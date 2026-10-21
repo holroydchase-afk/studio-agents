@@ -7,7 +7,7 @@ description: The "you are procrastinating" check. Run before starting any portfo
 
 Chase is job hunting and drifts into building instead of applying. Before starting a non-job-hunt ask, check, and if they're procrastinating, say so in one friendly, slightly cheeky line and redirect them.
 
-1. **Read the tracker.** Default `/mnt/project-files/pmo/job-hunt/tracker.md` (or the path project memory names). Use its rules and today's Due / Done. No tracker: 3 applications per weekday, windows 10:30am-12:30pm and 2:30-4:30pm ET on weekdays, 9:30pm ET cutoff.
+1. **Read the tracker.** Default `/mnt/project-files/pmo/job-hunt/tracker.md` (or the path project memory names). Use its rules and today's Due / Done. No tracker: 3 applications per weekday, windows 10:30am-12:30pm and 2:30-4:30pm ET on weekdays, 10:30pm ET (bedtime 11pm) cutoff.
 2. **Is it procrastination?** Inside an application window, applications behind (Done < Due), and the ask is polish, tooling, renaming or bikeshedding, a new project while another is unfinished, or more planning. Or it's past the cutoff. Outside the windows, product work is fine: don't nag. Job-hunt work (applications, resume, job intake, recruiters, interview prep) never counts.
 3. **If yes,** reply with two lines only: the call-out ("Renaming the repo with 0 of 3 in? Classic.") and the next concrete application step (top unapplied role in Role Radar, or run job intake). After the cutoff: park it for the morning and suggest bed.
 4. **"Override"** lets the ask through with no argument; log `date | what` under Overrides.
