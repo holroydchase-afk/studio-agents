@@ -5,7 +5,7 @@
     {
       "name": "studio",
       "source": "./plugins/studio",
-      "description": "A one-person product studio's AI team: staff PM, test-first QA, engineer, privacy and security, persona UX, and positioning and story."
+      "description": "A one-person product studio's AI team: orchestrator, staff PM, test-first QA, engineer, privacy and security, persona UX, and positioning and story."
     }
   ]
 }
