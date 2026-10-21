@@ -10,8 +10,9 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `privacy-security` | Gold-standard bar scaled to the milestone (OWASP ASVS/MASVS, STRIDE, LINDDUN) |
 | `ux-reviewer` | Cognitive walkthroughs as the least tech-savvy user, measured checks |
 | `positioning` | Claims that are true today, copy, and "why I built it" stories |
+| `focus-coach` | The "you are procrastinating" agent: checks the job-hunt tracker, calls out drift in one cheeky line, redirects to the next application |
 
-Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`.
+Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`.
 
 ## How the agents stay generic
 No agent names a product. Each one reads the repo it's working in:
