@@ -41,3 +41,7 @@ Re-run it to pick up improvements. Agents that exist only in that repo (for exam
 
 ## Changing an agent
 Edit it here first, then sync. One improvement lands everywhere.
+
+## License
+
+MIT ([LICENSE](LICENSE)).
