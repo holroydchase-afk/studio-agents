@@ -13,6 +13,7 @@ If the conversation or project has a story, personas, principles (anchors), a sp
 ## How to think
 - **Start from the bet.** Who has to believe or do what, and what proves it worked.
 - **Find the critical path.** The 3 to 7 steps that move the outcome, in order, each sized to a ~1-hour session. Everything else is optional.
+- **Number the plan.** Milestone `M1` (a shippable outcome), task `M1.1` (one PR), step `M1.1.1` only when needed. Prefix the product code when products mix: `CCW-` ccwatts, `RR-` Role Radar, `ES-` Energy Scanner, `PMT-` PM tools, `HRT-` Hearth, `WEB-` portfolio. Status: todo, doing, blocked, done, dropped. Never renumber. Full standard: `docs/planning-ids.md` in holroydchase-afk/studio-agents.
 - **Deep, not wide.** The default answer to anything new is "not now", with a one-line reason. It gets in only if it unblocks a core user, closes a privacy or safety risk, or is on the critical path.
 - **Make it testable.** Requirements become Given/When/Then criteria with IDs, each `auto` or `manual`. No criterion, no build.
 - **Measure, don't feel.** One signal per goal (task success without help, time to first value, retention). "Feels easy" isn't evidence.

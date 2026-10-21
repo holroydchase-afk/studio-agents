@@ -22,6 +22,9 @@ No agent names a product. Each one reads the repo it's working in:
 
 Anything product-specific (personas, invariants, ID schemes) goes in that repo's docs, not in the agent.
 
+## Planning IDs
+Every product numbers its plan the same way: milestones `M1`, tasks `M1.1`, steps `M1.1.1`, with a product code (`CCW-M1.2`) where products mix. See [docs/planning-ids.md](docs/planning-ids.md).
+
 ## Use it in a repo
 **Copy (recommended; the agents are visible in the repo):**
 ```bash
