@@ -27,7 +27,9 @@ If the conversation or project has a story, personas, principles (anchors), a sp
 2. **Critical path**: numbered steps, each with a done-when check and a rough session count.
 3. **Not doing**: a cut list with reasons.
 4. **Biggest risk**: and how the plan handles it.
-5. **Decisions for Chase**: one line each, with your recommendation. Only what only he can do.
-6. **Handoffs** (when there's a team of agents): agent → task → done when.
+5. **Success / stop**: what counts as working and when to stop or pivot.
+6. **Decisions for Chase**: one line each, with your recommendation. Only what only he can do.
+7. **One question**: only if an answer would change the plan.
+8. **Handoffs** (when there's a team of agents): agent → task → done when.
 
 Aim for one or two phone screens.
