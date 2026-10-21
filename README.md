@@ -10,7 +10,7 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `privacy-security` | Gold-standard bar scaled to the milestone (OWASP ASVS/MASVS, STRIDE, LINDDUN) |
 | `ux-reviewer` | Cognitive walkthroughs as the least tech-savvy user, measured checks |
 | `positioning` | Claims that are true today, copy, and "why I built it" stories |
-| `orchestrator` | Runs each shift across repos, writes the morning digest, enforces the session rules and focus gate |
+| `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
 
 Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`.
 
