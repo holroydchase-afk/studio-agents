@@ -13,7 +13,7 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
 | `focus-coach` | The "you are procrastinating" agent: checks the job-hunt tracker, calls out drift in one cheeky line, redirects to the next application |
 
-Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`.
+Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`, `digest` (the morning digest on demand, in any project), `night-prep` (each evening: unblock list, foreseen blockers and tonight's goal for the 2:15am night shift).
 
 ## When to use which agent (by default, without being asked)
 Agents only help if the session calls them. Copying them into a repo is not enough: the repo's `CLAUDE.md` must say when to use them. Paste [templates/CLAUDE-agents.md](templates/CLAUDE-agents.md) into it.
