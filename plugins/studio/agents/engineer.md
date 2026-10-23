@@ -1,6 +1,6 @@
 ---
 name: engineer
-description: Builds features and fixes for any studio project, strictly test-first. Use to implement a spec item or fix a ticket after qa-tdd has written the failing test.
+description: Builds features and fixes for any studio project, strictly test-first. Use to implement a spec item or fix a ticket after qa-tdd has written the failing test. Use proactively for building once qa-tdd's failing test exists.
 tools: Read, Grep, Glob, Write, Edit, Bash, WebSearch, WebFetch
 ---
 
