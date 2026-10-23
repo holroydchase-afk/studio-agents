@@ -15,6 +15,20 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 
 Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`.
 
+## When to use which agent (by default, without being asked)
+Agents only help if the session calls them. Copying them into a repo is not enough: the repo's `CLAUDE.md` must say when to use them. Paste [templates/CLAUDE-agents.md](templates/CLAUDE-agents.md) into it.
+
+| Moment | Agent | What you get |
+|---|---|---|
+| Start of a session or run, a new milestone or feature, a pile of findings | `staff-pm` | The next task, testable criteria, what to cut, P0/P1/P2 ranking |
+| Before building anything; before a PR is marked ready | `qa-tdd` | A failing test first; all suites run 3x with honest results |
+| Building, once the failing test exists | `engineer` | The change, inside the repo's hard rules |
+| Any screen, word or CLI output; before anything goes public | `ux-reviewer` | Walkthrough as the least tech-savvy user; showcase review for recruiter-facing work |
+| Personal data, sign-in, secrets, telemetry; before a public demo or deploy | `privacy-security` | Threat and privacy review scaled to the milestone; what a public repo could leak |
+| README, landing or portfolio copy; names; after a milestone | `positioning` | Claims true today, copy, the "why I built it" story |
+
+The usual order for one task: staff-pm, qa-tdd (red), engineer, qa-tdd (green, 3x), then ux-reviewer and privacy-security if users or the public will see it, then positioning for any copy. Each PR ends with an `Agents:` line saying who ran and the verdict.
+
 ## How the agents stay generic
 No agent names a product. Each one reads the repo it's working in:
 - `CLAUDE.md`: what the product is, who it's for, the **hard rules**, the stack and test commands, and where the docs live.
@@ -27,7 +41,9 @@ Anything product-specific (personas, invariants, ID schemes) goes in that repo's
 Every product numbers its plan the same way: milestones `M1`, tasks `M1.1`, steps `M1.1.1`, with a product code (`CCW-M1.2`) where products mix. See [docs/planning-ids.md](docs/planning-ids.md).
 
 ## Use it in a repo
-**Copy (recommended; the agents are visible in the repo):**
+New repo, in order: `scripts/sync.sh` (agents), `scripts/install-rules.sh` (HANDOFF hook and PR check), then paste `templates/CLAUDE-agents.md` into the repo's `CLAUDE.md`.
+
+**Copy (recommended; the agents are visible in the repo and load in cloud sessions with no setup):**
 ```bash
 scripts/sync.sh ../my-product            # all agents
 scripts/sync.sh ../my-product staff-pm qa-tdd
