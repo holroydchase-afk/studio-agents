@@ -13,7 +13,7 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
 | `focus-coach` | The "you are procrastinating" agent: checks the job-hunt tracker, calls out drift in one cheeky line, redirects to the next application |
 
-Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`.
+Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`, `night-prep` (each evening: unblock list, foreseen blockers and tonight's goal for the 2:15am night shift).
 
 ## How the agents stay generic
 No agent names a product. Each one reads the repo it's working in:
