@@ -64,7 +64,7 @@ Re-run it to pick up improvements. Agents that exist only in that repo (for exam
 Every agent and run reads `CLAUDE.md` and `HANDOFF.md` before starting and updates `HANDOFF.md` in every commit that makes progress. See [docs/session-rules.md](docs/session-rules.md). `scripts/install-rules.sh ../my-product` installs a SessionStart hook that prints `HANDOFF.md` into every session and a PR check that fails when it wasn't updated.
 
 ## Changing an agent
-Edit it here first, then sync. One improvement lands everywhere.
+Edit it here first, run `bash tests/check.sh` (CI runs it too), then sync. One improvement lands everywhere.
 
 ## License
 

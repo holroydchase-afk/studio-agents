@@ -8,6 +8,10 @@ src="$(cd "$(dirname "$0")/.." && pwd)/plugins/studio/agents"
 dest="$repo/.claude/agents"
 mkdir -p "$dest"
 if [ "$#" -eq 0 ]; then set -- $(cd "$src" && ls *.md | sed 's/\.md$//'); fi
+# Check every name before copying, so a typo copies nothing.
+for a in "$@"; do
+  [ -f "$src/$a.md" ] || { echo "unknown agent: $a (have: $(cd "$src" && ls *.md | sed 's/\.md$//' | tr '\n' ' '))" >&2; exit 1; }
+done
 for a in "$@"; do
   cp "$src/$a.md" "$dest/$a.md"
   echo "synced $a"

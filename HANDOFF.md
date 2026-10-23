@@ -11,6 +11,8 @@
 - `digest` skill (2026-10-23, same PR): the orchestrator's morning digest on demand in any project. Studio-wide in Product Studio, this project's repos elsewhere. It shows the digest-carry list without clearing it and sends no push, so the scheduled 6:30am digest keeps working unchanged.
 - Agents used by default (2026-10-23): every studio agent's description says when to use it proactively; README has a "When to use which agent" table; `templates/CLAUDE-agents.md` is the section each product pastes into its CLAUDE.md, including an `Agents:` line in every PR. Planning codes CHL (Charlie) and CRW (Crew Clock) added. Linked from pm-tools `docs/ONBOARDING.md`, the new-project kit.
 
+- Checks (night shift, 2026-10-23): `tests/check.sh`, run by `.github/workflows/checks.yml`, has 36 checks. They cover agent and skill frontmatter (each name matches its file), the README listing every agent, plugin and marketplace JSON agreeing, `sync.sh` and `install-rules.sh` against a temp repo (including that they never overwrite), the SessionStart hook with and without HANDOFF.md, the handoff-check step run on a throwaway git history, and no claude.ai links or trigger ids. It caught that `sync.sh` with a misspelled agent name failed with a bare `cp` error. It now names the unknown agent and copies nothing.
+
 ## In progress
 - Nothing.
 
