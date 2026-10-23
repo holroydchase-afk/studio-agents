@@ -24,6 +24,8 @@ Inside a repo, the bare ID is enough (`M1.2`). Anywhere products mix (the tracke
 | `PMT` | PM tools (Build Slate, roadmap, studio agents) |
 | `HRT` | Hearth (family photo app; code stays if the name changes) |
 | `WEB` | Portfolio site (chaseholroyd.com) |
+| `CHL` | Charlie (stock and options idea helper) |
+| `CRW` | Crew Clock (GPS clock-in for contractor crews; working name) |
 
 Example: `CCW-M2.1`, `RR-M1.5`, `ES-M1.3.2`. A new product picks a 2–4 letter code and adds it here.
 
