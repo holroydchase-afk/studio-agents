@@ -73,6 +73,16 @@ echo y > "$g/HANDOFF.md"; git -C "$g" add HANDOFF.md; pr "with handoff"
 check "handoff-check passes once HANDOFF.md changes" bash -c "cd '$g' && BASE=$base HEAD=\$(git rev-parse HEAD) bash '$step'"
 check "handoff-check skips a PR titled [skip handoff]" grep -q "\[skip handoff\]" "$root/templates/handoff-check.yml"
 
+# add-supabase.sh: copies the starter, and never overwrites on a second run.
+r3="$tmp/supa"; mkdir -p "$r3"
+check "add-supabase.sh installs the starter, its tests and its workflow" bash -c "bash '$root/scripts/add-supabase.sh' '$r3' >/dev/null && test -f '$r3/supabase/migrations/00000000000000_base.sql' -a -x '$r3/tests/sql/run.sh' -a -f '$r3/.github/workflows/supabase.yml' -a -f '$r3/docs/SUPABASE.md'"
+echo mine > "$r3/tests/sql/rls_test.sql"
+check "add-supabase.sh keeps an existing test file" bash -c "bash '$root/scripts/add-supabase.sh' '$r3' | grep -q 'kept existing tests/sql/rls_test.sql' && grep -q mine '$r3/tests/sql/rls_test.sql'"
+# The starter's SQL tests themselves run in CI (checks.yml, job supabase-starter), where Postgres is available.
+if [ -n "${PGHOST:-}" ]; then
+  check "Supabase starter: migrations and RLS tests pass" sh "$root/templates/supabase/tests/sql/run.sh" starter_test
+fi
+
 # Public repo: no claude.ai artifact or session links, no trigger or environment ids.
 check "no claude.ai links or trigger/environment ids" bash -c "! grep -rnE 'claude\.ai/(artifact|code)/|trig_[0-9A-Za-z]{10,}|env_[0-9A-Za-z]{10,}' --exclude-dir=.git --exclude=check.sh '$root'"
 

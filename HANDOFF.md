@@ -14,6 +14,8 @@
 
 - Checks (night shift, 2026-10-23): `tests/check.sh`, run by `.github/workflows/checks.yml`, has 36 checks. They cover agent and skill frontmatter (each name matches its file), the README listing every agent, plugin and marketplace JSON agreeing, `sync.sh` and `install-rules.sh` against a temp repo (including that they never overwrite), the SessionStart hook with and without HANDOFF.md, the handoff-check step run on a throwaway git history, and no claude.ai links or trigger ids. It caught that `sync.sh` with a misspelled agent name failed with a bare `cp` error. It now names the unknown agent and copies nothing.
 
+- Supabase starter (2026-10-24, Chase: "build supabase now"): `templates/supabase/` plus `scripts/add-supabase.sh`. Base migration (orgs, members with owner/admin/member, example items; RLS on every table, default grants revoked, column grants, `app.` helpers, `create_org()`), Edge Function helpers (`userClient` under RLS, `admin`, JWKS token check), a `whoami` example, a SQL harness and 36 RLS checks that run every migration and test file in order, and a `supabase.yml` workflow. Built from Crew Clock (public, MIT) and Hearth's patterns. The privacy-security agent has a Supabase checklist line. `checks.yml` runs the starter's SQL tests on Postgres 16 and type-checks its functions. Plan: pm-tools `STACK.md`, "Reusable building blocks".
+
 ## In progress
 - Nothing.
 
@@ -24,6 +26,7 @@
 - Merge the focus-coach PR, then merge the open "Add shared studio agents" PRs in ccwatts, Role Radar and Energy Scanner.
 
 ## Decisions to review
+- Supabase starter: membership helpers (works for users in several orgs, like Hearth) rather than Crew Clock's token-claims hook; the README says when to add the hook. Copied with a script, not published as a package.
 - night-prep hands tonight's goal to the run through project memory (`tonight.md` plus an index line) instead of rewriting the scheduled run's prompt, because the run's GOAL line already says Chase's steer wins and memory loads into every session.
 - Planning codes for the new projects: CHL (Charlie) and CRW (Crew Clock). Rename in place if Chase prefers others.
 - "Use proactively" wording in descriptions makes Claude Code delegate without being asked; if it over-triggers (for example ux-reviewer on internal-only changes), trim the description, not the table.
