@@ -14,16 +14,20 @@
 
 - Checks (night shift, 2026-10-23): `tests/check.sh`, run by `.github/workflows/checks.yml`, has 36 checks. They cover agent and skill frontmatter (each name matches its file), the README listing every agent, plugin and marketplace JSON agreeing, `sync.sh` and `install-rules.sh` against a temp repo (including that they never overwrite), the SessionStart hook with and without HANDOFF.md, the handoff-check step run on a throwaway git history, and no claude.ai links or trigger ids. It caught that `sync.sh` with a misspelled agent name failed with a bare `cp` error. It now names the unknown agent and copies nothing.
 
+- Security kit (2026-10-24, security audit): `scripts/install-security.sh` and `templates/security/` (gitleaks full-history scan, privacy scan, dependency review, CodeQL, Dependabot, SECURITY.md). Installed in this repo too. `tests/check.sh` now has 45 checks (kit: detection, never overwrites, privacy scan fails on a real-looking email and phone and honors `.privacy-allow`). Product projects install it from the INTAKE in pm-tools `docs/intakes/security-kit.md`.
+
 ## In progress
 - Nothing.
 
 ## Exact next step
+- Merge the security kit PR. Chase turns on the repo toggles from pm-tools `STUDIO-STATUS.md` (Waiting on Chase → Security toggles).
 - Merge the night-prep and digest PR, then re-run `scripts/sync.sh` in each product repo. Chase also saves the skill to his account from the Product Studio thread so `/night-prep` and `/digest` work in every project.
 - After this merges, each product project re-runs `scripts/sync.sh` and pastes `templates/CLAUDE-agents.md` into its CLAUDE.md (pm-tools `docs/ONBOARDING.md` has the paste for existing projects).
 - Merge the ux-reviewer upgrade, then re-run `scripts/sync.sh` in each product repo (the recruiter-ready sprint paste tells each project to do it).
 - Merge the focus-coach PR, then merge the open "Add shared studio agents" PRs in ccwatts, Role Radar and Energy Scanner.
 
 ## Decisions to review
+- Security kit runs gitleaks as a pinned, checksum-verified binary instead of `gitleaks-action`, so there's no third-party action and no license key. CodeQL is a workflow file (advanced setup) so no Settings click is needed; a repo that already uses default setup should drop the file.
 - night-prep hands tonight's goal to the run through project memory (`tonight.md` plus an index line) instead of rewriting the scheduled run's prompt, because the run's GOAL line already says Chase's steer wins and memory loads into every session.
 - Planning codes for the new projects: CHL (Charlie) and CRW (Crew Clock). Rename in place if Chase prefers others.
 - "Use proactively" wording in descriptions makes Claude Code delegate without being asked; if it over-triggers (for example ux-reviewer on internal-only changes), trim the description, not the table.
