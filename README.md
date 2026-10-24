@@ -41,7 +41,7 @@ Anything product-specific (personas, invariants, ID schemes) goes in that repo's
 Every product numbers its plan the same way: milestones `M1`, tasks `M1.1`, steps `M1.1.1`, with a product code (`CCW-M1.2`) where products mix. See [docs/planning-ids.md](docs/planning-ids.md).
 
 ## Use it in a repo
-New repo, in order: `scripts/sync.sh` (agents), `scripts/install-rules.sh` (HANDOFF hook and PR check), then paste `templates/CLAUDE-agents.md` into the repo's `CLAUDE.md`.
+New repo, in order: `scripts/sync.sh` (agents), `scripts/install-rules.sh` (HANDOFF hook and PR check), `scripts/install-security.sh` (security kit), then paste `templates/CLAUDE-agents.md` into the repo's `CLAUDE.md`.
 
 **Copy (recommended; the agents are visible in the repo and load in cloud sessions with no setup):**
 ```bash
@@ -62,6 +62,15 @@ Re-run it to pick up improvements. Agents that exist only in that repo (for exam
 
 ## Session rules
 Every agent and run reads `CLAUDE.md` and `HANDOFF.md` before starting and updates `HANDOFF.md` in every commit that makes progress. See [docs/session-rules.md](docs/session-rules.md). `scripts/install-rules.sh ../my-product` installs a SessionStart hook that prints `HANDOFF.md` into every session and a PR check that fails when it wasn't updated.
+
+## Security kit
+`scripts/install-security.sh ../my-product` adds the studio security baseline from [templates/security](templates/security), and never overwrites a file the repo already has:
+- `.github/workflows/security.yml`: gitleaks over the full git history (pinned and checksum-verified), a personal-data scan (`.github/privacy-scan.py`: emails, phone numbers, claude.ai links, trigger ids; allow a safe match in `.privacy-allow`), and dependency review on PRs (fails on high or critical).
+- `.github/workflows/codeql.yml`: CodeQL for the languages it finds (always `actions`, plus JavaScript/TypeScript and Python).
+- `.github/dependabot.yml`: weekly grouped updates for every `package.json` folder, Python requirements and GitHub Actions.
+- `SECURITY.md`: report privately through the Security tab.
+
+GitHub's own toggles (secret scanning, push protection, Dependabot alerts and security updates, private vulnerability reporting) live in each repo's Settings and only the owner can turn them on.
 
 ## Changing an agent
 Edit it here first, run `bash tests/check.sh` (CI runs it too), then sync. One improvement lands everywhere.
