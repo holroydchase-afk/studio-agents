@@ -70,7 +70,7 @@ Every agent and run reads `CLAUDE.md` and `HANDOFF.md` before starting and updat
 - `.github/dependabot.yml`: weekly grouped updates for every `package.json` folder, Python requirements and GitHub Actions.
 - `SECURITY.md`: report privately through the Security tab.
 
-GitHub's own toggles (secret scanning, push protection, Dependabot alerts and security updates, private vulnerability reporting) live in each repo's Settings and only the owner can turn them on.
+The `dependencies` check needs **Dependency graph** on (Settings → Code security); until then it fails with "Dependency review is not supported". GitHub's own toggles (dependency graph, secret scanning, push protection, Dependabot alerts and security updates, private vulnerability reporting) live in each repo's Settings and only the owner can turn them on.
 
 ## Changing an agent
 Edit it here first, run `bash tests/check.sh` (CI runs it too), then sync. One improvement lands everywhere.
