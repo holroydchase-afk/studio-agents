@@ -11,6 +11,8 @@
 //   --path PATH        another page under the same site, e.g. --path /about (repeatable)
 //   --wait SELECTOR    wait for this element before shooting (default body)
 //   --tap N            smallest tap target height in px on phones (default 44)
+//   --no-network       block and report every request that leaves the page's own origin (any
+//                      http request for a file target): the privacy gate for local-only apps
 //   --strict           exit 1 when any issue is found (for CI)
 // Writes report.json and report.md to --out. Needs Playwright with Chromium.
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
@@ -22,7 +24,7 @@ export const SIZES = [["phone", 390, 844], ["laptop", 1280, 800]];
 export const SCHEMES = ["light", "dark"];
 
 export function parseArgs(argv) {
-  const o = { target: null, out: "dist/ux-shots", clicks: [], paths: [], wait: "body", tap: 44, strict: false };
+  const o = { target: null, out: "dist/ux-shots", clicks: [], paths: [], wait: "body", tap: 44, strict: false, noNetwork: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i], next = () => {
       const v = argv[++i];
@@ -35,12 +37,13 @@ export function parseArgs(argv) {
     else if (a === "--wait") o.wait = next();
     else if (a === "--tap") o.tap = Number(next());
     else if (a === "--strict") o.strict = true;
+    else if (a === "--no-network") o.noNetwork = true;
     else if (a === "-h" || a === "--help") o.help = true;
     else if (a.startsWith("--")) throw new Error(`unknown option ${a}`);
     else if (!o.target) o.target = a;
     else throw new Error(`one target only (got ${o.target} and ${a})`);
   }
-  if (!o.help && !o.target) throw new Error("usage: ux-shots.mjs <url or file.html> [--out DIR] [--click SEL] [--path PATH] [--wait SEL] [--tap N] [--strict]");
+  if (!o.help && !o.target) throw new Error("usage: ux-shots.mjs <url or file.html> [--out DIR] [--click SEL] [--path PATH] [--wait SEL] [--tap N] [--no-network] [--strict]");
   if (!Number.isFinite(o.tap) || o.tap <= 0) throw new Error("--tap must be a positive number");
   return o;
 }
@@ -49,6 +52,13 @@ export function parseArgs(argv) {
 export function pageUrls(target, paths = []) {
   const base = /^[a-z]+:\/\//i.test(target) ? target : pathToFileURL(resolve(target)).href;
   return [["home", base], ...paths.map((p) => [slug(p) || "page", new URL(p, base).href])];
+}
+
+/** True when a request leaves the page: another origin, or any network URL from a file:// page. */
+export function isOutside(requestUrl, pageUrl) {
+  const req = new URL(requestUrl), from = new URL(pageUrl);
+  if (!/^(https?|wss?):$/.test(req.protocol)) return false; // file:, data:, blob: stay on the device
+  return from.protocol === "file:" || req.origin !== from.origin;
 }
 
 export const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
@@ -84,7 +94,7 @@ function inspect(tap) {
   };
 }
 
-export const issueCount = (r) => (r.sideways ? 1 : 0) + r.smallTargets.length + r.brokenImages.length + r.unfinished.length + r.deadLinks.length + r.consoleErrors.length + r.failedRequests.length;
+export const issueCount = (r) => (r.sideways ? 1 : 0) + r.smallTargets.length + r.brokenImages.length + r.unfinished.length + r.deadLinks.length + r.consoleErrors.length + r.failedRequests.length + (r.outsideRequests?.length || 0);
 
 export function markdown(report, target) {
   const lines = [`# ux-shots: ${target}`, "", `${report.length} shots, ${report.filter((r) => issueCount(r)).length} with issues.`,
@@ -100,6 +110,7 @@ export function markdown(report, target) {
     add("Dead or sample links", r.deadLinks);
     add("Console errors", r.consoleErrors);
     add("Failed requests", r.failedRequests);
+    add("Requests that left the page (blocked)", r.outsideRequests || []);
     lines.push("");
   }
   return lines.join("\n");
@@ -115,10 +126,22 @@ export async function run(o) {
       for (const [size, width, height] of SIZES) {
         for (const scheme of SCHEMES) {
           const page = await browser.newPage({ viewport: { width, height }, colorScheme: scheme });
-          const consoleErrors = [], failedRequests = [];
+          const consoleErrors = [], failedRequests = [], outsideRequests = [];
+          if (o.noNetwork) {
+            await page.route("**/*", (route) => {
+              const u = route.request().url();
+              if (!isOutside(u, url)) return route.continue();
+              outsideRequests.push(u);
+              return route.abort("blockedbyclient");
+            });
+          }
           page.on("pageerror", (e) => consoleErrors.push(String(e.message || e)));
-          page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text()); });
-          page.on("requestfailed", (r) => failedRequests.push(`${r.url()} (${r.failure()?.errorText || "failed"})`));
+          page.on("console", (m) => {
+            if (m.type() !== "error") return;
+            if (o.noNetwork && /ERR_BLOCKED_BY_CLIENT/.test(m.text())) return; // our own block, already listed
+            consoleErrors.push(m.text());
+          });
+          page.on("requestfailed", (r) => { if (!outsideRequests.includes(r.url())) failedRequests.push(`${r.url()} (${r.failure()?.errorText || "failed"})`); });
           page.on("response", (r) => { if (r.status() >= 400) failedRequests.push(`${r.url()} (${r.status()})`); });
           await page.goto(url, { waitUntil: "load" });
           await page.waitForSelector(o.wait);
@@ -130,7 +153,8 @@ export async function run(o) {
             await page.screenshot({ path: shot });
             await page.screenshot({ path: full, fullPage: true });
             report.push({ name, url, size, scheme, shot, full, ...(await page.evaluate(inspect, o.tap)),
-              consoleErrors: [...new Set(consoleErrors.splice(0))], failedRequests: [...new Set(failedRequests.splice(0))] });
+              consoleErrors: [...new Set(consoleErrors.splice(0))], failedRequests: [...new Set(failedRequests.splice(0))],
+              outsideRequests: [...new Set(outsideRequests.splice(0))] });
           };
           await shoot(`${pageName}-${size}-${scheme}`);
           for (const sel of o.clicks) {
@@ -159,7 +183,7 @@ const isMain = process.argv[1] && import.meta.url === pathToFileURL(resolve(proc
 if (isMain) {
   let o;
   try { o = parseArgs(process.argv.slice(2)); } catch (e) { console.error(e.message); process.exit(2); }
-  if (o.help) { console.log("usage: ux-shots.mjs <url or file.html> [--out DIR] [--click SEL] [--path PATH] [--wait SEL] [--tap N] [--strict]"); process.exit(0); }
+  if (o.help) { console.log("usage: ux-shots.mjs <url or file.html> [--out DIR] [--click SEL] [--path PATH] [--wait SEL] [--tap N] [--no-network] [--strict]"); process.exit(0); }
   if (!/^[a-z]+:\/\//i.test(o.target) && !existsSync(o.target)) { console.error(`no such file: ${o.target}`); process.exit(2); }
   try {
     const report = await run(o);

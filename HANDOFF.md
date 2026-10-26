@@ -16,6 +16,8 @@
 
 - `ux-shots` tool (2026-10-26, draft PR, from Role Radar's `review-shots.mjs`): new `tools/` folder and `scripts/sync-tools.sh`, which copies tools into a repo's `scripts/` the way `sync.sh` copies agents. `tools/ux-shots.mjs <url or file> [--click SEL] [--path P] [--wait SEL] [--tap N] [--strict]` shoots 390x844 and 1280x800, light and dark, viewport and full page, and writes `report.json` and `report.md` with console errors, failed requests, broken images, sideways scroll, small tap targets (under 24px anywhere, under 44px tall on phones), unfinished text and sample links. ux-reviewer step 5 and the ux-review skill point to it. Tests: `tests/ux-shots.test.mjs` (5, with a clean and a broken fixture page); `check.sh` runs them and checks sync-tools and the README (43 checks); CI installs Playwright outside the checkout. Tried on Role Radar's public demo build: 36 shots, flags were small tap targets only (job title links 22px tall on laptop, a 42px link on phone).
 
+- `ux-shots --no-network` and the polish score (2026-10-26, draft PR stacked on the ux-shots PR): `--no-network` blocks and lists every request that leaves the page's origin (any http request from a file page), the privacy gate for ccwatts and Energy Scanner, which can retire `check-no-network.mjs`. ux-reviewer and ux-review now end with a 0-10 polish score on one anchored scale (2 baseline, 8 target, Build Slate and the portfolio as reference), with before and after, recorded in HANDOFF.md. Tried on the portfolio home page: it lists the Google Fonts request, as expected for a page that is not local-only. 8 ux-shots tests, 43 checks.
+
 ## In progress
 - Nothing.
 
@@ -27,6 +29,7 @@
 - Merge the focus-coach PR, then merge the open "Add shared studio agents" PRs in ccwatts, Role Radar and Energy Scanner.
 
 ## Decisions to review
+- Polish score anchors (2, 4, 6, 8, 9-10) are defined by P0/P1 counts and the ux-shots report, so two reviewers land on the same number. Change the anchors in both the agent and the skill together.
 - ux-shots reports measurements, not verdicts: inline links in a sentence are exempt from WCAG 2.5.8 but still listed, so ux-reviewer judges them from the screenshot. Product-specific overlays (Role Radar's preview panel, recruiter details) stay in each product; `--click` covers tabs and buttons.
 - night-prep hands tonight's goal to the run through project memory (`tonight.md` plus an index line) instead of rewriting the scheduled run's prompt, because the run's GOAL line already says Chase's steer wins and memory loads into every session.
 - Planning codes for the new projects: CHL (Charlie) and CRW (Crew Clock). Rename in place if Chase prefers others.

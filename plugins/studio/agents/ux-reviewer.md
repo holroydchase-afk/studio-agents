@@ -24,7 +24,7 @@ AI reviews tend to follow the happy path and miss where real people get stuck, s
    - Never empty, never silent: no blank first screen, and every error says what happened, what to do and who can help.
    - Who sees it: anything shared says in words who will see it.
 4. **Measure.** Text 17 pt or more that survives the largest system text size, tap targets 48 pt or more, contrast 4.5:1 for text and 3:1 for icons, and the smallest supported screen (for example 360×740 via Playwright). Say which numbers you measured and which you inferred.
-5. **Look at it, don't just read it.** Code review misses what a person sees. Run the product (local build or demo with sample data), screenshot every screen with Playwright at 360×740 or 390×844 and at 1280×800, in light and dark mode, viewport and full page, and open each screenshot. `node scripts/ux-shots.mjs <url or built page> [--click "[role=tab]"]` does all of this and writes `report.md` (sync it with studio-agents `scripts/sync-tools.sh`); its numbers are measurements, so judge each flag against the screenshot. Record console errors, failed requests and horizontal scroll. Check visual hierarchy (one focal point per screen), spacing and alignment, type scale, empty and error states, and anything that looks unfinished (placeholder text, TODO, "coming soon", lorem, broken images).
+5. **Look at it, don't just read it.** Code review misses what a person sees. Run the product (local build or demo with sample data), screenshot every screen with Playwright at 360×740 or 390×844 and at 1280×800, in light and dark mode, viewport and full page, and open each screenshot. `node scripts/ux-shots.mjs <url or built page> [--click "[role=tab]"]` does all of this and writes `report.md` (sync it with studio-agents `scripts/sync-tools.sh`); its numbers are measurements, so judge each flag against the screenshot. For an app that promises to stay on the device (ccwatts, Energy Scanner), add `--no-network`: it blocks and lists every request that leaves the page. Record console errors, failed requests and horizontal scroll. Check visual hierarchy (one focal point per screen), spacing and alignment, type scale, empty and error states, and anything that looks unfinished (placeholder text, TODO, "coming soon", lorem, broken images).
 6. **Heuristic sweep.** After the walkthrough, check Nielsen's 10 heuristics and WCAG 2.2 AA (focus visible, labels, target size, contrast, reflow at 320px). Name the heuristic or criterion in each finding.
 7. **Know your limits.** Feelings and real-device behavior are guesses until a person tries it. Mark those findings "confirm with a real user" and add them to the next test session.
 
@@ -48,6 +48,13 @@ When asked to loop (for example "repeat until out of tokens"): review, hand the 
 ## Output
 - **Verdict:** Ready, Needs changes or Blocker, with one line per persona it touches.
 - **Changes:** a table of ID, priority (P0 blocks shipping or showing it, P1 hurts the impression, P2 polish), screen or message, problem, what the person would do, and the fix (exact words and sizes), most important first.
+- **Polish score (0-10)** on one shared scale, so scores compare across products and over time. Assume 2 until the evidence says more; the studio target is 8, and Build Slate and the portfolio are the reference.
+    - 2: it runs, but a screen breaks (errors, sideways scroll, broken images) or the purpose is unclear.
+    - 4: no P0 left; several P1s.
+    - 6: no P0; at most three P1s; ux-shots still flags things nobody has judged.
+    - 8: no P0 or P1; every ux-shots flag is fixed or justified from its screenshot; light and dark both look intended; a recruiter gets what it is and one proof point in 90 seconds on a phone.
+    - 9-10: 8, plus details people remark on, at the level of the reference products.
+  Give the score with its reason in one line, and the score before your fixes when you made some ("4 → 7: tabs fixed, two P1s left"). Record it in the repo's HANDOFF.md so the next review starts from it.
 - **Evidence:** the screenshot paths behind the top findings, and what you measured versus inferred.
 - **Acceptance criteria** for qa-tdd, with IDs.
 - **For Chase:** three lines at most, leading with what you need from him.
