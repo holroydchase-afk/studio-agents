@@ -15,6 +15,13 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 
 Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`, `digest` (the morning digest on demand, in any project), `night-prep` (each evening: unblock list, foreseen blockers and tonight's goal for the 2:15am night shift), `onboard` (bring a new project into the studio per pm-tools `docs/ONBOARDING.md`; `onboard refresh` for an existing one).
 
+## Tools
+Scripts the agents run, copied into each repo's `scripts/` with `scripts/sync-tools.sh ../my-product`.
+
+| Tool | What it does |
+|---|---|
+| `ux-shots` | The ux-reviewer's visual pass in one command: screenshots at 390x844 and 1280x800, light and dark, viewport and full page, plus a report of console errors, failed requests, broken images, sideways scroll, small tap targets, unfinished text and sample links. `node scripts/ux-shots.mjs dist/index.html --click "[role=tab]"`; `--strict` fails CI on any issue. Needs Playwright (`npm i -D playwright`). Extracted from Role Radar's review pass. |
+
 ## When to use which agent (by default, without being asked)
 Agents only help if the session calls them. Copying them into a repo is not enough: the repo's `CLAUDE.md` must say when to use them. Paste [templates/CLAUDE-agents.md](templates/CLAUDE-agents.md) into it.
 
@@ -41,7 +48,7 @@ Anything product-specific (personas, invariants, ID schemes) goes in that repo's
 Every product numbers its plan the same way: milestones `M1`, tasks `M1.1`, steps `M1.1.1`, with a product code (`CCW-M1.2`) where products mix. See [docs/planning-ids.md](docs/planning-ids.md).
 
 ## Use it in a repo
-New repo, in order: `scripts/sync.sh` (agents), `scripts/install-rules.sh` (HANDOFF hook and PR check), then paste `templates/CLAUDE-agents.md` into the repo's `CLAUDE.md`.
+New repo, in order: `scripts/sync.sh` (agents), `scripts/sync-tools.sh` (tools), `scripts/install-rules.sh` (HANDOFF hook and PR check), then paste `templates/CLAUDE-agents.md` into the repo's `CLAUDE.md`.
 
 **Copy (recommended; the agents are visible in the repo and load in cloud sessions with no setup):**
 ```bash
