@@ -8,6 +8,7 @@ The team in `.claude/agents/` comes from holroydchase-afk/studio-agents (re-sync
 | Building, once the failing test exists | `engineer` |
 | Any screen, word or CLI output a user sees; before anything goes public (showcase review mode) | `ux-reviewer` |
 | Personal data, sign-in, secrets, telemetry, vendors; before a public demo, deploy or repo going public | `privacy-security` |
+| A new dependency, vendor, paid service, schema change or CI/deploy workflow; picking a new project's stack; a weekly drift sweep (studio projects) | `architect` |
 | README, landing or portfolio copy; a name or tagline; after a milestone, the "why I built it" story | `positioning` |
 | A portfolio, tooling, renaming or new-project ask during an application window or after the evening cutoff | `focus-coach` |
 | Morning digest or a cross-repo coordination pass (studio projects; product repos rarely need it) | `orchestrator` |
