@@ -54,6 +54,27 @@ check "install-rules.sh installs the hook and the PR check" bash -c "bash '$root
 echo '{"mine":true}' > "$r2/.claude/settings.json"
 check "install-rules.sh keeps an existing settings.json" bash -c "bash '$root/scripts/install-rules.sh' '$r2' | grep -q 'kept existing .claude/settings.json' && grep -q mine '$r2/.claude/settings.json'"
 
+check "install-rules.sh installs the shared checks and their config" test -f "$r2/scripts/check-agents.sh" -a -f "$r2/scripts/check-logs.mjs" -a -f "$r2/studio-checks.json"
+check "studio-checks.json template parses" python3 -c 'import json,sys;json.load(open(sys.argv[1]))["logs"]["roots"]' "$root/templates/studio-checks.json"
+
+# check-agents.sh: passes a matching roster in either table shape, fails both kinds of drift.
+a="$tmp/agents"; mkdir -p "$a/scripts" "$a/.claude/agents"; cp "$root/templates/scripts/check-agents.sh" "$a/scripts/"
+touch "$a/.claude/agents/staff-pm.md" "$a/.claude/agents/qa-tdd.md"
+printf '| Moment | Agent |\n|---|---|\n| Planning | `staff-pm` |\n| Tests | `qa-tdd` |\n' > "$a/CLAUDE.md"
+check "check-agents.sh passes the studio table" bash "$a/scripts/check-agents.sh"
+printf '| Agent | Role |\n|---|---|\n| `staff-pm` | plans |\n| `qa-tdd` | tests |\n' > "$a/CLAUDE.md"
+check "check-agents.sh passes a name-first roster" bash "$a/scripts/check-agents.sh"
+touch "$a/.claude/agents/engineer.md"
+check "check-agents.sh fails an agent missing from CLAUDE.md" bash -c "bash '$a/scripts/check-agents.sh' | grep -q \"'engineer' is missing\""
+rm "$a/.claude/agents/engineer.md" "$a/.claude/agents/qa-tdd.md"
+check "check-agents.sh fails a CLAUDE.md row with no agent file" bash -c "bash '$a/scripts/check-agents.sh' | grep -q \"lists 'qa-tdd'\""
+
+f="$tmp/fresh"; mkdir -p "$f"; bash "$root/scripts/sync.sh" "$f" >/dev/null; bash "$root/scripts/install-rules.sh" "$f" >/dev/null; cp "$root/templates/CLAUDE-agents.md" "$f/CLAUDE.md"
+check "check-agents.sh passes a fresh repo (all synced agents + templates/CLAUDE-agents.md)" bash "$f/scripts/check-agents.sh"
+
+# check-logs.mjs has its own suite.
+check "check-logs.mjs suite (tests/check_logs_test.sh)" bash "$root/tests/check_logs_test.sh"
+
 # The SessionStart hook prints HANDOFF.md, or says to create one.
 hook="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["hooks"]["SessionStart"][0]["hooks"][0]["command"])' "$root/templates/claude-settings.json")"
 h="$tmp/hook"; mkdir -p "$h"

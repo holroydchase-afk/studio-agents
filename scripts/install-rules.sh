@@ -14,3 +14,7 @@ install_one() {
 }
 install_one "$root/templates/claude-settings.json" .claude/settings.json
 install_one "$root/templates/handoff-check.yml" .github/workflows/handoff-check.yml
+# Shared checks: agent roster and log hygiene, with each repo's roots and banned words in studio-checks.json.
+install_one "$root/templates/scripts/check-agents.sh" scripts/check-agents.sh
+install_one "$root/templates/scripts/check-logs.mjs" scripts/check-logs.mjs
+install_one "$root/templates/studio-checks.json" studio-checks.json

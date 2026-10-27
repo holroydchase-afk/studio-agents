@@ -63,6 +63,13 @@ Re-run it to pick up improvements. Agents that exist only in that repo (for exam
 ## Session rules
 Every agent and run reads `CLAUDE.md` and `HANDOFF.md` before starting and updates `HANDOFF.md` in every commit that makes progress. See [docs/session-rules.md](docs/session-rules.md). `scripts/install-rules.sh ../my-product` installs a SessionStart hook that prints `HANDOFF.md` into every session and a PR check that fails when it wasn't updated.
 
+It also installs two shared checks (proved in Hearth) and their config, never overwriting a file the repo already has:
+- `scripts/check-agents.sh`: every agent in `.claude/agents/` is named in a `CLAUDE.md` table, and every agent the table names has a file.
+- `scripts/check-logs.mjs`: no `console.*` call logs a key, URL, email, token, body or a raw error (`e`, `e.stack`, unfiltered `e.message`, `JSON.stringify`).
+- `studio-checks.json`: each repo's own settings, for example `{"logs": {"roots": ["app/src"], "banned": ["caption"]}}`. `banned` adds words to the defaults. The shared privacy check will read the same file when it lands.
+
+Run both from the repo's test script and CI. The canonical copies live in `templates/scripts/`; `tests/check_logs_test.sh` is the log check's own test.
+
 ## Changing an agent
 Edit it here first, run `bash tests/check.sh` (CI runs it too), then sync. One improvement lands everywhere.
 

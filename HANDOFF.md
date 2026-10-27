@@ -14,16 +14,20 @@
 
 - Checks (night shift, 2026-10-23): `tests/check.sh`, run by `.github/workflows/checks.yml`, has 36 checks. They cover agent and skill frontmatter (each name matches its file), the README listing every agent, plugin and marketplace JSON agreeing, `sync.sh` and `install-rules.sh` against a temp repo (including that they never overwrite), the SessionStart hook with and without HANDOFF.md, the handoff-check step run on a throwaway git history, and no claude.ai links or trigger ids. It caught that `sync.sh` with a misspelled agent name failed with a bare `cp` error. It now names the unknown agent and copies nothing.
 
+- Shared checks from Hearth's intake (2026-10-27): `install-rules.sh` now also installs `scripts/check-agents.sh` (CLAUDE.md agent table matches `.claude/agents/`), `scripts/check-logs.mjs` (no keys, URLs, emails or raw errors in `console.*` calls) and a starter `studio-checks.json` (log roots and extra banned words). Canonical copies in `templates/scripts/`; the log check has its own test (`tests/check_logs_test.sh`, 12 cases) and `tests/check.sh` grew to 45 checks. Generalized from Hearth: Hearth-only words (caption, kek) and roots moved to config; the generic check still passes Hearth's real code (109 files). `templates/CLAUDE-agents.md` gained `focus-coach` and `orchestrator` rows, because a fresh repo failed the roster check without them.
+
 ## In progress
 - Nothing.
 
 ## Exact next step
+- Merge the shared-checks PR, then each product project re-runs `scripts/install-rules.sh`, sets its roots in `studio-checks.json`, adds both checks to its test script and CI, and pastes the two new rows of `templates/CLAUDE-agents.md`. Hearth swaps its own copies for these and keeps `caption` and `kek` in its config.
 - Merge the night-prep and digest PR, then re-run `scripts/sync.sh` in each product repo. Chase also saves the skill to his account from the Product Studio thread so `/night-prep` and `/digest` work in every project.
 - After this merges, each product project re-runs `scripts/sync.sh` and pastes `templates/CLAUDE-agents.md` into its CLAUDE.md (pm-tools `docs/ONBOARDING.md` has the paste for existing projects).
 - Merge the ux-reviewer upgrade, then re-run `scripts/sync.sh` in each product repo (the recruiter-ready sprint paste tells each project to do it).
 - Merge the focus-coach PR, then merge the open "Add shared studio agents" PRs in ccwatts, Role Radar and Energy Scanner.
 
 ## Decisions to review
+- The shared checks live in `templates/scripts/`, not `scripts/`, because `scripts/` holds studio-agents' own tools and these get copied into product repos (same as `templates/handoff-check.yml`). The config file is `studio-checks.json` with one section per check; the coming shared privacy check is meant to add a `private` section there instead of a second file.
 - night-prep hands tonight's goal to the run through project memory (`tonight.md` plus an index line) instead of rewriting the scheduled run's prompt, because the run's GOAL line already says Chase's steer wins and memory loads into every session.
 - Planning codes for the new projects: CHL (Charlie) and CRW (Crew Clock). Rename in place if Chase prefers others.
 - "Use proactively" wording in descriptions makes Claude Code delegate without being asked; if it over-triggers (for example ux-reviewer on internal-only changes), trim the description, not the table.
