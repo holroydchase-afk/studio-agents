@@ -16,10 +16,13 @@
 
 - Shared checks from Hearth's intake (2026-10-27): `install-rules.sh` now also installs `scripts/check-agents.sh` (CLAUDE.md agent table matches `.claude/agents/`), `scripts/check-logs.mjs` (no keys, URLs, emails or raw errors in `console.*` calls) and a starter `studio-checks.json` (log roots and extra banned words). Canonical copies in `templates/scripts/`; the log check has its own test (`tests/check_logs_test.sh`, 12 cases) and `tests/check.sh` grew to 45 checks. Generalized from Hearth: Hearth-only words (caption, kek) and roots moved to config; the generic check still passes Hearth's real code (109 files). `templates/CLAUDE-agents.md` gained `focus-coach` and `orchestrator` rows, because a fresh repo failed the roster check without them.
 
+- `architect` agent (2026-10-27, Chase's go): one stack across products. Reviews any stack-crossing change (new dependency, vendor, paid service, schema change, CI or deploy workflow, a move up the pm-tools STACK.md ladder), checks reuse before build, keeps `docs/architecture/` honest against the pm-tools template, and runs a weekly drift sweep in studio projects. Engineer rule 4 now needs architect's OK on fit and staff-pm's on cost and scope. Listed in the README and `templates/CLAUDE-agents.md`; plugin 0.4.0. Paired pm-tools PR adds it to ONBOARDING.md and the STACK.md gate.
+
 ## In progress
 - Nothing.
 
 ## Exact next step
+- Merge the architect PR (and its pm-tools pair), then each product project re-runs `scripts/sync.sh` and pastes the new `architect` row of `templates/CLAUDE-agents.md`, or `check-agents.sh` fails. The Sunday drift sweep goes into the Product Studio night shift prompt when that shift is turned back on.
 - Merge the shared-checks PR, then each product project re-runs `scripts/install-rules.sh`, sets its roots in `studio-checks.json`, adds both checks to its test script and CI, and pastes the two new rows of `templates/CLAUDE-agents.md`. Hearth swaps its own copies for these and keeps `caption` and `kek` in its config.
 - Merge the night-prep and digest PR, then re-run `scripts/sync.sh` in each product repo. Chase also saves the skill to his account from the Product Studio thread so `/night-prep` and `/digest` work in every project.
 - After this merges, each product project re-runs `scripts/sync.sh` and pastes `templates/CLAUDE-agents.md` into its CLAUDE.md (pm-tools `docs/ONBOARDING.md` has the paste for existing projects).
@@ -27,6 +30,7 @@
 - Merge the focus-coach PR, then merge the open "Add shared studio agents" PRs in ccwatts, Role Radar and Energy Scanner.
 
 ## Decisions to review
+- architect is synced to product repos (unlike orchestrator and focus-coach) so each project can review its own stack changes; the cross-repo drift sweep only runs from Product Studio and sends INTAKE blocks, never edits.
 - The shared checks live in `templates/scripts/`, not `scripts/`, because `scripts/` holds studio-agents' own tools and these get copied into product repos (same as `templates/handoff-check.yml`). The config file is `studio-checks.json` with one section per check; the coming shared privacy check is meant to add a `private` section there instead of a second file.
 - night-prep hands tonight's goal to the run through project memory (`tonight.md` plus an index line) instead of rewriting the scheduled run's prompt, because the run's GOAL line already says Chase's steer wins and memory loads into every session.
 - Planning codes for the new projects: CHL (Charlie) and CRW (Crew Clock). Rename in place if Chase prefers others.
