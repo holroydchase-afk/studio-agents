@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Copy the studio agents into a project repo's .claude/agents/.
 # Usage: scripts/sync.sh /path/to/repo [agent ...]   (no agent names = all)
-# Project-only agents (files not in this library) are left alone. With no names, the studio-only
+# Syncing ux-reviewer also copies the studio design rules to .claude/design-rules.md (the product's own
+# rules go in docs/design-rules.md, which this never touches). Project-only agents are left alone. With no names, the studio-only
 # agents (orchestrator, focus-coach: Product Studio's) are skipped; name them to copy them.
 set -euo pipefail
 repo="${1:?usage: sync.sh /path/to/repo [agent ...]}"; shift || true
@@ -16,4 +17,10 @@ done
 for a in "$@"; do
   cp "$src/$a.md" "$dest/$a.md"
   echo "synced $a"
+done
+for a in "$@"; do
+  if [ "$a" = ux-reviewer ]; then
+    cp "$src/../../../docs/design-rules.md" "$repo/.claude/design-rules.md"
+    echo "synced design-rules"
+  fi
 done
