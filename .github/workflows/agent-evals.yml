@@ -1,0 +1,38 @@
+name: agent-evals
+# Scores the studio agents on fixed tasks (plugins/studio/evals) with `claude plugin eval`: each case runs
+# with the plugin and without it, so the report shows what each agent adds (the delta). Costs about $1 a run,
+# so it runs only when an agent or eval changes, or by hand. Needs the ANTHROPIC_API_KEY repo secret;
+# without it the job says so and passes.
+on:
+  pull_request:
+    paths: ["plugins/studio/agents/**", "plugins/studio/evals/**"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Skip without an API key
+        id: key
+        run: if [ -n "$ANTHROPIC_API_KEY" ]; then echo "ok=1" >> "$GITHUB_OUTPUT"; else echo "::notice::No ANTHROPIC_API_KEY secret, so the agent evals were skipped."; fi
+      # bubblewrap and socat: the sandbox that confines the shell tool qa-tdd uses to run its test.
+      - if: steps.key.outputs.ok
+        run: sudo apt-get install -y -qq bubblewrap socat && npm install -g @anthropic-ai/claude-code
+      - if: steps.key.outputs.ok
+        working-directory: plugins/studio
+        run: claude plugin eval . --runs 2 -j 4 --trust-plugin --no-publish --allow-tools Write Edit 'Bash(node:*)' --threshold 0.75 --max-cost-usd 5 --json ../../eval-results.json --report ../../eval-report.html
+      - if: always() && steps.key.outputs.ok
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-evals
+          path: |
+            eval-results.json
+            eval-report.html

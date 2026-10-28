@@ -29,7 +29,7 @@ Agents only help if the session calls them. Copying them into a repo is not enou
 | A new dependency, vendor, paid service, schema change or CI/deploy workflow; a new project's stack | `architect` | Verdict on fit, the stack rung, what to reuse instead, the decision entry needed |
 | README, landing or portfolio copy; names; after a milestone | `positioning` | Claims true today, copy, the "why I built it" story |
 
-The usual order for one task: staff-pm, qa-tdd (red), engineer, qa-tdd (green, 3x), then ux-reviewer and privacy-security if users or the public will see it, then positioning for any copy. Each PR ends with an `Agents:` line saying who ran and the verdict; `templates/agents-check.yml` (installed by `install-rules.sh`) fails a PR without one, or a code PR that doesn't name `qa-tdd`. The main session acts as chief of staff (Hearth's model): it delegates each piece of work to the agent for that moment instead of doing it itself. `sync.sh` skips `orchestrator` and `focus-coach` (Product Studio's) unless you name them.
+The usual order for one task: staff-pm, qa-tdd (red), engineer, qa-tdd (green, 3x), then ux-reviewer and privacy-security if users or the public will see it, then positioning for any copy. Each PR ends with an `Agents:` line saying who ran and the verdict; `templates/agents-check.yml` (installed by `install-rules.sh`) fails a PR without one, or a code PR that doesn't name `qa-tdd`. A PreToolUse hook (`templates/scripts/log-agent-run.sh`) logs every real Agent call to `.claude/agent-runs/<branch>.log`, and `check-agent-runs.sh` fails the PR if the line names an agent that never ran; when qa-tdd ran, CI reruns the repo's `agents.verify` command 3x. The main session acts as chief of staff (Hearth's model): it delegates each piece of work to the agent for that moment instead of doing it itself. `sync.sh` skips `orchestrator` and `focus-coach` (Product Studio's) unless you name them.
 
 ## How the agents stay generic
 No agent names a product. Each one reads the repo it's working in:
@@ -78,3 +78,6 @@ Edit it here first, run `bash tests/check.sh` (CI runs it too), then sync. One i
 ## License
 
 MIT ([LICENSE](LICENSE)).
+
+## Agent evals
+Each core agent has a fixed task scored with `claude plugin eval`, with and without the plugin, so a prompt change gets a score instead of a guess. Cases, how to run them and the latest scores: [plugins/studio/evals/README.md](plugins/studio/evals/README.md). CI: `.github/workflows/agent-evals.yml` (needs an `ANTHROPIC_API_KEY` secret).
