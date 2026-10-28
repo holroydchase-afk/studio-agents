@@ -19,4 +19,7 @@ install_one "$root/templates/agents-check.yml" .github/workflows/agents-check.ym
 # Shared checks: agent roster and log hygiene, with each repo's roots and banned words in studio-checks.json.
 install_one "$root/templates/scripts/check-agents.sh" scripts/check-agents.sh
 install_one "$root/templates/scripts/check-logs.mjs" scripts/check-logs.mjs
+# Agent run log: the hook (in settings.json) records real Agent calls; agents-check holds the Agents: line to it.
+install_one "$root/templates/scripts/log-agent-run.sh" scripts/log-agent-run.sh
+install_one "$root/templates/scripts/check-agent-runs.sh" scripts/check-agent-runs.sh
 install_one "$root/templates/studio-checks.json" studio-checks.json
