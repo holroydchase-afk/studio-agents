@@ -51,3 +51,18 @@ test("a page that follows the rules is clean", { skip: !hasPlaywright && "Playwr
   const report = await run({ target: fixture("rules-good.html"), out, primary: ".primary, .btn-primary, [data-primary]", clicks: [] });
   assert.deepEqual(report.flatMap((v) => v.findings), []);
 });
+
+test("a page that passes every G rule but has no visual system fails the V checks", { skip: !hasPlaywright && "Playwright not installed" }, async () => {
+  const out = mkdtempSync(join(tmpdir(), "ux-rules-"));
+  const report = await run({ target: fixture("visual-bad.html"), out, primary: ".primary, .btn-primary, [data-primary]", clicks: [] });
+  const laptop = report.find((v) => v.view === "home-laptop").findings;
+  assert.deepEqual(laptop.filter((f) => f.rule.startsWith("G")), [], "the fixture should pass Layer 1");
+  for (const r of ["V2", "V5", "V9"]) assert.ok(laptop.some((f) => f.rule === r), `expected ${r}, got ${laptop.map((f) => f.rule)}`);
+  assert.ok(laptop.some((f) => f.rule === "V2" && /famil/.test(f.what)), "V2 should also count font families");
+  assert.match(readFileSync(join(out, "report.md"), "utf8"), /V9/);
+});
+
+test("--strict ignores V findings unless --strict-visual is set", () => {
+  assert.equal(parseArgs(["a"]).strictVisual, false);
+  assert.equal(parseArgs(["a", "--strict-visual"]).strictVisual, true);
+});

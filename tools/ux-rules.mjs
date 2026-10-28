@@ -2,14 +2,17 @@
 // ux-rules: checks a page against the studio design rules that code can check, so a broken screen
 // fails a test instead of depending on someone reading a screenshot right. Layer 1 of the rules (G1-G12)
 // is in plugins/studio/agents/ux-reviewer.md; this checks G1-G5, G7-G9 and G11 at phone (390x844),
-// laptop (1280x800) and reflow (320x640, G8 only) width. Pair it with ux-shots for the screenshots.
+// laptop (1280x800) and reflow (320x640, G8 only) width. It also counts the visual system behind the page
+// (V2 type sizes and families, V5 corner radii, V9 a card inside a card): an engineer-built page passes
+// Layer 1 and still fails these. Pair it with ux-shots for the screenshots.
 //
 // Usage: node scripts/ux-rules.mjs <url or file.html> [options]
 //   --primary SEL   what counts as a primary button (default ".primary, .btn-primary, [data-primary]")
 //   --click SEL     click the first visible match, then check again, e.g. --click "#addBtn" to open a
 //                   dialog (repeatable, applied in order)
 //   --out DIR       where report.json and report.md go (default dist/ux-rules)
-//   --strict        exit 1 when any rule fails (for CI)
+//   --strict        exit 1 when any G rule fails (for CI)
+//   --strict-visual with --strict, V findings fail too
 // Needs Playwright with Chromium. Run it on a local build or a demo with sample data, never live data.
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -17,10 +20,10 @@ import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 export const VIEWS = [["phone", 390, 844], ["laptop", 1280, 800], ["reflow", 320, 640]];
-const USAGE = "usage: ux-rules.mjs <url or file.html> [--primary SEL] [--click SEL] [--out DIR] [--strict]";
+const USAGE = "usage: ux-rules.mjs <url or file.html> [--primary SEL] [--click SEL] [--out DIR] [--strict] [--strict-visual]";
 
 export function parseArgs(argv) {
-  const o = { target: null, primary: ".primary, .btn-primary, [data-primary]", clicks: [], out: "dist/ux-rules", strict: false };
+  const o = { target: null, primary: ".primary, .btn-primary, [data-primary]", clicks: [], out: "dist/ux-rules", strict: false, strictVisual: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i], next = () => {
       const v = argv[++i];
@@ -31,6 +34,7 @@ export function parseArgs(argv) {
     else if (a === "--click") o.clicks.push(next());
     else if (a === "--out") o.out = next();
     else if (a === "--strict") o.strict = true;
+    else if (a === "--strict-visual") o.strictVisual = true;
     else if (a === "-h" || a === "--help") o.help = true;
     else if (a.startsWith("--")) throw new Error(`unknown option ${a}`);
     else if (!o.target) o.target = a;
@@ -136,6 +140,34 @@ function inspect({ primary, onlyReflow, contrastSrc }) {
 
   // G11: images have alt text (alt="" for decoration).
   for (const img of all("img")) if (!img.hasAttribute("alt")) add("G11", "image with no alt attribute", img);
+
+  // V checks: the visual system. Limits calibrated so Build Slate and Roadmap (the studio references) pass.
+  // V2: a hand-picked type scale: at most 8 sizes and 3 families in one view.
+  const sizes = new Set(), families = new Set();
+  for (const el of owners) {
+    const s = getComputedStyle(el);
+    sizes.add(Math.round(parseFloat(s.fontSize) * 2) / 2);
+    families.add(s.fontFamily.split(",")[0].trim().replace(/["']/g, ""));
+  }
+  if (sizes.size > 8) add("V2", `${sizes.size} font sizes (${[...sizes].sort((a, b) => a - b).join(", ")}px); pick a scale of 8 or fewer`);
+  if (families.size > 3) add("V2", `${families.size} font families (${[...families].join(", ")}); use 2, 3 at most`);
+  // V5: one shape language: at most 4 corner radii (pills and circles don't count).
+  const boxes = all("body *"), radii = new Set();
+  for (const el of boxes) {
+    const r = parseFloat(getComputedStyle(el).borderTopLeftRadius);
+    if (r > 0 && r < Math.min(el.offsetWidth, el.offsetHeight) / 2 - 1) radii.add(r);
+  }
+  if (radii.size > 4) add("V5", `${radii.size} corner radii (${[...radii].sort((a, b) => a - b).join(", ")}px); use 4 or fewer`);
+  // V9: no card inside a card (a bordered or shadowed box inside another).
+  const boxed = (el) => {
+    const s = getComputedStyle(el);
+    const border = ["Top", "Right", "Bottom", "Left"].every((k) => parseFloat(s[`border${k}Width`]) > 0);
+    return (border || s.boxShadow !== "none") && el.offsetWidth > 120 && el.offsetHeight > 60 && el.tagName !== "DIALOG";
+  };
+  for (const el of boxes) {
+    if (!boxed(el)) continue;
+    for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) if (boxed(p)) { add("V9", "card inside a card; separate with space or a divider instead", el); break; }
+  }
   return out;
 }
 
@@ -143,7 +175,7 @@ const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(
 
 export function markdown(report, target) {
   const lines = [`# ux-rules: ${target}`, "", `${report.reduce((n, v) => n + v.findings.length, 0)} rule failures across ${report.length} views.`,
-    "Each line names a Layer 1 rule from ux-reviewer.md. A failing rule is a fact about the page: fix it, or record the exception in docs/design-rules.md (Layer 3) with the reason.", ""];
+    "Each line names a rule from ux-reviewer.md (G: Layer 1, V: visual system). A failing rule is a fact about the page: fix it, or record the exception in docs/design-rules.md (Layer 3) with the reason.", ""];
   for (const v of report) {
     lines.push(`## ${v.view}: ${v.findings.length ? `${v.findings.length} failing` : "clean"}`, "");
     for (const f of v.findings) lines.push(`- **${f.rule}** ${f.what}: \`${f.where}\``);
@@ -192,8 +224,9 @@ if (isMain) {
   try {
     const report = await run(o);
     const n = report.reduce((s, v) => s + v.findings.length, 0);
+    const failing = report.reduce((s, v) => s + v.findings.filter((f) => o.strictVisual || !f.rule.startsWith("V")).length, 0);
     console.log(`${n} rule failures across ${report.length} views. Details: ${join(o.out, "report.md")}`);
-    if (o.strict && n) process.exit(1);
+    if (o.strict && failing) process.exit(1);
   } catch (e) {
     console.error(e.message);
     process.exit(2);

@@ -47,7 +47,7 @@ check "sync.sh: every product agent present and identical" diff -r -x project-on
 check "sync.sh skips studio-only agents by default" test ! -e "$repo/.claude/agents/orchestrator.md" -a ! -e "$repo/.claude/agents/focus-coach.md"
 check "sync.sh copies a studio-only agent when named" bash -c "bash '$root/scripts/sync.sh' '$repo' orchestrator >/dev/null && test -f '$repo/.claude/agents/orchestrator.md' && rm '$repo/.claude/agents/orchestrator.md'"
 check "sync.sh copies the studio design rules with ux-reviewer" diff "$root/docs/design-rules.md" "$repo/.claude/design-rules.md"
-check "design rules: every Layer 1 rule ux-rules.mjs checks is defined in ux-reviewer.md" bash -c "for g in \$(grep -oE 'add\\(\"G[0-9]+' '$root/tools/ux-rules.mjs' | grep -oE 'G[0-9]+' | sort -u); do grep -q \"\\*\\*\$g\\*\\*\" '$root/plugins/studio/agents/ux-reviewer.md' || { echo \"\$g missing\"; exit 1; }; done"
+check "design rules: every rule ux-rules.mjs checks (G and V) is defined in ux-reviewer.md" bash -c "for g in \$(grep -oE 'add\\(\"[GV][0-9]+' '$root/tools/ux-rules.mjs' | grep -oE '[GV][0-9]+' | sort -u); do grep -q \"\\*\\*\$g\\*\\*\" '$root/plugins/studio/agents/ux-reviewer.md' || { echo \"\$g missing\"; exit 1; }; done"
 check "ux-rules.mjs tests pass (browser cases skip without Playwright)" node --test "$root/tests/ux-rules.test.mjs"
 check "sync.sh keeps project-only agents" grep -qx local "$repo/.claude/agents/project-only.md"
 check "sync.sh fails on an unknown agent name" bash -c "! bash '$root/scripts/sync.sh' '$repo' no-such-agent"
