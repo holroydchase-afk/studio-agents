@@ -18,8 +18,10 @@
 
 - `architect` agent (2026-10-27, Chase's go): one stack across products. Reviews any stack-crossing change (new dependency, vendor, paid service, schema change, CI or deploy workflow, a move up the pm-tools STACK.md ladder), checks reuse before build, keeps `docs/architecture/` honest against the pm-tools template, and runs a weekly drift sweep in studio projects. Engineer rule 4 now needs architect's OK on fit and staff-pm's on cost and scope. Listed in the README and `templates/CLAUDE-agents.md`; plugin 0.4.0. Paired pm-tools PR adds it to ONBOARDING.md and the STACK.md gate.
 
+- Agents forced, not just suggested (2026-10-28, Chase: "qa-tdd isn't being used"): recent product PRs (ccwatts #42-#45, Role Radar #37-#40, Crew Clock #22, Energy Scanner #33) had no qa-tdd, and ccwatts, Role Radar and Energy Scanner never got the Studio agents section or architect. New `templates/agents-check.yml` (installed by `install-rules.sh`) fails a PR without an `Agents:` line, fails a code PR whose line doesn't name `qa-tdd` (or `qa-tdd skipped: why`), and runs `check-agents.sh`. `templates/CLAUDE-agents.md` now opens with Hearth's chief-of-staff rule (main session delegates, one lane at a time) and the review-rounds habit from Energy Scanner (finding IDs, a failing test per fix). `sync.sh` skips orchestrator and focus-coach unless named, so the template no longer lists them and the roster check passes in product repos (Crew Clock and Charlie would have failed). 54 checks.
+
 ## In progress
-- Nothing.
+- Each product project runs the refresh paste in pm-tools `docs/ONBOARDING.md` (one PR per repo: sync, install-rules, new CLAUDE.md section).
 
 ## Exact next step
 - Merge the architect PR (and its pm-tools pair), then each product project re-runs `scripts/sync.sh` and pastes the new `architect` row of `templates/CLAUDE-agents.md`, or `check-agents.sh` fails. The Sunday drift sweep goes into the Product Studio night shift prompt when that shift is turned back on.
