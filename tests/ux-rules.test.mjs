@@ -4,6 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { mkdtempSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -65,4 +66,30 @@ test("a page that passes every G rule but has no visual system fails the V check
 test("--strict ignores V findings unless --strict-visual is set", () => {
   assert.equal(parseArgs(["a"]).strictVisual, false);
   assert.equal(parseArgs(["a", "--strict-visual"]).strictVisual, true);
+});
+
+const vFindings = async (name) => {
+  const report = await run({ target: fixture(name), out: mkdtempSync(join(tmpdir(), "ux-rules-")), primary: ".primary", clicks: [] });
+  return report.find((v) => v.view === "home-laptop").findings.filter((f) => f.rule.startsWith("V"));
+};
+
+test("QA-R1 V2 flags 9 font sizes in one family", { skip: !hasPlaywright && "Playwright not installed" }, async () => {
+  const v = await vFindings("visual-sizes.html");
+  assert.ok(v.some((f) => f.rule === "V2" && /font sizes/.test(f.what)), `got ${JSON.stringify(v)}`);
+  assert.ok(!v.some((f) => /famil/.test(f.what)));
+});
+
+test("QA-R2 QA-R3 at the limits and with pills, 50% circles, dialogs and form controls there are no V findings", { skip: !hasPlaywright && "Playwright not installed" }, async () => {
+  assert.deepEqual(await vFindings("visual-edges.html"), []);
+});
+
+test("QA-R5 a shadow-only card inside a bordered card is V9", { skip: !hasPlaywright && "Playwright not installed" }, async () => {
+  assert.ok((await vFindings("visual-sizes.html")).some((f) => f.rule === "V9"));
+});
+
+test("QA-R4 the CLI fails --strict on G findings, and on V findings only with --strict-visual", { skip: !hasPlaywright && "Playwright not installed" }, () => {
+  const cli = (...a) => spawnSync(process.execPath, [join(here, "..", "tools", "ux-rules.mjs"), ...a, "--out", mkdtempSync(join(tmpdir(), "ux-rules-"))]).status;
+  assert.equal(cli(fixture("visual-bad.html"), "--strict"), 0);
+  assert.equal(cli(fixture("visual-bad.html"), "--strict", "--strict-visual"), 1);
+  assert.equal(cli(fixture("rules-bad.html"), "--strict"), 1);
 });

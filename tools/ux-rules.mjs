@@ -154,15 +154,21 @@ function inspect({ primary, onlyReflow, contrastSrc }) {
   // V5: one shape language: at most 4 corner radii (pills and circles don't count).
   const boxes = all("body *"), radii = new Set();
   for (const el of boxes) {
-    const r = parseFloat(getComputedStyle(el).borderTopLeftRadius);
-    if (r > 0 && r < Math.min(el.offsetWidth, el.offsetHeight) / 2 - 1) radii.add(r);
+    const raw = getComputedStyle(el).borderTopLeftRadius, r = parseFloat(raw);
+    if (raw.includes("%") ? r >= 50 : r >= Math.min(el.offsetWidth, el.offsetHeight) / 2 - 1) continue; // a pill or a circle
+    if (r > 0) radii.add(raw.includes("%") ? `${r}%` : r);
   }
   if (radii.size > 4) add("V5", `${radii.size} corner radii (${[...radii].sort((a, b) => a - b).join(", ")}px); use 4 or fewer`);
-  // V9: no card inside a card (a bordered or shadowed box inside another).
+  // V9: no card inside a card (a bordered or shadowed box inside another). Dialogs and form controls aren't cards.
+  const cards = new Map();
   const boxed = (el) => {
+    if (cards.has(el)) return cards.get(el);
     const s = getComputedStyle(el);
     const border = ["Top", "Right", "Bottom", "Left"].every((k) => parseFloat(s[`border${k}Width`]) > 0);
-    return (border || s.boxShadow !== "none") && el.offsetWidth > 120 && el.offsetHeight > 60 && el.tagName !== "DIALOG";
+    const control = /^(DIALOG|TEXTAREA|INPUT|SELECT|BUTTON|FIELDSET|IMG|VIDEO|IFRAME)$/.test(el.tagName) || /dialog/.test(el.getAttribute("role") || "");
+    const card = !control && (border || s.boxShadow !== "none") && el.offsetWidth > 120 && el.offsetHeight > 60;
+    cards.set(el, card);
+    return card;
   };
   for (const el of boxes) {
     if (!boxed(el)) continue;

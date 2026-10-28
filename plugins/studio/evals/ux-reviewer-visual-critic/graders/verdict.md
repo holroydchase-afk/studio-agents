@@ -1,4 +1,4 @@
 ---
 type: regex
-pattern: '(?i)\b(needs changes|blocker|not ready)\b'
+pattern: '(?i)\b(needs changes|not ready)\b'
 ---
