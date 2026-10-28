@@ -78,3 +78,6 @@ Edit it here first, run `bash tests/check.sh` (CI runs it too), then sync. One i
 ## License
 
 MIT ([LICENSE](LICENSE)).
+
+## Agent evals
+Each core agent has a fixed task scored with `claude plugin eval`, with and without the plugin, so a prompt change gets a score instead of a guess. Cases, how to run them and the latest scores: [plugins/studio/evals/README.md](plugins/studio/evals/README.md). CI: `.github/workflows/agent-evals.yml` (needs an `ANTHROPIC_API_KEY` secret).
