@@ -51,7 +51,7 @@ Anything product-specific (personas, invariants, ID schemes) goes in that repo's
 Every product numbers its plan the same way: milestones `M1`, tasks `M1.1`, steps `M1.1.1`, with a product code (`CCW-M1.2`) where products mix. See [docs/planning-ids.md](docs/planning-ids.md).
 
 ## Use it in a repo
-New repo, in order: `scripts/sync.sh` (agents), `scripts/sync-tools.sh` (tools), `scripts/install-rules.sh` (HANDOFF hook and PR check), then paste `templates/CLAUDE-agents.md` into the repo's `CLAUDE.md`.
+New repo, in order: `scripts/sync.sh` (agents), `scripts/sync-tools.sh` (tools), `scripts/install-rules.sh` (HANDOFF hook and PR check), `scripts/install-security.sh` (security kit), then paste `templates/CLAUDE-agents.md` into the repo's `CLAUDE.md`.
 
 Needs logins and shared data? `scripts/add-supabase.sh <repo>` copies the Supabase starter (`templates/supabase/`): org and member tables with row-level security, 36 RLS tests, Edge Function helpers and a CI workflow. See its README.
 
@@ -81,6 +81,15 @@ It also installs two shared checks (proved in Hearth) and their config, never ov
 - `studio-checks.json`: each repo's own settings, for example `{"logs": {"roots": ["app/src"], "banned": ["caption"]}}`. `banned` adds words to the defaults. The shared privacy check will read the same file when it lands.
 
 Run both from the repo's test script and CI. The canonical copies live in `templates/scripts/`; `tests/check_logs_test.sh` is the log check's own test.
+
+## Security kit
+`scripts/install-security.sh ../my-product` adds the studio security baseline from [templates/security](templates/security), and never overwrites a file the repo already has:
+- `.github/workflows/security.yml`: gitleaks over the full git history (pinned and checksum-verified), a personal-data scan (`.github/privacy-scan.py`: emails, phone numbers, claude.ai links, trigger ids; allow a safe match in `.privacy-allow`), and dependency review on PRs (fails on high or critical).
+- `.github/workflows/codeql.yml`: CodeQL for the languages it finds (always `actions`, plus JavaScript/TypeScript and Python).
+- `.github/dependabot.yml`: weekly grouped updates for every `package.json` folder, Python requirements and GitHub Actions.
+- `SECURITY.md`: report privately through the Security tab.
+
+The `dependencies` check needs **Dependency graph** on (Settings → Code security); until then it fails with "Dependency review is not supported". GitHub's own toggles (dependency graph, secret scanning, push protection, Dependabot alerts and security updates, private vulnerability reporting) live in each repo's Settings and only the owner can turn them on.
 
 ## Changing an agent
 Edit it here first, run `bash tests/check.sh` (CI runs it too), then sync. One improvement lands everywhere.

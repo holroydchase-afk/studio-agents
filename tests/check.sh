@@ -121,6 +121,22 @@ check "add-supabase.sh keeps an existing test file" bash -c "bash '$root/scripts
 if [ -n "${PGHOST:-}" ]; then
   check "Supabase starter: migrations and RLS tests pass" sh "$root/templates/supabase/tests/sql/run.sh" starter_test
 fi
+# install-security.sh: detects ecosystems and languages, scans privacy, never overwrites.
+r3="$tmp/sec"; mkdir -p "$r3/app" "$r3/py"; git -C "$r3" init -q
+echo '{}' >"$r3/app/package.json"; echo 'let a' >"$r3/app/a.ts"; echo requests >"$r3/py/requirements.txt"; : >"$r3/py/m.py"
+echo 'mine' >"$r3/SECURITY.md"; git -C "$r3" add -A
+check "install-security.sh installs the kit" bash -c "bash '$root/scripts/install-security.sh' '$r3' && test -f '$r3/.github/workflows/security.yml' -a -f '$r3/.github/workflows/codeql.yml' -a -f '$r3/.github/dependabot.yml' -a -f '$r3/.github/privacy-scan.py'"
+check "install-security.sh keeps an existing SECURITY.md" grep -qx mine "$r3/SECURITY.md"
+check "dependabot.yml covers npm in /app, pip in /py and Actions" bash -c "grep -A1 'ecosystem: npm' '$r3/.github/dependabot.yml' | grep -q '\"/app\"' && grep -A1 'ecosystem: pip' '$r3/.github/dependabot.yml' | grep -q '\"/py\"' && grep -q 'ecosystem: github-actions' '$r3/.github/dependabot.yml'"
+check "codeql.yml lists actions, javascript-typescript and python" grep -q 'language: \[actions, javascript-typescript, python\]' "$r3/.github/workflows/codeql.yml"
+check "privacy scan passes sample data" python3 "$r3/.github/privacy-scan.py" "$r3"
+# Built at run time so this file stays clean for the repo's own privacy scan.
+mail="jane.doe@$(echo gmail).com"; tel="803-555-$((2200+83))"
+printf 'ping %s or %s\n' "$mail" "$tel" >"$r3/leak.md"; git -C "$r3" add leak.md
+check "privacy scan fails on a real-looking email and phone" bash -c "out=\$(python3 '$r3/.github/privacy-scan.py' '$r3'); [ \$? -eq 1 ] && echo \"\$out\" | grep -q 'email address' && echo \"\$out\" | grep -q 'phone number'"
+printf '%s\n%s\n' "$mail" "$tel" >"$r3/.privacy-allow"
+check "privacy scan honors .privacy-allow" python3 "$r3/.github/privacy-scan.py" "$r3"
+check "gitleaks pin in security.yml matches a sha256" grep -qE 'SHA256: [0-9a-f]{64}$' "$root/templates/security/security.yml"
 
 # agents-check.yml: run its "Agents line" step against a throwaway git history.
 astep="$tmp/astep.sh"
