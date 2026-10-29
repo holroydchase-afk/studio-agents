@@ -2,7 +2,7 @@
 
 The studio's opinion on screens, written down so a reviewer checks against rules instead of judging pixels by eye. Three layers, read in order, and stop as soon as you have what you need:
 
-1. **General rules (G1-G12)** apply to every screen. They live in `plugins/studio/agents/ux-reviewer.md` so the reviewer always has them loaded. `tools/ux-rules.mjs` checks the ones marked *code*.
+1. **General rules (G1-G12) and visual craft (V1-V10)** apply to every screen. They live in `plugins/studio/agents/ux-reviewer.md` so the reviewer always has them loaded. `tools/ux-rules.mjs` checks the ones marked *code*.
 2. **Screen types** (below): what a list, form, dialog, result or landing page must have. Read only the types on the screen you're reviewing.
 3. **Exceptions** (below): where the studio deliberately breaks a rule, and why.
 
@@ -50,6 +50,18 @@ Seeded on 2026-10-28 from what already works in Build Slate and chaseholroyd.com
 - C1. The answer first on one line, then the detail; every number with its range and unit.
 - C2. Errors say what happened and the exact command to fix it.
 - C3. No color-only meaning; works with `NO_COLOR`.
+
+### Audience: older adults (Hearth's grandparents)
+In NN/g's tests, people over 65 finished 55% of web tasks against 74% for people 21 to 55, and took about 43% longer. Hearth's grandparents also grew up in the 60s to 80s and tease what looks cheap, so these screens must be obvious and still impressive.
+- A1. Body text 18px or more, and the layout still works at the largest system text size.
+- A2. Every icon has a word with it; no gesture (swipe, long press, pinch) is the only way to do something.
+- A3. One task per screen, few choices, targets 48px or more with room between them.
+- A4. Their words, not ours: "album", "send to the family", "print", never "feed", "sync" or "upload".
+- A5. Forgiving: undo instead of "Are you sure?", nothing lost on a slip, and the way back always in view.
+- A6. Impressive, not clunky: the photos are the hero (big, edge to edge), one typeface with character, calm color. Large and simple is the style, never a beige "accessibility mode".
+
+## Persona: the harshest critic
+Every product names one in its personas doc, so the reviewer knows whose teasing to pre-empt. Card: who they are, what they grew up with, what they'd say about a cheap-looking screen (one line in their voice), and what would make them show it off. Hearth: the grandparents. Portfolio: a hiring manager who has seen a hundred AI-built demos.
 
 ## Layer 3: exceptions
 
