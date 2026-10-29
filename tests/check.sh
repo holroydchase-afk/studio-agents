@@ -53,6 +53,19 @@ check "sync.sh keeps project-only agents" grep -qx local "$repo/.claude/agents/p
 check "sync.sh fails on an unknown agent name" bash -c "! bash '$root/scripts/sync.sh' '$repo' no-such-agent"
 check "sync.sh names the unknown agent" bash -c "bash '$root/scripts/sync.sh' '$repo' no-such-agent 2>&1 | grep -q 'unknown agent: no-such-agent'"
 
+# sync-tools.sh: copies every tool into scripts/, keeps other scripts, rejects unknown names.
+t3="$tmp/tools"; mkdir -p "$t3/scripts"; echo mine > "$t3/scripts/build.mjs"
+check "sync-tools.sh copies all tools" bash "$root/scripts/sync-tools.sh" "$t3"
+check "sync-tools.sh: every tool present and identical" diff -r -x build.mjs "$root/tools" "$t3/scripts"
+check "sync-tools.sh keeps other scripts" grep -qx mine "$t3/scripts/build.mjs"
+check "sync-tools.sh names an unknown tool and copies nothing" bash -c "! bash '$root/scripts/sync-tools.sh' '$tmp/t4' no-such-tool 2>'$tmp/err' && grep -q 'unknown tool: no-such-tool' '$tmp/err' && ! test -e '$tmp/t4/scripts/ux-shots.mjs'"
+
+# Every tool is listed in the README; ux-shots passes its tests (browser cases skip without Playwright).
+for f in "$root"/tools/*.mjs; do
+  check "tool $(basename "$f" .mjs): listed in the README" grep -q "\`$(basename "$f" .mjs)\`" "$root/README.md"
+done
+check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
+
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
 check "install-rules.sh installs the hook and the PR check" bash -c "bash '$root/scripts/install-rules.sh' '$r2' && test -f '$r2/.claude/settings.json' -a -f '$r2/.github/workflows/handoff-check.yml' -a -f '$r2/.github/workflows/agents-check.yml'"
