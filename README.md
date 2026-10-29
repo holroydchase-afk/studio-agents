@@ -53,6 +53,8 @@ Every product numbers its plan the same way: milestones `M1`, tasks `M1.1`, step
 ## Use it in a repo
 New repo, in order: `scripts/sync.sh` (agents), `scripts/sync-tools.sh` (tools), `scripts/install-rules.sh` (HANDOFF hook and PR check), then paste `templates/CLAUDE-agents.md` into the repo's `CLAUDE.md`.
 
+Needs logins and shared data? `scripts/add-supabase.sh <repo>` copies the Supabase starter (`templates/supabase/`): org and member tables with row-level security, 36 RLS tests, Edge Function helpers and a CI workflow. See its README.
+
 **Copy (recommended; the agents are visible in the repo and load in cloud sessions with no setup):**
 ```bash
 scripts/sync.sh ../my-product            # all agents
