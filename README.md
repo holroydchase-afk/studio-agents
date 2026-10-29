@@ -14,7 +14,9 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
 | `focus-coach` | The "you are procrastinating" agent: checks the job-hunt tracker, calls out drift in one cheeky line, redirects to the next application |
 
-Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`, `digest` (the morning digest on demand, in any project), `night-prep` (each evening: unblock list, foreseen blockers and tonight's goal for the 2:15am night shift), `onboard` (bring a new project into the studio per pm-tools `docs/ONBOARDING.md`; `onboard refresh` for an existing one).
+Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`, `digest` (the morning digest on demand, in any project), `night-prep` (each evening: unblock list, foreseen blockers and tonight's goal for the 2:15am night shift), `onboard` (bring a new project into the studio per pm-tools `docs/ONBOARDING.md`; `onboard refresh` for an existing one), `review-rounds` (numbered review-then-fix rounds until nothing at P2 or above is left; from Energy Scanner's ES-R1 to R68).
+
+An agent can preload skills with a `skills:` list in its frontmatter (ux-reviewer preloads `review-rounds`, since it has no Skill tool). `sync.sh` copies each synced agent's preloaded skills into the repo's `.claude/skills/`, replacing only those folders.
 
 ## Tools
 Scripts the agents run, copied into each repo's `scripts/` with `scripts/sync-tools.sh ../my-product`.

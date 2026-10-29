@@ -38,6 +38,8 @@
 
 - `ux-shots --no-network` and the polish score (2026-10-26, draft PR stacked on the ux-shots PR): `--no-network` blocks and lists every request that leaves the page's origin (any http request from a file page), the privacy gate for ccwatts and Energy Scanner, which can retire `check-no-network.mjs`. ux-reviewer and ux-review now end with a 0-10 polish score on one anchored scale (2 baseline, 8 target, Build Slate and the portfolio as reference), with before and after, recorded in HANDOFF.md. Tried on the portfolio home page: it lists the Google Fonts request, as expected for a page that is not local-only. 8 ux-shots tests, 43 checks.
 
+- review-rounds skill (2026-10-29, INTAKE from Energy Scanner): `plugins/studio/skills/review-rounds/SKILL.md` is a verbatim copy of Energy Scanner's (its PR #36), the numbered review-then-fix loop it ran for ES-R1 to R68. `ux-reviewer.md` preloads it (`skills: [review-rounds]`, since its tool list has no Skill tool); the #19 rules and #20 visual critic are untouched. `sync.sh` now reads each synced agent's `skills:` list and copies those skill folders into `<repo>/.claude/skills/`, leaving project-only skills alone; it fails before copying anything if an agent preloads a skill that doesn't exist. Plugin 0.5.0. 103 checks. qa-tdd's role (run as a general-purpose worker, since studio agents don't load in Product Studio sessions) wrote the 6 new checks red first, ran all 101 green 3x and filed QA-R1 to R4 (all P2). Fixed test-first: QA-R1 (sync.sh rejects a skill name that isn't `[a-z0-9-]+`, so `../x` can't reach `rm -rf`) and QA-R2 (an inline `skills: [x]` fails instead of being silently skipped). Left: QA-R3 (a skill two agents preload is copied twice; harmless) and QA-R4 (below).
+
 ## In progress
 - Each product project runs the refresh paste in pm-tools `docs/ONBOARDING.md` (one PR per repo: sync, install-rules, new CLAUDE.md section).
 
@@ -52,8 +54,11 @@
 - After this merges, each product project re-runs `scripts/sync.sh` and pastes `templates/CLAUDE-agents.md` into its CLAUDE.md (pm-tools `docs/ONBOARDING.md` has the paste for existing projects).
 - Merge the ux-reviewer upgrade, then re-run `scripts/sync.sh` in each product repo (the recruiter-ready sprint paste tells each project to do it).
 - Merge the focus-coach PR, then merge the open "Add shared studio agents" PRs in ccwatts, Role Radar and Energy Scanner.
+- review-rounds: merge, then each product re-runs `scripts/sync.sh` (Energy Scanner's copy is identical, so its re-sync is a no-op). Next, per the intake: build `plugins/studio/evals/ux-reviewer-*` cases from Energy Scanner's ES-R1..R68 (commit before each fix, screen, viewport, priority), run ux-reviewer on each and log recall by priority; needs the `ANTHROPIC_API_KEY` secret to run in CI.
 
 ## Decisions to review
+- QA-R4: a project-only skill with the same name as a studio skill is overwritten on sync, and a skill an agent stops preloading stays in product repos. Same rule as agents (studio names win, sync never deletes).
+- `sync.sh` installs only the skills a synced agent preloads, not every plugin skill: the others (digest, night-prep, onboard...) are Chase's account-level skills for chats, and copying them into every product repo would add noise and drift.
 - Supabase starter: membership helpers (works for users in several orgs, like Hearth) rather than Crew Clock's token-claims hook; the README says when to add the hook. Copied with a script, not published as a package.
 
 - Security kit runs gitleaks as a pinned, checksum-verified binary instead of `gitleaks-action`, so there's no third-party action and no license key. CodeQL is a workflow file (advanced setup) so no Settings click is needed; a repo that already uses default setup should drop the file.
