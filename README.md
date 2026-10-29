@@ -21,7 +21,7 @@ Scripts the agents run, copied into each repo's `scripts/` with `scripts/sync-to
 
 | Tool | What it does |
 |---|---|
-| `ux-shots` | The ux-reviewer's visual pass in one command: screenshots at 390x844 and 1280x800, light and dark, viewport and full page, plus a report of console errors, failed requests, broken images, sideways scroll, small tap targets, unfinished text and sample links. `node scripts/ux-shots.mjs dist/index.html --click "[role=tab]"`; `--strict` fails CI on any issue. Needs Playwright (`npm i -D playwright`). Extracted from Role Radar's review pass. |
+| `ux-shots` | The ux-reviewer's visual pass in one command: screenshots at 390x844 and 1280x800, light and dark, viewport and full page, plus a report of console errors, failed requests, broken images, sideways scroll, small tap targets, unfinished text and sample links. `node scripts/ux-shots.mjs dist/index.html --click "[role=tab]"`; `--no-network` blocks and lists every request that leaves the page (the privacy gate for local-only apps); `--strict` fails CI on any issue. Needs Playwright (`npm i -D playwright`). Extracted from Role Radar's review pass. |
 | `ux-rules` | Checks a page against the design rules code can check (Layer 1 G rules and Layer V craft counts in `ux-reviewer.md`) at 390, 1280 and 320px. `node scripts/ux-rules.mjs dist/index.html --click "#addBtn"`; `--strict` fails CI on a rule break, `--strict-visual` on a V count too. Needs Playwright. Run it before ux-shots: a failing rule beats a reading of a screenshot. |
 
 ## When to use which agent (by default, without being asked)

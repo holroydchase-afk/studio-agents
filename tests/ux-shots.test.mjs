@@ -7,7 +7,7 @@ import { mkdtempSync, existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs, pageUrls, issueCount, markdown, run } from "../tools/ux-shots.mjs";
+import { parseArgs, pageUrls, isOutside, issueCount, markdown, run } from "../tools/ux-shots.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixture = (n) => join(here, "fixtures", n);
@@ -19,6 +19,8 @@ try { createRequire(join(process.cwd(), "package.json"))("playwright"); } catch 
 test("parseArgs reads options and rejects mistakes", () => {
   const o = parseArgs(["page.html", "--click", "[role=tab]", "--path", "/about", "--out", "x", "--tap", "48", "--strict"]);
   assert.deepEqual([o.target, o.clicks, o.paths, o.out, o.tap, o.strict], ["page.html", ["[role=tab]"], ["/about"], "x", 48, true]);
+  assert.equal(o.noNetwork, false);
+  assert.equal(parseArgs(["page.html", "--no-network"]).noNetwork, true);
   assert.throws(() => parseArgs([]), /usage/);
   assert.throws(() => parseArgs(["a", "b"]), /one target only/);
   assert.throws(() => parseArgs(["a", "--nope"]), /unknown option/);
@@ -30,6 +32,14 @@ test("pageUrls resolves extra paths against the target", () => {
   assert.deepEqual(pageUrls("https://x.dev/app/", ["/about", "help"]), [
     ["home", "https://x.dev/app/"], ["about", "https://x.dev/about"], ["help", "https://x.dev/app/help"]]);
   assert.match(pageUrls("demo/index.html")[0][1], /^file:\/\/.*demo\/index\.html$/);
+});
+
+test("isOutside flags only requests that leave the page", () => {
+  assert.equal(isOutside("https://cdn.x.dev/a.js", "file:///demo/index.html"), true);
+  assert.equal(isOutside("file:///demo/a.js", "file:///demo/index.html"), false);
+  assert.equal(isOutside("data:image/png;base64,AA", "https://x.dev/"), false);
+  assert.equal(isOutside("https://x.dev/api", "https://x.dev/app/"), false);
+  assert.equal(isOutside("https://analytics.y.com/hit", "https://x.dev/app/"), true);
 });
 
 test("markdown says clean or lists each issue", () => {
@@ -66,4 +76,18 @@ test("a broken page reports every kind of issue", { skip: !hasPlaywright && "Pla
   assert.ok(phone.brokenImages.some((s) => s.endsWith("missing-image.png")));
   assert.ok(phone.consoleErrors.some((e) => e.includes("boom from the page")));
   assert.ok(phone.failedRequests.some((e) => e.includes("missing-image.png")));
+});
+
+test("--no-network blocks and reports a page that calls home", { skip: !hasPlaywright && "Playwright not installed" }, async () => {
+  const out = mkdtempSync(join(tmpdir(), "ux-shots-"));
+  const report = await run(parseArgs([fixture("ux-calls-home.html"), "--no-network", "--out", out]));
+  assert.equal(report.length, 4);
+  for (const r of report) {
+    assert.deepEqual(r.outsideRequests, ["https://tracker.invalid/hit?page=demo"]);
+    assert.deepEqual(r.failedRequests, []);
+    assert.deepEqual(r.consoleErrors, []);
+  }
+  assert.match(readFileSync(join(out, "report.md"), "utf8"), /left the page \(blocked\): `https:\/\/tracker\.invalid/);
+  const clean = await run(parseArgs([fixture("ux-good.html"), "--no-network", "--out", out]));
+  assert.deepEqual(clean.flatMap((r) => r.outsideRequests), []);
 });
