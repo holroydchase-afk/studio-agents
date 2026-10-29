@@ -5,7 +5,7 @@
     {
       "name": "studio",
       "source": "./plugins/studio",
-      "description": "A one-person product studio's AI team: orchestrator, architect, staff PM, test-first QA, engineer, privacy and security, persona UX, and positioning and story."
+      "description": "A one-person product studio's AI team: orchestrator, architect, staff PM, test-first QA, engineer, privacy and security, persona UX, positioning and story, and a story-keeper that logs decisions and lessons as they happen."
     }
   ]
 }

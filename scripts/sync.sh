@@ -42,3 +42,9 @@ for a in "$@"; do
     echo "synced design-rules"
   fi
 done
+# A synced agent missing from the repo's CLAUDE.md table fails check-agents.sh; say so now.
+if [ -f "$repo/CLAUDE.md" ]; then
+  for a in "$@"; do
+    grep -q "\`$a\`" "$repo/CLAUDE.md" || echo "note: add the $a row from studio-agents templates/CLAUDE-agents.md to CLAUDE.md, or check-agents.sh fails"
+  done
+fi
