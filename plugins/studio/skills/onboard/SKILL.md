@@ -27,11 +27,12 @@ No repo attached: give Chase one copy box with the repo name (public, MIT, no RE
 
 ## 4. Setup PR
 One branch and one PR: `M0.1: studio setup` (new) or `studio refresh` (refresh). Everything missing from step 2 that lives in the repo, following ONBOARDING section 3:
-- From a studio-agents clone: `scripts/sync.sh <repo>` (skip orchestrator and focus-coach) and `scripts/install-rules.sh <repo>`.
-- Paste studio-agents `templates/CLAUDE-agents.md` into CLAUDE.md.
+- From a studio-agents clone: `scripts/sync.sh <repo>` (skips orchestrator and focus-coach by itself) and `scripts/install-rules.sh <repo>` (adds the HANDOFF hook, handoff-check, agents-check and the shared checks; it never overwrites, so merge by hand anything it reports as kept).
+- Replace any existing "Studio agents" section of CLAUDE.md with studio-agents `templates/CLAUDE-agents.md` (paste it if there is none). Keep project-only agents as extra rows. `bash scripts/check-agents.sh` must pass.
+- Add `bash scripts/check-agents.sh` to the repo's test script and CI if it isn't there.
 - `HANDOFF.md` from pm-tools `templates/HANDOFF.md`, plus "Portfolio / public presence" with a link to STUDIO-STATUS.
 - CI, Pages, dependabot and README per STACK.md. Private repo: skip Pages and record why in HANDOFF.md.
-- Run the repo's checks; CI green before you call it done. Never merge, deploy or publish. The PR ends with an `Agents:` line.
+- Run the repo's checks; CI green before you call it done. Never merge, deploy or publish. The PR ends with an `Agents:` line naming qa-tdd (agents-check fails it otherwise). From then on, follow the chief-of-staff rule in the new CLAUDE.md section in every session and scheduled run.
 
 ## 5. Shifts and story
 - Shifts per ONBOARDING section 6: night 2:15am, morning 7:20am, afternoon 12:20pm America/New_York, in the thread that owns the build. Keep any that already exist and only add the missing ones. Then start M1.1 (new mode) or the HANDOFF.md exact next step (refresh).

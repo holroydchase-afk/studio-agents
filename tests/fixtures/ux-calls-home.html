@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calls home</title>
+<style>body{font:17px/1.5 system-ui;margin:16px}</style>
+</head><body>
+<main><h1>Calls home</h1><p>A local-only page that quietly sends a hit to a tracker.</p></main>
+<script>fetch("https://tracker.invalid/hit?page=demo").catch(() => {});</script>
+</body></html>

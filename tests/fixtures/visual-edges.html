@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Edges</title>
+<!-- Must stay free of V findings: exactly 8 font sizes, exactly 4 radii plus a pill and a 50% circle,
+     and a card holding a dialog, a textarea, a fieldset and an ARIA dialog (none of them is a card). -->
+<style>
+body{font:17px/1.6 system-ui;margin:0;padding:0 16px;color:#16231D;background:#F7F6F1}
+.card{border:1px solid #DCDFD6;border-radius:8px;padding:16px;margin:12px 0;min-height:80px}
+.r4{border-radius:4px} .r6{border-radius:6px} .r12{border-radius:12px;border:1px solid #DCDFD6}
+.pill{border-radius:999px;padding:4px 8px;border:1px solid #DCDFD6}
+.circle{width:200px;height:200px;border-radius:50%;background:#DCDFD6}
+.aria{border:1px solid #DCDFD6;width:300px;height:100px}
+</style></head><body>
+<h1 style="font-size:40px">Edges</h1>
+<p style="font-size:12px">a</p><p style="font-size:13px">b</p><p style="font-size:14px">c</p><p style="font-size:15px">d</p><p style="font-size:20px">e</p><p style="font-size:28px">f</p>
+<span class="r4">x</span> <span class="r6">y</span> <span class="r12">z</span> <span class="pill">pill</span>
+<div class="circle"></div>
+<div class="card" style="width:600px;max-width:100%;box-sizing:border-box">
+  <label for="t">Note</label><textarea id="t" style="width:300px;height:80px"></textarea>
+  <fieldset style="min-height:70px;width:300px"><legend>Pick</legend><label><input type="checkbox"> One</label></fieldset>
+  <div class="aria" role="dialog" aria-label="Tip"><button type="button" style="font:inherit">Close</button></div>
+</div>
+</body></html>
