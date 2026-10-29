@@ -190,6 +190,61 @@ printf '{"agents":{"verify":"false","runs":3}}' > "$lr/studio-checks.json"
 check "run check fails when the verify command fails" bash -c "$(declare -f crun); lr='$lr'; ! crun 'Agents: qa-tdd green'"
 check "agents-check.yml runs check-agent-runs.sh with the head branch" bash -c "grep -q 'check-agent-runs.sh' '$root/templates/agents-check.yml' && grep -q 'github.head_ref' '$root/templates/agents-check.yml'"
 
+# Cloud sessions start in the parent of several repos (CLAUDE_PROJECT_DIR is not a git repo), so the log hook
+# falls back to the hook input's "cwd", and install-cloud.sh installs agents and the hook at user level ($HOME).
+cr="$tmp/cwdrepo"; git init -q -b feat/cloud "$cr"; mkdir -p "$cr/sub"; ng="$tmp/nogit"; mkdir -p "$ng"
+lhook() { (cd "$ng" && printf '%s' "$1" | CLAUDE_PROJECT_DIR="$ng" bash "$root/templates/scripts/log-agent-run.sh"); }
+check "CLOUD-5 log hook: project dir not a repo, logs to the git top-level of the input's cwd" bash -c "$(declare -f lhook); root='$root' ng='$ng'; lhook '{\"cwd\":\"$cr/sub\",\"tool_input\":{\"subagent_type\":\"qa-tdd\"}}' && grep -qE '^[0-9T:-]+Z qa-tdd\$' '$cr/.claude/agent-runs/feat-cloud.log' && ! test -e '$cr/sub/.claude' && ! test -e '$ng/.claude'"
+ng2="$tmp/nogit2"; mkdir -p "$ng2"
+check "CLOUD-6 log hook: neither project dir nor cwd is a repo, writes nothing and exits 0" bash -c "$(declare -f lhook); root='$root' ng='$ng'; lhook '{\"cwd\":\"$ng2\",\"tool_input\":{\"subagent_type\":\"qa-tdd\"}}' && ! test -e '$ng/.claude' && ! test -e '$ng2/.claude'"
+
+ch="$tmp/cloudhome"; mkdir -p "$ch/.claude"
+printf '{"model":"opus","hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"echo keep-me"}]}]}}' > "$ch/.claude/settings.json"
+check "CLOUD-1 install-cloud.sh runs and exits 0" bash -c "HOME='$ch' bash '$root/scripts/install-cloud.sh'"
+check "CLOUD-1 install-cloud.sh copies every agent (incl. orchestrator, focus-coach) to \$HOME/.claude/agents" bash -c "for f in '$root'/plugins/studio/agents/*.md; do cmp \"\$f\" '$ch/.claude/agents/'\$(basename \$f) || exit 1; done; test -f '$ch/.claude/agents/orchestrator.md' -a -f '$ch/.claude/agents/focus-coach.md'"
+check "CLOUD-2 install-cloud.sh copies log-agent-run.sh to \$HOME/.claude/studio" cmp "$root/templates/scripts/log-agent-run.sh" "$ch/.claude/studio/log-agent-run.sh"
+{ echo stale > "$ch/.claude/agents/qa-tdd.md"; } 2>/dev/null
+check "CLOUD-1 install-cloud.sh re-run overwrites a stale agent with the latest and exits 0" bash -c "HOME='$ch' bash '$root/scripts/install-cloud.sh' && cmp '$root/plugins/studio/agents/qa-tdd.md' '$ch/.claude/agents/qa-tdd.md'"
+cloudhooks() { # cloudhooks <settings.json>: asserts other keys and hooks kept, exactly one Agent|Task log hook
+  python3 - "$1" <<'PY'
+import json, sys
+s = json.load(open(sys.argv[1]))
+pre = s["hooks"]["PreToolUse"]
+mine = [e for e in pre if e.get("matcher") == "Agent|Task" and any(".claude/studio/log-agent-run.sh" in h.get("command", "") for h in e.get("hooks", []))]
+assert len(mine) == 1, f"want 1 Agent|Task log hook, got {len(mine)}"
+PY
+}
+check "CLOUD-3 settings.json: valid JSON, one Agent|Task hook after two runs" bash -c "$(declare -f cloudhooks); cloudhooks '$ch/.claude/settings.json'"
+check "CLOUD-3 settings.json keeps existing keys and hooks alongside the new one" python3 -c 'import json,sys;s=json.load(open(sys.argv[1]));assert "PreToolUse" in s["hooks"], "install did not add PreToolUse";assert s["model"]=="opus";assert s["hooks"]["SessionStart"][0]["hooks"][0]["command"]=="echo keep-me"' "$ch/.claude/settings.json"
+ch2="$tmp/cloudhome2"; mkdir -p "$ch2"
+check "CLOUD-3 install-cloud.sh creates settings.json when missing" bash -c "$(declare -f cloudhooks); HOME='$ch2' bash '$root/scripts/install-cloud.sh' && cloudhooks '$ch2/.claude/settings.json'"
+uhook() { # uhook <project dir> <input>: runs the user-level hook command from settings.json, as Claude Code would
+  local cmd; cmd="$(python3 -c 'import json,sys;print(next(h["command"] for e in json.load(open(sys.argv[1]))["hooks"]["PreToolUse"] if e.get("matcher")=="Agent|Task" for h in e["hooks"]))' "$ch/.claude/settings.json")" || return 1
+  [ -n "$cmd" ] || return 1
+  (cd "$1" && printf '%s' "$2" | HOME="$ch" CLAUDE_PROJECT_DIR="$1" bash -c "$cmd")
+}
+ur="$tmp/userrepo"; git init -q -b feat/u "$ur"
+check "CLOUD-4 user-level hook does nothing when CLAUDE_PROJECT_DIR is a repo (repo hook logs instead)" bash -c "$(declare -f uhook); ch='$ch'; uhook '$ur' '{\"cwd\":\"$ur\",\"tool_input\":{\"subagent_type\":\"qa-tdd\"}}' && ! test -e '$ur/.claude/agent-runs'"
+check "CLOUD-4 user-level hook logs via cwd when CLAUDE_PROJECT_DIR is not a repo" bash -c "$(declare -f uhook); ch='$ch'; rm -rf '$cr/.claude'; uhook '$ng' '{\"cwd\":\"$cr/sub\",\"tool_input\":{\"subagent_type\":\"staff-pm\"}}' && grep -qE 'Z staff-pm\$' '$cr/.claude/agent-runs/feat-cloud.log'"
+check "CLOUD-8 README mentions install-cloud.sh" grep -q 'install-cloud.sh' "$root/README.md"
+# QA-R1 (P1): a cloud thread whose cwd stays in the parent folder logs nothing (CLOUD-6), so agents-check fails every
+# agent it names. Until the hook can find the repo another way, the README must tell the session to cd into the repo first.
+check "CLOUD-9 (QA-R1) README says the run log needs the session's cwd inside the repo (cd before calling an agent)" bash -c "sed -n '/Cloud sessions/,/^## /p' '$root/README.md' | grep -qiE '\\bcd\\b.*(repo|agent)'"
+# QA-R2: an unreadable settings.json (non-JSON, or "hooks": null) must not abort the install or be rewritten.
+badset() { # badset <home> <settings content>: install exits 0, copies agents, warns, leaves settings.json byte-identical
+  mkdir -p "$1/.claude"; printf '%s' "$2" > "$1/.claude/settings.json"; cp "$1/.claude/settings.json" "$1/before.json"
+  HOME="$1" bash "$root/scripts/install-cloud.sh" > "$1/install.out" 2>&1 || { echo "install exited non-zero"; cat "$1/install.out"; return 1; }
+  for f in "$root"/plugins/studio/agents/*.md; do cmp "$f" "$1/.claude/agents/$(basename "$f")" || { echo "agent not copied: $(basename "$f")"; return 1; }; done
+  grep -qi warning "$1/install.out" || { echo "no warning line in output:"; cat "$1/install.out"; return 1; }
+  cmp "$1/before.json" "$1/.claude/settings.json" || { echo "settings.json changed"; return 1; }
+}
+check "CLOUD-10 (QA-R2) non-JSON settings.json: exits 0, copies agents, warns, file byte-identical" bash -c "$(declare -f badset); root='$root'; badset '$tmp/cloudbad1' '{\"model\": \"opus\",, not json'"
+check "CLOUD-10 (QA-R2) settings.json with \"hooks\": null: exits 0, copies agents, warns, file byte-identical" bash -c "$(declare -f badset); root='$root'; badset '$tmp/cloudbad2' '{\"model\":\"opus\",\"hooks\":null}'"
+# QA-R4: an older install (or hand edit) with matcher "Agent" that runs the same script must be replaced, not doubled.
+ch3="$tmp/cloudhome3"; mkdir -p "$ch3/.claude"
+printf '{"hooks":{"PreToolUse":[{"matcher":"Agent","hooks":[{"type":"command","command":"bash \\"$HOME/.claude/studio/log-agent-run.sh\\""}]}]}}' > "$ch3/.claude/settings.json"
+check "CLOUD-11 (QA-R4) existing matcher \"Agent\" log hook is replaced: exactly one PreToolUse entry runs log-agent-run.sh" bash -c "HOME='$ch3' bash '$root/scripts/install-cloud.sh' && python3 -c 'import json,sys;pre=json.load(open(sys.argv[1]))[\"hooks\"][\"PreToolUse\"];n=sum(1 for e in pre if any(\".claude/studio/log-agent-run.sh\" in h.get(\"command\",\"\") for h in e.get(\"hooks\",[])));assert n==1, f\"want 1 entry referencing log-agent-run.sh, got {n}: {pre}\"' '$ch3/.claude/settings.json'"
+
 # Agent evals: every case dispatches a real studio agent and has a scoring grader.
 for d in "$root"/plugins/studio/evals/*/; do
   c="$(basename "$d")"; [ "$c" = results ] && continue
