@@ -43,7 +43,6 @@
 - Each product project runs the refresh paste in pm-tools `docs/ONBOARDING.md` (one PR per repo: sync, install-rules, new CLAUDE.md section).
 
 ## Exact next step
-- review-rounds: merge, then each product re-runs `scripts/sync.sh` (Energy Scanner's copy is identical, so its re-sync is a no-op). Next, per the intake: build `plugins/studio/evals/ux-reviewer-*` cases from Energy Scanner's ES-R1..R68 (commit before each fix, screen, viewport, priority), run ux-reviewer on each and log recall by priority; needs the `ANTHROPIC_API_KEY` secret to run in CI.
 - ux-shots merged (2026-10-29, Chase's "merge all"; brought up to date with main, README now lists `ux-rules` too): each product runs `scripts/sync-tools.sh`, which copies both `ux-shots` and `ux-rules` (add it to `/onboard refresh`) and uses it for every Polish Freeze before/after score. Role Radar can retire its own `review-shots.mjs` once it switches.
 - Merge the visual-critic PR, then each product re-runs `scripts/sync.sh` (agent and design-rules) and `scripts/sync-tools.sh` once #13 lands. Product Studio: fix the portfolio's V2 type scale (pick 6-8 sizes in `tools/build.py` CSS). Hearth: add a harshest-critic persona card for the grandparents. Run the new eval when the `ANTHROPIC_API_KEY` secret exists.
 - Run the agent evals once the `ANTHROPIC_API_KEY` secret exists and send the scores to the scoreboard (holroydchase-afk.github.io `tools/scoreboard.json`).
@@ -53,6 +52,7 @@
 - After this merges, each product project re-runs `scripts/sync.sh` and pastes `templates/CLAUDE-agents.md` into its CLAUDE.md (pm-tools `docs/ONBOARDING.md` has the paste for existing projects).
 - Merge the ux-reviewer upgrade, then re-run `scripts/sync.sh` in each product repo (the recruiter-ready sprint paste tells each project to do it).
 - Merge the focus-coach PR, then merge the open "Add shared studio agents" PRs in ccwatts, Role Radar and Energy Scanner.
+- review-rounds: merge, then each product re-runs `scripts/sync.sh` (Energy Scanner's copy is identical, so its re-sync is a no-op). Next, per the intake: build `plugins/studio/evals/ux-reviewer-*` cases from Energy Scanner's ES-R1..R68 (commit before each fix, screen, viewport, priority), run ux-reviewer on each and log recall by priority; needs the `ANTHROPIC_API_KEY` secret to run in CI.
 
 ## Decisions to review
 - QA-R4: a project-only skill with the same name as a studio skill is overwritten on sync, and a skill an agent stops preloading stays in product repos. Same rule as agents (studio names win, sync never deletes).

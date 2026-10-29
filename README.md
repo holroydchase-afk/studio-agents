@@ -53,7 +53,7 @@ Anything product-specific (personas, invariants, ID schemes) goes in that repo's
 Every product numbers its plan the same way: milestones `M1`, tasks `M1.1`, steps `M1.1.1`, with a product code (`CCW-M1.2`) where products mix. See [docs/planning-ids.md](docs/planning-ids.md).
 
 ## Use it in a repo
-New repo, in order: `scripts/sync.sh` (agents and the skills they preload), `scripts/sync-tools.sh` (tools), `scripts/install-rules.sh` (HANDOFF hook and PR check), then paste `templates/CLAUDE-agents.md` into the repo's `CLAUDE.md`.
+New repo, in order: `scripts/sync.sh` (agents), `scripts/sync-tools.sh` (tools), `scripts/install-rules.sh` (HANDOFF hook and PR check), then paste `templates/CLAUDE-agents.md` into the repo's `CLAUDE.md`.
 
 Needs logins and shared data? `scripts/add-supabase.sh <repo>` copies the Supabase starter (`templates/supabase/`): org and member tables with row-level security, 36 RLS tests, Edge Function helpers and a CI workflow. See its README.
 
