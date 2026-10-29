@@ -13,13 +13,19 @@ field() { # field <file> <key>: value of a frontmatter key, empty if missing
   awk -v k="$2" 'NR==1&&$0!="---"{exit} NR>1&&$0=="---"{exit} NR>1&&index($0,k": ")==1{print substr($0,length(k)+3)}' "$1"
 }
 
+skills_of() { # skills_of <agent.md>: the frontmatter `skills:` list, one per line, empty if none
+  awk 'NR==1&&$0!="---"{exit} NR>1&&$0=="---"{exit} NR>1&&/^skills:/{on=1;next} on&&/^ *- /{sub(/^ *- */,"");print;next} on{on=0}' "$1"
+}
+
 # Every agent: frontmatter name matches the file, a description, a tools line.
 for f in "$root"/plugins/studio/agents/*.md; do
   a="$(basename "$f" .md)"
   check "agent $a: frontmatter name, description, tools" \
     test "$(field "$f" name)" = "$a" -a -n "$(field "$f" description)" -a -n "$(field "$f" tools)"
   check "agent $a: listed in the README" grep -q "\`$a\`" "$root/README.md"
+  check "agent $a: every preloaded skill exists in plugins/studio/skills" bash -c "for s in \$(cat); do test -f '$root/plugins/studio/skills/'\$s/SKILL.md || { echo \"missing skill: \$s\"; exit 1; }; done" < <(skills_of "$f")
 done
+check "ux-reviewer preloads the review-rounds skill" bash -c "skills_of() { $(declare -f skills_of | sed 1,2d | sed '$d'); }; skills_of '$root/plugins/studio/agents/ux-reviewer.md' | grep -qx review-rounds"
 
 # Every skill: SKILL.md with a name matching its folder and a description.
 for d in "$root"/plugins/studio/skills/*/; do
@@ -40,8 +46,8 @@ assert entry["description"] == plugin["description"], "marketplace description d
 assert (r / entry["source"]).is_dir(), "marketplace source folder missing"
 PY
 
-# sync.sh: copies every agent, keeps project-only agents, rejects unknown names.
-repo="$tmp/repo"; mkdir -p "$repo/.claude/agents"; echo local > "$repo/.claude/agents/project-only.md"
+# sync.sh: copies every agent and its preloaded skills, keeps project-only agents and skills, rejects unknown names.
+repo="$tmp/repo"; mkdir -p "$repo/.claude/agents" "$repo/.claude/skills/project-skill"; echo local > "$repo/.claude/agents/project-only.md"; echo mine > "$repo/.claude/skills/project-skill/SKILL.md"
 check "sync.sh copies all agents" bash "$root/scripts/sync.sh" "$repo"
 check "sync.sh: every product agent present and identical" diff -r -x project-only.md -x orchestrator.md -x focus-coach.md "$root/plugins/studio/agents" "$repo/.claude/agents"
 check "sync.sh skips studio-only agents by default" test ! -e "$repo/.claude/agents/orchestrator.md" -a ! -e "$repo/.claude/agents/focus-coach.md"
@@ -50,6 +56,16 @@ check "sync.sh copies the studio design rules with ux-reviewer" diff "$root/docs
 check "design rules: every rule ux-rules.mjs checks (G and V) is defined in ux-reviewer.md" bash -c "for g in \$(grep -oE 'add\\(\"[GV][0-9]+' '$root/tools/ux-rules.mjs' | grep -oE '[GV][0-9]+' | sort -u); do grep -q \"\\*\\*\$g\\*\\*\" '$root/plugins/studio/agents/ux-reviewer.md' || { echo \"\$g missing\"; exit 1; }; done"
 check "ux-rules.mjs tests pass (browser cases skip without Playwright)" node --test "$root/tests/ux-rules.test.mjs"
 check "sync.sh keeps project-only agents" grep -qx local "$repo/.claude/agents/project-only.md"
+check "sync.sh installs review-rounds with ux-reviewer, identical to the plugin's" diff -r "$root/plugins/studio/skills/review-rounds" "$repo/.claude/skills/review-rounds"
+check "sync.sh keeps project-only skills" grep -qx mine "$repo/.claude/skills/project-skill/SKILL.md"
+check "sync.sh of engineer only installs no skills" bash -c "bash '$root/scripts/sync.sh' '$tmp/eng' engineer >/dev/null && test -z \"\$(ls -A '$tmp/eng/.claude/skills' 2>/dev/null)\""
+ms="$tmp/missing"; mkdir -p "$ms/kit/plugins"; cp -r "$root/scripts" "$root/docs" "$ms/kit/"; cp -rL "$root/plugins/studio" "$ms/kit/plugins/"
+printf -- '---\nname: bogus\ndescription: test agent\ntools: Read\nskills:\n  - no-such-skill\n---\nbody\n' > "$ms/kit/plugins/studio/agents/bogus.md"
+check "sync.sh fails, naming the skill, when an agent preloads a missing skill, and copies nothing" bash -c "! bash '$ms/kit/scripts/sync.sh' '$ms/repo' engineer bogus 2>'$ms/err' && grep -q 'no-such-skill' '$ms/err' && ! test -e '$ms/repo/.claude/agents/engineer.md' && ! test -e '$ms/repo/.claude/skills'"
+printf -- '---\nname: dotdot\ndescription: test agent\ntools: Read\nskills:\n  - ../review-rounds\n---\nbody\n' > "$ms/kit/plugins/studio/agents/dotdot.md"
+check "sync.sh rejects a skill name that isn't lowercase letters, digits and dashes (QA-R1)" bash -c "! bash '$ms/kit/scripts/sync.sh' '$ms/repo' dotdot 2>'$ms/err' && grep -q 'bad skill name' '$ms/err' && ! test -e '$ms/repo/.claude'"
+printf -- '---\nname: inline\ndescription: test agent\ntools: Read\nskills: [review-rounds]\n---\nbody\n' > "$ms/kit/plugins/studio/agents/inline.md"
+check "sync.sh fails on an inline skills: [..] list instead of ignoring it (QA-R2)" bash -c "! bash '$ms/kit/scripts/sync.sh' '$ms/repo' inline 2>'$ms/err' && grep -q 'skills:' '$ms/err' && ! test -e '$ms/repo/.claude'"
 check "sync.sh fails on an unknown agent name" bash -c "! bash '$root/scripts/sync.sh' '$repo' no-such-agent"
 check "sync.sh names the unknown agent" bash -c "bash '$root/scripts/sync.sh' '$repo' no-such-agent 2>&1 | grep -q 'unknown agent: no-such-agent'"
 
