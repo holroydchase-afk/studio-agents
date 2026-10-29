@@ -1,0 +1,1 @@
+../../plugins/studio/agents/focus-coach.md

@@ -1,0 +1,6 @@
+{
+  "agents": {
+    "verify": "bash tests/check.sh",
+    "runs": 3
+  }
+}

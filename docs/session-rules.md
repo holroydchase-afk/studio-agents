@@ -18,6 +18,7 @@ Every agent, thread and scheduled run in the studio follows these, in every repo
 `scripts/install-rules.sh <repo>` copies two files into a repo:
 - `.claude/settings.json`: a SessionStart hook that prints `HANDOFF.md` into every Claude Code session, so it's always read.
 - `.github/workflows/handoff-check.yml`: the PR check above.
+- `.github/workflows/agents-check.yml` with `scripts/check-agent-runs.sh`, and a PreToolUse hook in `.claude/settings.json` that logs every Agent call to `.claude/agent-runs/<branch>.log`: a PR's `Agents:` line is checked against what really ran, and qa-tdd's suites rerun 3x on CI.
 
 ## HANDOFF.md template
 ```markdown
