@@ -1,0 +1,11 @@
+# Local stack for `supabase start`. Only the settings that differ from the CLI defaults.
+project_id = "your-product"
+
+[auth]
+# Turn sign-ups off in production (Authentication > Sign In / Providers) if only invited people may join.
+enable_signup = true
+
+# The gateway checks the session token before the function runs. Turn it off only for a
+# function that checks its own token (see _shared/auth.ts), and say why in a comment.
+[functions.whoami]
+verify_jwt = true
