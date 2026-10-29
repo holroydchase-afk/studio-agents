@@ -1,0 +1,12 @@
+{
+  "logs": {
+    "roots": [
+      "src"
+    ],
+    "banned": []
+  },
+  "agents": {
+    "verify": "",
+    "runs": 3
+  }
+}
