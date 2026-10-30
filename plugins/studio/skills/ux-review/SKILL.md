@@ -30,8 +30,9 @@ AI reviews tend to follow the happy path, so actively hunt for where people get 
 8. **Know your limits.** Feelings and real-device behavior are guesses until a person tries it. Mark them "confirm with a real user".
 
 ## Output
-- **Verdict:** Ready, Needs changes or Blocker, with one line per persona, and the visual score out of 10.
+- **Verdict:** Ready, Needs changes or Blocker, with one line per persona, and the visual score out of 10. Ready always needs 8/10 or more and no P0.
 - **The critic's line:** the harshest critic's reaction, in their voice.
-- **Changes:** priority (P0/P1/P2), screen or message, problem, what the person would do, and the fix (exact words and sizes), most important first.
+- **Changes:** ID, priority (P0/P1/P2), rule (G, V, A, a screen type or a heuristic), screen or message, problem, what the person would do, and the fix (exact words and sizes), most important first.
 - **Acceptance criteria** a tester can check.
 - **For Chase:** three lines at most, leading with what you need from him.
+- **The findings block**, always last: a ```findings block with `verdict:`, `score: N/10` and one `ID | P0-P2 | rule | where | problem | fix` line per change, same IDs (format and example in the ux-reviewer agent; `scripts/check-findings.mjs` validates it).
