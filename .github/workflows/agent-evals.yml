@@ -30,7 +30,7 @@ jobs:
         working-directory: plugins/studio
         run: claude plugin eval . --runs 2 -j 4 --trust-plugin --no-publish --allow-tools Write Edit 'Bash(node:*)' --threshold 0.75 --max-cost-usd 5 --json ../../eval-results.json --report ../../eval-report.html
       - if: always() && steps.key.outputs.ok
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: agent-evals
           path: |
