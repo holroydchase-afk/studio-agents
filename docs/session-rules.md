@@ -5,7 +5,7 @@ Every agent, thread and scheduled run in the studio follows these, in every repo
 ## Before you start
 1. Read the repo's `CLAUDE.md` and `HANDOFF.md`. If `HANDOFF.md` is missing, create it from the template below before any other change.
 2. Read the doc `CLAUDE.md` points to for the work in front of you (plan, spec, anchors, design system), and only the section you need.
-3. Check open PRs and branches so you resume where the last session stopped instead of redoing it.
+3. Check open PRs and branches so you resume where the last session stopped instead of redoing it. Before opening a new PR, check the repo's open ones (see "Pull requests" below).
 
 ## Talking to Chase
 - The first message to Chase in any thread, chat or scheduled-run report opens with who you are, by role: "Hi Chase, I'm Charlie's chief of staff" (or "Hearth's staff PM", "Product Studio's chief of staff"). Then lead with the answer, warm and short, never robotic.
@@ -15,6 +15,14 @@ Every agent, thread and scheduled run in the studio follows these, in every repo
 - Updates `HANDOFF.md` in the same commit or PR: done, in progress, exact next step, decisions to review, blockers.
 - Updates the status header at the top of `HANDOFF.md` with every HANDOFF update: `stage` (idea, building, beta, live or parked), `goal` (a pm-tools `goals.json` id), `milestone`, `now`, `next`, `waiting_on_chase` and `blockers`. The Studio Console reads this header, not the sections, so a stale header shows the wrong state. Keep it within the first 15 lines and closed by `-->`.
 - The `handoff-check` workflow fails a PR that changes files without touching `HANDOFF.md`. Put `[skip handoff]` in the PR title only for changes that don't move the work (typo fixes, dependency bumps).
+
+## Pull requests: keep the queue short
+Chase reviews and merges from his phone, so a pile of open PRs across threads turns into an orchestration job (Charlie once had 6 to 8 open across 4 threads). New PRs are fine and keep work clean; these rules keep them from stacking up.
+- **One task per PR, small.** Every PR body has the project-thread line (who owns it) and a `Merge after:` line: the PR it depends on, or `none`.
+- **You own what you open.** Drive each PR to merged or closed. Close anything superseded the moment it is, and say which PR replaced it.
+- **"merge N" checks the older ones first.** Before merging #N, or asking Chase to, list the repo's other open PRs. If an older one is open, tell Chase before merging: "Heads up: #33 is still open (title, owned by <its thread link from the PR body>, or Dependabot). Merge 33 then 34, or just 34?" with your recommendation. On his word, merge oldest first, each on green, updating the next branch after each merge.
+- **Every merge ask shows the queue.** Whenever you ask Chase to merge, include that repo's open PRs in merge order: number and link, title, owning thread, ready or not.
+- **Dependency bumps don't wait on Chase.** The repo's owner merges green Dependabot PRs oldest first on its next run (security fixes first), unless a bump breaks the build; then it says so in HANDOFF.md.
 
 ## Before you stop
 - `HANDOFF.md`'s "Exact next step" is specific enough that a cold session can start on it without asking.
