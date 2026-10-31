@@ -179,6 +179,38 @@ echo y > "$g/HANDOFF.md"; git -C "$g" add HANDOFF.md; pr "with handoff"
 check "handoff-check passes once HANDOFF.md changes" bash -c "cd '$g' && BASE=$base HEAD=\$(git rev-parse HEAD) bash '$step'"
 check "handoff-check skips a PR titled [skip handoff]" grep -q "\[skip handoff\]" "$root/templates/handoff-check.yml"
 
+# PMT-M3.4 status header: every HANDOFF.md opens with a machine-readable `<!-- status` block that the
+# Studio Console (pm-tools scripts/feed/core.ts parseHandoff) reads. CON-16: handoff-check warns, never fails, without it.
+hs="$tmp/hstatus"; mkdir -p "$hs"; hsc="$root/templates/scripts/check-handoff-status.sh"
+hkeys="stage goal milestone now next waiting_on_chase blockers"
+check "PMT-M3.4 templates/HANDOFF.md opens with a closed <!-- status block (first 15 lines) holding every key" bash -c "f='$root/templates/HANDOFF.md'; test -f \$f && head -15 \$f | grep -q '^<!-- status' && blk=\$(awk '/^<!-- status/{on=1;next} on&&/^-->/{exit} on' \$f) && sed -n '/^<!-- status/,/^-->/p' \$f | grep -q '^-->' && for k in $hkeys; do echo \"\$blk\" | grep -qE \"^\$k:\" || { echo \"missing key: \$k\"; exit 1; }; done"
+check "PMT-M3.4 templates/HANDOFF.md keeps the five sections" bash -c "for s in 'Done' 'In progress' 'Exact next step' 'Decisions to review' 'Blockers'; do grep -qx \"## \$s\" '$root/templates/HANDOFF.md' || { echo \"missing ## \$s\"; exit 1; }; done"
+check "PMT-M3.4 status check passes templates/HANDOFF.md quietly" bash -c "out=\$(bash '$hsc' '$root/templates/HANDOFF.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && ! echo \"\$out\" | grep -q '::warning'"
+printf '# Handoff\n\n## Done\n- x\n## In progress\n## Exact next step\n## Decisions to review\n## Blockers\n' > "$hs/none.md"
+check "PMT-M3.4 CON-16 status check warns (::warning::) and exits 0 when HANDOFF.md lacks the header" bash -c "out=\$(bash '$hsc' '$hs/none.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep -q '^::warning'"
+good() { printf '# Handoff\n<!-- status\nstage: %s\ngoal: %s\nmilestone: PMT-M3\nnow: PMT-M3.4 tests red\nnext: engineer builds it\nwaiting_on_chase:\n  - Review goal names\nblockers: []\n-->\n\n## Done\n' "$1" "$2"; }
+good building agent-team > "$hs/good.md"
+check "PMT-M3.4 status check is quiet and exits 0 on a valid header" bash -c "out=\$(GOALS=agent-team,portfolio bash '$hsc' '$hs/good.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && ! echo \"\$out\" | grep -q '::warning'"
+for st in idea building beta live parked; do good "$st" agent-team > "$hs/st-$st.md"; done
+check "PMT-M3.4 status check accepts every allowed stage (idea, building, beta, live, parked)" bash -c "for st in idea building beta live parked; do out=\$(bash '$hsc' '$hs/st-'\$st.md) || exit 1; echo \"\$out\" | grep -q '::warning' && { echo \"warned on \$st: \$out\"; exit 1; }; done; true"
+good shipping agent-team > "$hs/stage.md"
+check "PMT-M3.4 status check warns on an unknown stage, naming it, and exits 0" bash -c "out=\$(bash '$hsc' '$hs/stage.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep '^::warning' | grep -q shipping"
+good building no-such-goal > "$hs/goal.md"
+check "PMT-M3.4 status check warns on a goal not in GOALS, naming it, and exits 0" bash -c "out=\$(GOALS=agent-team,portfolio bash '$hsc' '$hs/goal.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep '^::warning' | grep -q no-such-goal"
+check "PMT-M3.4 status check skips the goal check when GOALS is unset" bash -c "out=\$(bash '$hsc' '$hs/goal.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && ! echo \"\$out\" | grep -q '::warning'"
+good building agent-team | sed '/^blockers:/d' > "$hs/key.md"
+check "PMT-M3.4 status check warns on a missing key, naming it, and exits 0" bash -c "out=\$(bash '$hsc' '$hs/key.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep '^::warning' | grep -q blockers"
+good building agent-team | sed '/^-->/d' > "$hs/open.md"
+check "PMT-M3.4 status check treats an unclosed header as missing (warns, exits 0)" bash -c "out=\$(bash '$hsc' '$hs/open.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep -q '^::warning'"
+{ printf '# Handoff\n'; for i in $(seq 1 15); do echo; done; good building agent-team | sed 1d; } > "$hs/late.md"
+check "PMT-M3.4 status check warns when the header starts after line 15 (the parser won't see it)" bash -c "out=\$(bash '$hsc' '$hs/late.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep -q '^::warning'"
+check "PMT-M3.4 status check exits 0 with a warning when HANDOFF.md doesn't exist" bash -c "out=\$(bash '$hsc' '$hs/nope.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep -q '^::warning'"
+check "PMT-M3.4 handoff-check.yml runs check-handoff-status.sh" grep -q 'check-handoff-status.sh' "$root/templates/handoff-check.yml"
+check "PMT-M3.4 install-rules.sh installs check-handoff-status.sh" bash -c "bash '$root/scripts/install-rules.sh' '$hs/inst' >/dev/null && cmp '$hsc' '$hs/inst/scripts/check-handoff-status.sh'"
+check "PMT-M3.4 session-rules: 'Every commit or PR' says to update the status header" bash -c "sed -n '/^## Every commit or PR/,/^## /p' '$root/docs/session-rules.md' | grep -qi 'status header'"
+check "PMT-M3.4 session-rules: the HANDOFF.md template shows the <!-- status block" bash -c "sed -n '/^## HANDOFF.md template/,\$p' '$root/docs/session-rules.md' | grep -q '^<!-- status'"
+check "PMT-M3.4 own kit: this repo's HANDOFF.md has a status header the check accepts" bash -c "out=\$(bash '$hsc' '$root/HANDOFF.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && ! echo \"\$out\" | grep -q '::warning'"
+
 # add-supabase.sh: copies the starter, and never overwrites on a second run.
 r3="$tmp/supa"; mkdir -p "$r3"
 check "add-supabase.sh installs the starter, its tests and its workflow" bash -c "bash '$root/scripts/add-supabase.sh' '$r3' >/dev/null && test -f '$r3/supabase/migrations/00000000000000_base.sql' -a -x '$r3/tests/sql/run.sh' -a -f '$r3/.github/workflows/supabase.yml' -a -f '$r3/docs/SUPABASE.md'"
