@@ -75,6 +75,37 @@ check "UXR-PROD check-findings gives one reason per line (two broken rules, two 
 check "UXR-PROD check-findings --json prints the parsed block" bash -c "test -f '$cf' || { echo 'missing tools/check-findings.mjs'; exit 1; }; node '$cf' --json '$ff/valid-needs-changes.md' | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d[\"verdict\"]==\"Needs changes\" and d[\"score\"]==6, d; f=d[\"findings\"]; assert len(f)==3 and f[0]==dict(id=\"UX-R1\",priority=\"P0\",rule=\"G3\",where=\"Projects, 390px\",problem=\"Dialog has no way out\",fix=\"Add a Cancel button\"), f'"
 check "UXR-PROD ux-reviewer reports, never edits: no Edit on its tools: line" bash -c "t=\$(awk 'NR>1&&/^---\$/{exit} /^tools:/' '$root/plugins/studio/agents/ux-reviewer.md'); echo \"tools line: \$t\"; ! echo \"\$t\" | grep -qw Edit"
 check "UXR-PROD ux-reviewer.md Output section shows the \`\`\`findings block" bash -c "awk '/^## /{on=(\$0 ~ /^## Output/)} on' '$root/plugins/studio/agents/ux-reviewer.md' | grep -qF '\`\`\`findings' || { echo 'no \`\`\`findings in ## Output'; exit 1; }"
+# check-qa-report.mjs: validates the ```qa block at the end of a qa-tdd report (QATDD-PROD). Same fixture loop
+# as UXR-PROD: valid-*.md exit 0 with a quiet stderr; invalid-*.md exit exactly 1 and stderr names the broken rule
+# (the "<!-- expect: word -->" line), one reason per line. The block, last one wins:
+#   verdict: green | red | flaky | blocked                      (exactly one)
+#   red: <what failed first and why>                            (optional, non-empty)
+#   blocked: <what's missing>                                   (required for blocked)
+#   suite: <name> | <command> | <p>/<f> <p>/<f> <p>/<f>          (exactly 3 runs)
+#   QA-R<n> | P0-P2 | where | problem | <failing test path or none>
+# green: >=1 suite, 0 failed every run, no suite whose runs differ. flaky: >=1 suite whose runs differ plus a QA-R
+# finding. A test path has a / or a file extension.
+cq="$root/tools/check-qa-report.mjs"; fq="$root/tests/fixtures/qa-report"
+need_cq="test -f '$cq' || { echo 'missing tools/check-qa-report.mjs'; exit 1; }"
+check "QATDD-PROD check-qa-report.mjs exists" test -f "$cq"
+for fx in "$fq"/valid-*.md; do
+  check "QATDD-PROD check-qa-report passes $(basename "$fx")" bash -c "$need_cq; node '$cq' '$fx' 2>'$tmp/cqerr'; rc=\$?; [ \$rc -eq 0 ] || { echo \"exit \$rc\"; cat '$tmp/cqerr'; exit 1; }; ! test -s '$tmp/cqerr'"
+done
+for fx in "$fq"/invalid-*.md; do
+  exp="$(sed -n 's/^<!-- expect: \(.*\) -->$/\1/p' "$fx")"
+  check "QATDD-PROD check-qa-report rejects $(basename "$fx" .md) (stderr names '$exp')" bash -c "$need_cq; node '$cq' '$fx' >/dev/null 2>'$tmp/cqerr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/cqerr' || { echo 'stderr does not name $exp:'; cat '$tmp/cqerr'; exit 1; }"
+done
+check "QATDD-PROD check-qa-report gives one reason per line (two broken rules, two lines)" bash -c "$need_cq; node '$cq' '$fq/invalid-two-reasons.md' 2>'$tmp/cqerr'; [ \$? -eq 1 ] && [ \$(grep -c . '$tmp/cqerr') -ge 2 ] && grep -qi duplicate '$tmp/cqerr' && grep -qi failed '$tmp/cqerr' || { cat '$tmp/cqerr'; exit 1; }"
+check "QATDD-PROD check-qa-report exits 2 on a usage error (no file, two files, unreadable file)" bash -c "$need_cq; node '$cq' 2>/dev/null; a=\$?; node '$cq' '$fq/valid-green.md' '$fq/valid-red.md' 2>/dev/null; b=\$?; node '$cq' '$tmp/no-such-report.md' 2>/dev/null; c=\$?; echo \"exits: \$a \$b \$c\"; [ \$a -eq 2 ] && [ \$b -eq 2 ] && [ \$c -eq 2 ]"
+check "QATDD-PROD check-qa-report --json prints the parsed block" bash -c "$need_cq; node '$cq' --json '$fq/valid-flaky.md' | python3 -c '
+import json,sys
+d=json.load(sys.stdin)
+assert d[\"verdict\"]==\"flaky\", d
+assert d[\"red\"]==\"tests/x.test.mjs fails \\\"SHARE-3 save photo\\\" (expected 1, got 0)\", d[\"red\"]
+s=d[\"suites\"]; assert len(s)==2, s
+assert s[1]==dict(name=\"e2e\",command=\"npm run e2e\",runs=[dict(passed=9,failed=0),dict(passed=9,failed=1),dict(passed=9,failed=0)]), s[1]
+f=d[\"findings\"]; assert f==[dict(id=\"QA-R1\",priority=\"P1\",where=\"e2e share sheet\",problem=\"passes on retry only\",test=\"tests/e2e/share.spec.ts\")], f'"
+check "QATDD-PROD qa-tdd.md Output/Report section shows the \`\`\`qa block" bash -c "awk '/^## /{on=(\$0 ~ /^## (Output|Report)/)} on' '$root/plugins/studio/agents/qa-tdd.md' | grep -qF '\`\`\`qa' || { echo 'no \`\`\`qa in a ## Output or ## Report section of qa-tdd.md'; exit 1; }"
 check "sync.sh keeps project-only agents" grep -qx local "$repo/.claude/agents/project-only.md"
 check "sync.sh installs review-rounds with ux-reviewer, identical to the plugin's" diff -r "$root/plugins/studio/skills/review-rounds" "$repo/.claude/skills/review-rounds"
 check "sync.sh keeps project-only skills" grep -qx mine "$repo/.claude/skills/project-skill/SKILL.md"
@@ -216,6 +247,11 @@ for d in "$root"/plugins/studio/evals/*/; do
   check "eval $c: prompt.md, a scored grader, and a dispatch check for an existing agent" bash -c "test -f '$d/prompt.md' && grep -lq 'type: llm' '$d'/graders/*.md && a=\$(grep -ho 'studio:)?[a-z-]*' '$d'/graders/*.md | head -1 | sed 's/studio:)?//') && test -n \"\$a\" -a -f '$root/plugins/studio/agents/'\$a.md"
   # Front matter must parse as YAML: an unquoted value with ": " in it ("recall X: y") makes `claude plugin eval` refuse the case.
   check "eval $c: front matter has no unquoted ': ' in a value" bash -c "! awk '/^---$/{n++; next} n==1' '$d/prompt.md' | grep -E '^[a-z_]+: [^\"\x27].*: '"
+  case "$c" in qa-tdd-*)
+    # qa-tdd cases: tagged qa-tdd (so `--tag qa-tdd` runs them all) and listed in the evals README.
+    tags="$(field "$d/prompt.md" tags | tr -d '[] ' | tr , '\n')"
+    check "eval $c: tagged qa-tdd and listed in evals/README.md" bash -c "echo '$tags' | grep -qx qa-tdd || { echo 'missing tag: qa-tdd (have: $(echo $tags))'; exit 1; }; grep -qF '\`$c\`' '$root/plugins/studio/evals/README.md' || { echo 'not in evals/README.md'; exit 1; }"
+  ;; esac
   case "$c" in ux-reviewer-recall-*)
     # Recall cases: the 5 tags that let `--tag recall` results be grouped by priority, source and finder.
     tags="$(field "$d/prompt.md" tags | tr -d '[] ' | tr , '\n')"
