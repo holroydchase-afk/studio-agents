@@ -1,0 +1,2 @@
+<!-- expect: reason -->
+No entry:

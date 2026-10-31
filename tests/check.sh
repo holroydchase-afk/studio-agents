@@ -111,6 +111,54 @@ check "QATDD-RELAY qa-tdd.md description tells the caller to relay the \`\`\`qa 
 check "QATDD-RELAY qa-tdd.md Output section says the caller passes the \`\`\`qa block on verbatim" bash -c "awk '/^## /{on=(\$0 ~ /^## Output/)} on' '$root/plugins/studio/agents/qa-tdd.md' | grep -qi verbatim || { echo 'no \"verbatim\" in the ## Output section of qa-tdd.md'; exit 1; }"
 check "QATDD-RELAY templates/CLAUDE-agents.md tells the main session to paste the \`\`\`qa block verbatim" bash -c "grep -F '\`\`\`qa' '$root/templates/CLAUDE-agents.md' | grep -qi verbatim || { echo 'no line with both \`\`\`qa and \"verbatim\" in templates/CLAUDE-agents.md'; exit 1; }"
 check "QATDD-RELAY CLAUDE.md tells the main session to paste the \`\`\`qa block verbatim" bash -c "grep -F '\`\`\`qa' '$root/CLAUDE.md' | grep -qi verbatim || { echo 'no line with both \`\`\`qa and \"verbatim\" in CLAUDE.md'; exit 1; }"
+# check-story-entry.mjs: validates a story-keeper reply (STORY-PROD). Same fixture loop as QATDD-PROD: valid-*.md
+# exit 0 with a quiet stderr; invalid-*.md exit exactly 1 and stderr names the broken rule (the "<!-- expect: word -->"
+# line), one reason per line. A reply is exactly one of:
+#   No entry: <reason>                                          (no story block)
+#   one story block (three backticks + story):
+#     ### YYYY-MM-DD · Decision|Lesson|Pivot|Win: <title>       (real date, non-empty title)
+#     - Problem: / - Chase's call: / - Decision and why: / - Result: / - Story angle:   (each once, non-empty)
+#     - Lesson:                                                 (required for Lesson and Pivot; no other labels)
+#     <= 120 whitespace-separated words, header included; no email, phone, claude.ai URL, trig_/env_/cmsg_/session_ id,
+#     or API key (sk-, ghp_, github_pat_)
+#   then optionally one line `Memory: <rule>` after the block.
+# --json: {kind: entry|none, type, date, title, words, fields: {<label>: <text>}, memory}.
+cs="$root/tools/check-story-entry.mjs"; fs="$root/tests/fixtures/story-entry"
+need_cs="test -f '$cs' || { echo 'missing tools/check-story-entry.mjs'; exit 1; }"
+check "STORY-PROD check-story-entry.mjs exists" test -f "$cs"
+for fx in "$fs"/valid-*.md; do
+  check "STORY-PROD check-story-entry passes $(basename "$fx")" bash -c "$need_cs; node '$cs' '$fx' 2>'$tmp/cserr'; rc=\$?; [ \$rc -eq 0 ] || { echo \"exit \$rc\"; cat '$tmp/cserr'; exit 1; }; ! test -s '$tmp/cserr'"
+done
+for fx in "$fs"/invalid-*.md; do
+  exp="$(sed -n 's/^<!-- expect: \(.*\) -->$/\1/p' "$fx")"
+  check "STORY-PROD check-story-entry rejects $(basename "$fx" .md) (stderr names '$exp')" bash -c "$need_cs; node '$cs' '$fx' >/dev/null 2>'$tmp/cserr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/cserr' || { echo 'stderr does not name $exp:'; cat '$tmp/cserr'; exit 1; }"
+done
+# Secret shapes are built at run time so no tracked file holds one (gitleaks, privacy-scan and the id grep below).
+sk_body="$(printf 'Ab1%.0s' 1 2 3 4 5 6 7 8 9 10 11 12)"
+for leak in "trig_${sk_body}:trig_" "env_${sk_body}:env_" "sk-${sk_body}:key" "ghp_${sk_body}:key" "github_pat_${sk_body}:key" \
+  "ghs_${sk_body}:key" "gho_${sk_body}:key" "ghu_${sk_body}:key" "ghr_${sk_body}:key" "xoxb-${sk_body}:key" "xoxp-${sk_body}:key"; do  # QA-R5: GitHub app/OAuth and Slack tokens
+  val="${leak%:*}"; exp="${leak##*:}"; lf="$tmp/leak-${val%%[_-]*}.md"
+  sed "s/^- Result: pending\$/- Result: pending, see ${val}/" "$fs/valid-decision.md" > "$lf"
+  check "STORY-PROD check-story-entry rejects a ${val%%[_-]*} secret (stderr names '$exp')" bash -c "$need_cs; grep -q -- '$val' '$lf' || { echo 'fixture not built'; exit 1; }; node '$cs' '$lf' >/dev/null 2>'$tmp/cserr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/cserr' || { echo 'stderr does not name $exp:'; cat '$tmp/cserr'; exit 1; }"
+done
+check "STORY-PROD check-story-entry gives one reason per line (two broken rules, two lines)" bash -c "$need_cs; node '$cs' '$fs/invalid-two-reasons.md' 2>'$tmp/cserr'; [ \$? -eq 1 ] && [ \$(grep -c . '$tmp/cserr') -ge 2 ] && grep -q Result '$tmp/cserr' && grep -qi email '$tmp/cserr' || { cat '$tmp/cserr'; exit 1; }"
+check "STORY-PROD check-story-entry exits 2 on a usage error (no file, two files, unreadable file)" bash -c "$need_cs; node '$cs' 2>/dev/null; a=\$?; node '$cs' '$fs/valid-decision.md' '$fs/valid-win.md' 2>/dev/null; b=\$?; node '$cs' '$tmp/no-such-reply.md' 2>/dev/null; c=\$?; echo \"exits: \$a \$b \$c\"; [ \$a -eq 2 ] && [ \$b -eq 2 ] && [ \$c -eq 2 ]"
+check "STORY-PROD check-story-entry --json prints the parsed entry" bash -c "$need_cs; node '$cs' --json '$fs/valid-memory.md' | python3 -c '
+import json,sys
+d=json.load(sys.stdin)
+assert d[\"kind\"]==\"entry\" and d[\"type\"]==\"Decision\" and d[\"date\"]==\"2026-11-02\", d
+assert d[\"title\"]==\"Every PR names who ran QA\", d[\"title\"]
+assert d[\"words\"]==67, d[\"words\"]
+f=d[\"fields\"]; assert set(f)=={\"Problem\",\"Chase\x27s call\",\"Decision and why\",\"Result\",\"Story angle\"}, f
+assert f[\"Chase\x27s call\"]==\"\\\"From now on, every PR names who ran QA.\\\"\" and f[\"Result\"]==\"pending\", f
+assert d[\"memory\"]==\"Every PR body names who ran QA on its Agents: line.\", d[\"memory\"]'"
+check "STORY-PROD check-story-entry --json reports a No entry reply as kind none" bash -c "$need_cs; node '$cs' --json '$fs/valid-no-entry.md' | python3 -c '
+import json,sys
+d=json.load(sys.stdin)
+assert d[\"kind\"]==\"none\" and d.get(\"memory\") is None, d'"
+check "STORY-PROD story-keeper.md shows the \`\`\`story block and names check-story-entry" bash -c "f='$root/plugins/studio/agents/story-keeper.md'; grep -qF '\`\`\`story' \$f || { echo 'no \`\`\`story fence in story-keeper.md'; exit 1; }; grep -q 'check-story-entry' \$f || { echo 'story-keeper.md does not name check-story-entry'; exit 1; }"
+check "STORY-PROD story-keeper description tells the main session to relay its reply verbatim" bash -c "awk 'NR==1&&/^---$/{on=1;next} on&&/^---$/{exit} on' '$root/plugins/studio/agents/story-keeper.md' | grep '^description:' | grep -qi verbatim || { echo 'story-keeper.md frontmatter description does not say verbatim'; exit 1; }"
+check "STORY-PROD the four story-keeper behavior eval cases exist" bash -c "for c in routine-no-entry decision-no-pii no-duplicate memory-line; do test -f '$root/plugins/studio/evals/story-keeper-'\$c/prompt.md || { echo \"missing story-keeper-\$c\"; exit 1; }; done"
 check "sync.sh keeps project-only agents" grep -qx local "$repo/.claude/agents/project-only.md"
 check "sync.sh installs review-rounds with ux-reviewer, identical to the plugin's" diff -r "$root/plugins/studio/skills/review-rounds" "$repo/.claude/skills/review-rounds"
 check "sync.sh keeps project-only skills" grep -qx mine "$repo/.claude/skills/project-skill/SKILL.md"
@@ -184,6 +232,38 @@ echo y > "$g/HANDOFF.md"; git -C "$g" add HANDOFF.md; pr "with handoff"
 check "handoff-check passes once HANDOFF.md changes" bash -c "cd '$g' && BASE=$base HEAD=\$(git rev-parse HEAD) bash '$step'"
 check "handoff-check skips a PR titled [skip handoff]" grep -q "\[skip handoff\]" "$root/templates/handoff-check.yml"
 
+# PMT-M3.4 status header: every HANDOFF.md opens with a machine-readable `<!-- status` block that the
+# Studio Console (pm-tools scripts/feed/core.ts parseHandoff) reads. CON-16: handoff-check warns, never fails, without it.
+hs="$tmp/hstatus"; mkdir -p "$hs"; hsc="$root/templates/scripts/check-handoff-status.sh"
+hkeys="stage goal milestone now next waiting_on_chase blockers"
+check "PMT-M3.4 templates/HANDOFF.md opens with a closed <!-- status block (first 15 lines) holding every key" bash -c "f='$root/templates/HANDOFF.md'; test -f \$f && head -15 \$f | grep -q '^<!-- status' && blk=\$(awk '/^<!-- status/{on=1;next} on&&/^-->/{exit} on' \$f) && sed -n '/^<!-- status/,/^-->/p' \$f | grep -q '^-->' && for k in $hkeys; do echo \"\$blk\" | grep -qE \"^\$k:\" || { echo \"missing key: \$k\"; exit 1; }; done"
+check "PMT-M3.4 templates/HANDOFF.md keeps the five sections" bash -c "for s in 'Done' 'In progress' 'Exact next step' 'Decisions to review' 'Blockers'; do grep -qx \"## \$s\" '$root/templates/HANDOFF.md' || { echo \"missing ## \$s\"; exit 1; }; done"
+check "PMT-M3.4 status check passes templates/HANDOFF.md quietly" bash -c "out=\$(bash '$hsc' '$root/templates/HANDOFF.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && ! echo \"\$out\" | grep -q '::warning'"
+printf '# Handoff\n\n## Done\n- x\n## In progress\n## Exact next step\n## Decisions to review\n## Blockers\n' > "$hs/none.md"
+check "PMT-M3.4 CON-16 status check warns (::warning::) and exits 0 when HANDOFF.md lacks the header" bash -c "out=\$(bash '$hsc' '$hs/none.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep -q '^::warning'"
+good() { printf '# Handoff\n<!-- status\nstage: %s\ngoal: %s\nmilestone: PMT-M3\nnow: PMT-M3.4 tests red\nnext: engineer builds it\nwaiting_on_chase:\n  - Review goal names\nblockers: []\n-->\n\n## Done\n' "$1" "$2"; }
+good building agent-team > "$hs/good.md"
+check "PMT-M3.4 status check is quiet and exits 0 on a valid header" bash -c "out=\$(GOALS=agent-team,portfolio bash '$hsc' '$hs/good.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && ! echo \"\$out\" | grep -q '::warning'"
+for st in idea building beta live parked; do good "$st" agent-team > "$hs/st-$st.md"; done
+check "PMT-M3.4 status check accepts every allowed stage (idea, building, beta, live, parked)" bash -c "for st in idea building beta live parked; do out=\$(bash '$hsc' '$hs/st-'\$st.md) || exit 1; echo \"\$out\" | grep -q '::warning' && { echo \"warned on \$st: \$out\"; exit 1; }; done; true"
+good shipping agent-team > "$hs/stage.md"
+check "PMT-M3.4 status check warns on an unknown stage, naming it, and exits 0" bash -c "out=\$(bash '$hsc' '$hs/stage.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep '^::warning' | grep -q shipping"
+good building no-such-goal > "$hs/goal.md"
+check "PMT-M3.4 status check warns on a goal not in GOALS, naming it, and exits 0" bash -c "out=\$(GOALS=agent-team,portfolio bash '$hsc' '$hs/goal.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep '^::warning' | grep -q no-such-goal"
+check "PMT-M3.4 status check skips the goal check when GOALS is unset" bash -c "out=\$(bash '$hsc' '$hs/goal.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && ! echo \"\$out\" | grep -q '::warning'"
+good building agent-team | sed '/^blockers:/d' > "$hs/key.md"
+check "PMT-M3.4 status check warns on a missing key, naming it, and exits 0" bash -c "out=\$(bash '$hsc' '$hs/key.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep '^::warning' | grep -q blockers"
+good building agent-team | sed '/^-->/d' > "$hs/open.md"
+check "PMT-M3.4 status check treats an unclosed header as missing (warns, exits 0)" bash -c "out=\$(bash '$hsc' '$hs/open.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep -q '^::warning'"
+{ printf '# Handoff\n'; for i in $(seq 1 15); do echo; done; good building agent-team | sed 1d; } > "$hs/late.md"
+check "PMT-M3.4 status check warns when the header starts after line 15 (the parser won't see it)" bash -c "out=\$(bash '$hsc' '$hs/late.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep -q '^::warning'"
+check "PMT-M3.4 status check exits 0 with a warning when HANDOFF.md doesn't exist" bash -c "out=\$(bash '$hsc' '$hs/nope.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && echo \"\$out\" | grep -q '^::warning'"
+check "PMT-M3.4 handoff-check.yml runs check-handoff-status.sh" grep -q 'check-handoff-status.sh' "$root/templates/handoff-check.yml"
+check "PMT-M3.4 install-rules.sh installs check-handoff-status.sh" bash -c "bash '$root/scripts/install-rules.sh' '$hs/inst' >/dev/null && cmp '$hsc' '$hs/inst/scripts/check-handoff-status.sh'"
+check "PMT-M3.4 session-rules: 'Every commit or PR' says to update the status header" bash -c "sed -n '/^## Every commit or PR/,/^## /p' '$root/docs/session-rules.md' | grep -qi 'status header'"
+check "PMT-M3.4 session-rules: the HANDOFF.md template shows the <!-- status block" bash -c "sed -n '/^## HANDOFF.md template/,\$p' '$root/docs/session-rules.md' | grep -q '^<!-- status'"
+check "PMT-M3.4 own kit: this repo's HANDOFF.md has a status header the check accepts" bash -c "out=\$(bash '$hsc' '$root/HANDOFF.md'); rc=\$?; echo \"\$out\"; [ \$rc -eq 0 ] && ! echo \"\$out\" | grep -q '::warning'"
+
 # add-supabase.sh: copies the starter, and never overwrites on a second run.
 r3="$tmp/supa"; mkdir -p "$r3"
 check "add-supabase.sh installs the starter, its tests and its workflow" bash -c "bash '$root/scripts/add-supabase.sh' '$r3' >/dev/null && test -f '$r3/supabase/migrations/00000000000000_base.sql' -a -x '$r3/tests/sql/run.sh' -a -f '$r3/.github/workflows/supabase.yml' -a -f '$r3/docs/SUPABASE.md'"
@@ -256,6 +336,12 @@ for d in "$root"/plugins/studio/evals/*/; do
     # qa-tdd cases: tagged qa-tdd (so `--tag qa-tdd` runs them all) and listed in the evals README.
     tags="$(field "$d/prompt.md" tags | tr -d '[] ' | tr , '\n')"
     check "eval $c: tagged qa-tdd and listed in evals/README.md" bash -c "echo '$tags' | grep -qx qa-tdd || { echo 'missing tag: qa-tdd (have: $(echo $tags))'; exit 1; }; grep -qF '\`$c\`' '$root/plugins/studio/evals/README.md' || { echo 'not in evals/README.md'; exit 1; }"
+  ;; esac
+  case "$c" in story-keeper-*)
+    # story-keeper cases (STORY-PROD): tagged story-keeper, listed in the evals README, invented people and example.com only.
+    tags="$(field "$d/prompt.md" tags | tr -d '[] ' | tr , '\n')"
+    check "eval $c: tagged story-keeper and listed in evals/README.md" bash -c "echo '$tags' | grep -qx story-keeper || { echo 'missing tag: story-keeper (have: $(echo $tags))'; exit 1; }; grep -qF '\`$c\`' '$root/plugins/studio/evals/README.md' || { echo 'not in evals/README.md'; exit 1; }"
+    check "eval $c: only example.com emails and domains in the prompt" bash -c "! grep -oE '[A-Za-z0-9._%+-]*@?[a-z0-9.-]+\.(com|org|net|io|app|dev)\b' '$d/prompt.md' | grep -vqE '^([A-Za-z0-9._%+-]+@)?example\.com\$'"
   ;; esac
   case "$c" in ux-reviewer-recall-*)
     # Recall cases: the 5 tags that let `--tag recall` results be grouped by priority, source and finder.

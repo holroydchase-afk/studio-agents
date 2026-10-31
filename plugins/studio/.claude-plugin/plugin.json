@@ -1,6 +1,6 @@
 {
   "name": "studio",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "A one-person product studio's AI team: orchestrator, architect, staff PM, test-first QA, engineer, privacy and security, persona UX, positioning and story, and a story-keeper that logs decisions and lessons as they happen.",
   "author": { "name": "Chase Holroyd" }
 }
