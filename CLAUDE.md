@@ -4,12 +4,12 @@ The studio's shared Claude Code kit: agents and skills (`plugins/studio`), the t
 
 ## Hard rules
 - Public repo: no secrets, tokens, claude.ai links, artifact, trigger or environment ids, and no personal data (`tests/check.sh` checks the links and ids).
-- Never merge to `main` without Chase. Product repos copy from here, so a change here reaches every product on its next sync.
+- Merge your own PRs on green, oldest first (Chase, Oct 31). Nothing here deploys a live demo or product, but product repos copy from here on their next sync, so say in the PR what a sync will change.
 
 ## Session rules (studio-wide)
 - Before starting: read this file and `HANDOFF.md` (a SessionStart hook prints it). Check open PRs and branches and resume, never redo.
 - Every commit or PR that makes progress updates `HANDOFF.md` in the same commit or PR: done, in progress, exact next step, decisions to review, blockers. The `handoff-check` PR workflow enforces it; use `[skip handoff]` in the PR title only for changes that do not move the work.
-- Pull requests: new ones are fine, but each PR names its owning thread and a `Merge after:` line, you drive what you open to merged or closed, and before merging #N you tell Chase about any older open PR in that repo (with its thread) and merge oldest first. Details in `docs/session-rules.md`, "Pull requests".
+- Pull requests: new ones are fine. Each names its owning thread and a `Merge after:` line. Threads merge their own PRs on green, oldest first, and ask Chase first only when a merge changes a live demo or live product. Before merging #N, tell Chase about any older open PR you can't merge (with its thread). Details in `docs/session-rules.md`, "Pull requests".
 - Full rules: `docs/session-rules.md`.
 
 ## Studio agents (use them by default; don't wait to be asked)

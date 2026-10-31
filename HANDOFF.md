@@ -7,7 +7,7 @@ now: PR queue rule in session rules (Chase, Oct 31)
 next: Merge PMT-M3.4, then each product adds the header on its next refresh
 waiting_on_chase:
   - Review and merge the PMT-M3.4 status header PR
-  - Merge the PR queue rule PR, and paste the PR QUEUE block into each project's instructions
+  - Paste the updated PR QUEUE block into each project's instructions
 blockers: []
 -->
 
