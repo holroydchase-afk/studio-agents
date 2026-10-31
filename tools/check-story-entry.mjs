@@ -17,7 +17,8 @@
 //
 // No other labels. 120 words or fewer inside the block, header included. No personal data or secrets in the block,
 // the Memory line or the No entry reason: email addresses, phone numbers, claude.ai URLs, trig_/env_/cmsg_/session_ ids,
-// API keys (sk-, ghp_, github_pat_). A line that doesn't start with "- " continues the field above it.
+// API keys (sk-, ghp_/ghs_/gho_/ghu_/ghr_, github_pat_, xoxb-/xoxp-). The rest of the reply is scanned for the same
+// leaks. Inside the block, a line that starts with "- " must be a known label; any other line continues the field above it.
 //
 // Usage: node scripts/check-story-entry.mjs <reply.md> [--json]
 //   --json   print {kind: "entry"|"none", type, date, title, words, fields: {<label>: <text>}, memory} on stdout
@@ -35,7 +36,7 @@ const USAGE = "usage: check-story-entry.mjs <reply.md> [--json]";
 // Personal data and secret shapes. Each message names what it found, never the value itself.
 export const LEAKS = [
   [/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/, "an email address"],
-  [/(?<![\w+])(?:\+\d{1,3}[ .-]?)?(?:\(\d{3}\)[ .-]?|\d{3}[ .-])?\d{3}[ .-]\d{4}(?!\w)/, "a phone number"],
+  [/(?<![\w+])(?:\+\d{1,3}[ .-]?)?(?:\(\d{3}\)[ .-]?|\d{3}[ .-])?\d{3}[ .-]\d{4}(?!\w|[.-]\d)/, "a phone number"],
   [/(?:https?:\/\/)?(?:[\w-]+\.)*claude\.ai\b\S*/i, "a claude.ai link"],
   [/\btrig_[A-Za-z0-9]{10,}/, "a trig_ id"],
   [/\benv_[A-Za-z0-9]{10,}/, "an env_ id"],
@@ -44,6 +45,8 @@ export const LEAKS = [
   [/\bsk-[A-Za-z0-9_-]{10,}/, "an API key (sk-)"],
   [/\bghp_[A-Za-z0-9]{10,}/, "an API key (ghp_)"],
   [/\bgithub_pat_[A-Za-z0-9_]{10,}/, "an API key (github_pat_)"],
+  [/\bgh[sour]_[A-Za-z0-9]{10,}/, "an API key (GitHub token)"],
+  [/\bxox[bp]-[A-Za-z0-9-]{10,}/, "an API key (Slack token)"],
 ];
 
 const realDate = (d) => {
@@ -69,6 +72,9 @@ export function checkStoryEntry(text) {
   const inBlock = (i) => blocks.some(([a, b]) => i >= a && i <= b);
   const noEntry = lines.map((l, i) => [l, i]).filter(([l, i]) => !inBlock(i) && /^No entry:/.test(l));
   const memories = lines.map((l, i) => [l, i]).filter(([l, i]) => !inBlock(i) && /^Memory:/.test(l));
+  // The rest of the reply (the "appended to" line, anything stray) is scanned too: a leak anywhere is a leak.
+  const rest = lines.filter((l, i) => !inBlock(i) && !/^(?:No entry|Memory):/.test(l));
+  errors.push(...leaks("reply outside the block", rest.join("\n")));
 
   if (noEntry.length && blocks.length) return { entry: null, errors: ["both a No entry: line and a ```story block: reply with one or the other"] };
   if (!noEntry.length && !blocks.length) return { entry: null, errors: ["neither a ```story block nor a No entry: <reason> line: reply with exactly one"] };
@@ -94,6 +100,7 @@ export function checkStoryEntry(text) {
 
   const [a, b] = blocks[0];
   const body = lines.slice(a + 1, b);
+  if (body.some((l) => /^\s*No entry:/.test(l))) errors.push("a No entry: line inside the ```story block: reply with one or the other");
   const words = body.join(" ").split(/\s+/).filter(Boolean).length;
   if (words > MAX_WORDS) errors.push(`entry has ${words} words, max ${MAX_WORDS} (header included): cut it`);
   errors.push(...leaks("entry", body.join("\n")));
@@ -114,7 +121,9 @@ export function checkStoryEntry(text) {
   const fields = {};
   let last = null;
   for (const [line] of content.slice(h ? 1 : 0)) {
+    if (/^No entry:/.test(line)) { last = null; continue; }
     const f = /^-\s+([^:]+):(.*)$/.exec(line);
+    if (!f && /^-\s/.test(line)) { errors.push(`a "- " line has no known label: start it with one of ${LABELS.join(", ")} and a colon`); last = null; continue; }
     if (f) {
       const name = label(f[1]);
       if (!LABELS.includes(name)) { errors.push(`unknown label "${name}": use only ${LABELS.join(", ")}`); last = null; continue; }

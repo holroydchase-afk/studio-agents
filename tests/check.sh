@@ -130,7 +130,8 @@ for fx in "$fs"/invalid-*.md; do
 done
 # Secret shapes are built at run time so no tracked file holds one (gitleaks, privacy-scan and the id grep below).
 sk_body="$(printf 'Ab1%.0s' 1 2 3 4 5 6 7 8 9 10 11 12)"
-for leak in "trig_${sk_body}:trig_" "env_${sk_body}:env_" "sk-${sk_body}:key" "ghp_${sk_body}:key" "github_pat_${sk_body}:key"; do
+for leak in "trig_${sk_body}:trig_" "env_${sk_body}:env_" "sk-${sk_body}:key" "ghp_${sk_body}:key" "github_pat_${sk_body}:key" \
+  "ghs_${sk_body}:key" "gho_${sk_body}:key" "ghu_${sk_body}:key" "ghr_${sk_body}:key" "xoxb-${sk_body}:key" "xoxp-${sk_body}:key"; do  # QA-R5: GitHub app/OAuth and Slack tokens
   val="${leak%:*}"; exp="${leak##*:}"; lf="$tmp/leak-${val%%[_-]*}.md"
   sed "s/^- Result: pending\$/- Result: pending, see ${val}/" "$fs/valid-decision.md" > "$lf"
   check "STORY-PROD check-story-entry rejects a ${val%%[_-]*} secret (stderr names '$exp')" bash -c "$need_cs; grep -q -- '$val' '$lf' || { echo 'fixture not built'; exit 1; }; node '$cs' '$lf' >/dev/null 2>'$tmp/cserr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/cserr' || { echo 'stderr does not name $exp:'; cat '$tmp/cserr'; exit 1; }"
@@ -151,6 +152,7 @@ import json,sys
 d=json.load(sys.stdin)
 assert d[\"kind\"]==\"none\" and d.get(\"memory\") is None, d'"
 check "STORY-PROD story-keeper.md shows the \`\`\`story block and names check-story-entry" bash -c "f='$root/plugins/studio/agents/story-keeper.md'; grep -qF '\`\`\`story' \$f || { echo 'no \`\`\`story fence in story-keeper.md'; exit 1; }; grep -q 'check-story-entry' \$f || { echo 'story-keeper.md does not name check-story-entry'; exit 1; }"
+check "STORY-PROD story-keeper description tells the main session to relay its reply verbatim" bash -c "awk 'NR==1&&/^---$/{on=1;next} on&&/^---$/{exit} on' '$root/plugins/studio/agents/story-keeper.md' | grep '^description:' | grep -qi verbatim || { echo 'story-keeper.md frontmatter description does not say verbatim'; exit 1; }"
 check "STORY-PROD the four story-keeper behavior eval cases exist" bash -c "for c in routine-no-entry decision-no-pii no-duplicate memory-line; do test -f '$root/plugins/studio/evals/story-keeper-'\$c/prompt.md || { echo \"missing story-keeper-\$c\"; exit 1; }; done"
 check "sync.sh keeps project-only agents" grep -qx local "$repo/.claude/agents/project-only.md"
 check "sync.sh installs review-rounds with ux-reviewer, identical to the plugin's" diff -r "$root/plugins/studio/skills/review-rounds" "$repo/.claude/skills/review-rounds"
