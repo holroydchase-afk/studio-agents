@@ -8,6 +8,7 @@ next: Merge PMT-M3.4, then each product adds the header on its next refresh
 waiting_on_chase:
   - Review and merge the PMT-M3.4 status header PR
   - Paste the updated PR QUEUE block into each project's instructions
+  - Say go on holroydchase-afk.github.io #44 (qa-tdd and ux-reviewer scoreboard rows; merging deploys the live site)
 blockers: []
 -->
 
@@ -66,7 +67,7 @@ blockers: []
   qa-tdd review QA-R1..R6 fixed test-first.
 
 ## In progress
-- qa-tdd hardening (thread "Improve the QA agent"), intake steps 3 and 4: roll out to products (intake issues in ccwatts, Role Radar, Energy Scanner; sync PRs in pm-tools and the portfolio), then qa-tdd and ux-reviewer recall on the Studio scoreboard (live-site merge needs Chase's go). After that: harder qa-tdd recall cases (a P0, a gap spanning two files) so detection, not just follow-through, separates the arms.
+- qa-tdd hardening (thread "Improve the QA agent", intake #32): steps 1 and 2 merged in #33 (Oct 31). Step 3 rollout: ccwatts done (ccwatts #82), Role Radar and Energy Scanner intakes open in their own repos. Step 4: scoreboard rows in holroydchase-afk.github.io #44, waiting on Chase's go because merging deploys the live site; #32 closes when #44 merges. After that: harder qa-tdd recall cases (a P0, a gap spanning two files) so detection, not just follow-through, separates the arms.
 - ux-reviewer 1b (2026-10-31): rules G13, G14, V11, V12 and S3 for the five recall misses. qa-tdd QA-R1..R5 (out-of-sync IDs, skill parity, wording copied from the eval cases) fixed. Recall with the agent rose from 9 to 12 of 14, and found-by-a-person from 0 to 2 of 2. Candidate ux-rules.mjs checks for V11 and G13 not built.
 - Each product project runs the refresh paste in pm-tools `docs/ONBOARDING.md` (one PR per repo: sync, install-rules, new CLAUDE.md section).
 
@@ -110,4 +111,4 @@ blockers: []
 
 ## Blockers
 - Studio agents don't load in multi-repo cloud sessions (Product Studio): Claude Code reads `.claude/agents/` only from the start directory, which is the parent of the repos, and the agent-run hook doesn't load either. Fix: the environment setup script copies `plugins/studio/agents/*.md` into `~/.claude/agents/` (Chase pastes it). Until then, PRs from those sessions say `qa-tdd skipped: <why>`.
-- None.
+- Intake #32 step 4: holroydchase-afk.github.io #44 (scoreboard rows) needs Chase's go, because merging it deploys the live site. Labeled `needs-chase`.
