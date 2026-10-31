@@ -79,6 +79,12 @@ Re-run it to pick up improvements. Agents that exist only in that repo (for exam
 }
 ```
 
+**Cloud sessions.** Claude cloud project threads start in the folder above the cloned repos, so each repo's `.claude/agents/` and `.claude/settings.json` never load. Add this line to the cloud environment's setup script:
+```bash
+git clone -q --depth 1 https://github.com/holroydchase-afk/studio-agents /tmp/studio-agents && mkdir -p ~/.claude/agents && cp /tmp/studio-agents/plugins/studio/agents/*.md ~/.claude/agents/ && { [ -f /tmp/studio-agents/scripts/install-cloud.sh ] && bash /tmp/studio-agents/scripts/install-cloud.sh; true; } || true
+```
+It installs every studio agent at user level (`~/.claude/agents/`) and, through `scripts/install-cloud.sh`, the agent run-log hook (`~/.claude/settings.json`), which stays quiet when a repo's own hook already logs. The hook logs to the repo the session's working directory is in, so the main session should `cd` into the repo before calling an agent; from the parent folder nothing is logged and agents-check fails every agent the PR names. An unreadable `settings.json` is left untouched with a warning.
+
 ## Session rules
 Every agent and run reads `CLAUDE.md` and `HANDOFF.md` before starting and updates `HANDOFF.md` in every commit that makes progress. See [docs/session-rules.md](docs/session-rules.md). `scripts/install-rules.sh ../my-product` installs a SessionStart hook that prints `HANDOFF.md` into every session and a PR check that fails when it wasn't updated.
 
