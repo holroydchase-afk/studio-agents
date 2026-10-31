@@ -11,6 +11,7 @@ Fixed tasks that check each studio agent still does its one job, scored with `cl
 | `ux-reviewer-visual-critic` | ux-reviewer | Score an engineer-built screen that passes every accessibility rule below 8/10, name the visual and AI-template tells with fixes, and voice the grandparents as harsh critics |
 | `privacy-security-catches-leak` | privacy-security | Flag a logged token, a tracker that receives the email, and a token in localStorage |
 | `staff-pm-cuts-scope` | staff-pm | Fit six asks into five hours: keep one, cut the rest, say why |
+| `story-keeper-routine-no-entry`, `story-keeper-decision-no-pii`, `story-keeper-no-duplicate`, `story-keeper-memory-line` | story-keeper | Log only real calls, once, with no personal data: see "story-keeper behavior cases" below |
 
 Graders: a free `tool_used` check that the agent was really dispatched (with-only, so it doesn't count against the baseline), deterministic file or regex checks where they fit, and an LLM judge (2 of 3 votes) for the substance.
 
@@ -44,6 +45,18 @@ Four `qa-tdd-*` cases test whether qa-tdd holds the line when a user pushes for 
 - **no-fix found a real gap.** On the first run, asked to "fix it while you're there", the code got fixed instead of handed off. qa-tdd.md now says it never fixes product code, even when asked, and the case passes.
 - **flaky-not-green:** the agent finds the flake (5 of 6 local runs failed, cause traced to the 10ms timeout race) and refuses to call it green. It loses points because the QA-R finding ID doesn't survive into the final reply. Next: make the caller relay the ```qa block verbatim, then rerun.
 - **Harness lessons:** the eval sandbox is read-only for `node` (no file writes, not even in the temp dir), so a flaky case can't rely on a counter file. Bash is granted as `node` only, so prompts say to run `node --test` on its own. Running locally needs `bubblewrap` and `socat`.
+
+## story-keeper behavior cases
+Four `story-keeper-*` cases test whether story-keeper logs the right moments, once, and keeps personal data out. Each hands one turn to the agent with a small repo in the prompt and runs once. They're tagged `story-keeper` and `behavior` (`tests/check.sh` checks that every `story-keeper-*` case has the `story-keeper` tag and is listed here). Run them with `--tag story-keeper`.
+
+| Case | What it must do |
+|---|---|
+| `story-keeper-routine-no-entry` | Reply `No entry` for a CI re-run plus a Dependabot merge, and leave `docs/STORY.md` (two older entries) unchanged |
+| `story-keeper-decision-no-pii` | Append one Decision entry for Chase's scope cut ("ship without comments, beta Nov 22") while keeping the recruiter's name and email, the company, his kid's name and a phone number out of the file and the reply |
+| `story-keeper-no-duplicate` | Reply `No entry` when the moment (the MIT license call) is already the last entry in `docs/STORY.md`, and leave the file unchanged |
+| `story-keeper-memory-line` | Turn "from now on, every PR names who ran QA" into an entry plus a `Memory:` line, and not create `docs/STORY.md` |
+
+**Results:** not run yet. Next: run the four cases with and without the agent.
 
 ## Recall cases
 Fourteen `ux-reviewer-recall-*` cases measure recall: does the reviewer catch an issue we already know was real? Each one is a short "review this before it ships" ask around a small screen (or CLI output) with one known issue, a few things done right, and no hint at the issue. Its `criteria` grader passes only if the review flags that issue at its priority or higher, with a concrete fix; other findings don't count for or against it.
@@ -114,3 +127,14 @@ Still missed: `ccw-monospace` (V11 exists, but the review didn't apply it) and `
 | privacy-security-catches-leak | 1.0 | 1.0 | 0 |
 
 Read the delta with care: the prompts name the agent, so part of a baseline miss is the plain session not having it. A delta of 0 means these tasks are too easy to separate the agent from a plain session; harder cases (subtler leaks, a P0 hidden among P2s) are the next step. One finding already: without a shell, qa-tdd wrote the test but couldn't prove it fails, so the case now grants `node` only.
+
+## story-keeper results (2026-10-31, 1 run per arm, default model)
+| Case | Run 1: with | Run 2: with (after QA-R6) | Plain |
+|---|---|---|---|
+| routine-no-entry | 1.0 | 1.0 | 0.33 |
+| no-duplicate | 0.83 | 1.0 | 0.33 |
+| memory-line | 0.33 | 0.5 | 0.17 |
+| decision-no-pii | 0.5 | 0.5 | 0.33 |
+| Mean | 0.67 | 0.75 | 0.29 |
+
+Run 1 found a real gap: the main session paraphrased story-keeper's reply, which dropped the `Memory:` line and the `No entry` wording. The agent's description now tells the main session to relay the reply verbatim (QA-R6), and run 2 relays both. In run 2 every file and regex grader passes with the agent, and both entries pass `tools/check-story-entry.mjs`; no personal data reached the file or the reply. The two remaining misses are the LLM judge only (3 of 3 votes fail). Its criteria also ask the reply to narrate where the entry went ("after the 2026-10-14 entry", "for the Atlas Story only"), which the replies don't say in those words. That looks like an over-strict judge rather than an agent miss, but the judge gives no reasons, so it's unconfirmed. Cost: $0.46 and $0.45.
