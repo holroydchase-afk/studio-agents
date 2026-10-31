@@ -67,6 +67,19 @@ The agent does not beat a plain session yet (delta -0.07), and the misses are th
 
 These five cases are the red tests for the next agent change. Each fix gets its own rule in `ux-reviewer.md` and a rerun of that case.
 
+## Recall after step 1b (2026-10-31, with-agent arm only, 1 run, $2.44)
+New rules G13 (text size after scaling), G14 (no pressure counts), V11 (monospace only for code), V12 (photos keep their own shape) and showcase S3 (no way back from a demo is P0), written as general rules and checked by qa-tdd for wording copied from these cases.
+
+| Slice | Before (Oct 30) | After |
+|---|---|---|
+| Overall | 9 of 14 | 12 of 14 |
+| P0 | 1 of 3 | 2 of 3 |
+| P1 | 8 of 10 | 9 of 10 |
+| P2 | 0 of 1 | 1 of 1 |
+| Found by a person | 0 of 2 | 2 of 2 |
+
+Still missed: `ccw-monospace` (V11 exists, but the review didn't apply it) and `family-invite-text`, which passed on Oct 30. With one run per case, that miss may be noise; rerun it before treating it as a regression. The plain-session baseline (10 of 14) wasn't rerun, to save cost.
+
 ## Latest scores (2026-10-28, 1 run per arm, default model, about $0.80)
 | Case | With agent | Without | Delta |
 |---|---|---|---|
