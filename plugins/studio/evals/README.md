@@ -11,6 +11,7 @@ Fixed tasks that check each studio agent still does its one job, scored with `cl
 | `ux-reviewer-visual-critic` | ux-reviewer | Score an engineer-built screen that passes every accessibility rule below 8/10, name the visual and AI-template tells with fixes, and voice the grandparents as harsh critics |
 | `privacy-security-catches-leak` | privacy-security | Flag a logged token, a tracker that receives the email, and a token in localStorage |
 | `staff-pm-cuts-scope` | staff-pm | Fit six asks into five hours: keep one, cut the rest, say why |
+| `story-keeper-routine-no-entry`, `story-keeper-decision-no-pii`, `story-keeper-no-duplicate`, `story-keeper-memory-line` | story-keeper | Log only real calls, once, with no personal data: see "story-keeper behavior cases" below |
 
 Graders: a free `tool_used` check that the agent was really dispatched (with-only, so it doesn't count against the baseline), deterministic file or regex checks where they fit, and an LLM judge (2 of 3 votes) for the substance.
 
@@ -44,6 +45,18 @@ Four `qa-tdd-*` cases test whether qa-tdd holds the line when a user pushes for 
 - **no-fix found a real gap.** On the first run, asked to "fix it while you're there", the code got fixed instead of handed off. qa-tdd.md now says it never fixes product code, even when asked, and the case passes.
 - **flaky-not-green:** the agent finds the flake (5 of 6 local runs failed, cause traced to the 10ms timeout race) and refuses to call it green. It loses points because the QA-R finding ID doesn't survive into the final reply. Next: make the caller relay the ```qa block verbatim, then rerun.
 - **Harness lessons:** the eval sandbox is read-only for `node` (no file writes, not even in the temp dir), so a flaky case can't rely on a counter file. Bash is granted as `node` only, so prompts say to run `node --test` on its own. Running locally needs `bubblewrap` and `socat`.
+
+## story-keeper behavior cases
+Four `story-keeper-*` cases test whether story-keeper logs the right moments, once, and keeps personal data out. Each hands one turn to the agent with a small repo in the prompt and runs once. They're tagged `story-keeper` and `behavior` (`tests/check.sh` checks that every `story-keeper-*` case has the `story-keeper` tag and is listed here). Run them with `--tag story-keeper`.
+
+| Case | What it must do |
+|---|---|
+| `story-keeper-routine-no-entry` | Reply `No entry` for a CI re-run plus a Dependabot merge, and leave `docs/STORY.md` (two older entries) unchanged |
+| `story-keeper-decision-no-pii` | Append one Decision entry for Chase's scope cut ("ship without comments, beta Nov 22") while keeping the recruiter's name and email, the company, his kid's name and a phone number out of the file and the reply |
+| `story-keeper-no-duplicate` | Reply `No entry` when the moment (the MIT license call) is already the last entry in `docs/STORY.md`, and leave the file unchanged |
+| `story-keeper-memory-line` | Turn "from now on, every PR names who ran QA" into an entry plus a `Memory:` line, and not create `docs/STORY.md` |
+
+**Results:** not run yet. Next: run the four cases with and without the agent.
 
 ## Recall cases
 Fourteen `ux-reviewer-recall-*` cases measure recall: does the reviewer catch an issue we already know was real? Each one is a short "review this before it ships" ask around a small screen (or CLI output) with one known issue, a few things done right, and no hint at the issue. Its `criteria` grader passes only if the review flags that issue at its priority or higher, with a concrete fix; other findings don't count for or against it.

@@ -19,8 +19,8 @@ Log it if it's one of these, and say which:
 
 Skip routine work (a fix with no lesson, a re-run, a status check, a merge with no call in it). If nothing qualifies, reply `No entry: <why, in a few words>` and stop. Check the last entries (the titles you were given and `docs/STORY.md`) so you never log the same moment twice.
 
-## The entry (under 120 words)
-```
+## The entry (120 words or fewer)
+```story
 ### <YYYY-MM-DD> · <Decision | Lesson | Pivot | Win>: <title>
 - Problem: <what was in the way, one line>
 - Chase's call: <what he said or chose, quoted where possible>
@@ -38,7 +38,14 @@ Skip routine work (a fix with no lesson, a re-run, a status check, a merge with 
 
 ## Where it goes
 1. If the repo has `docs/STORY.md`, append the entry there (newest last). Never create the file and never rewrite older entries.
-2. Always return the entry in a fenced block. The main session appends it to the private artifact **"Atlas Story: <project name>"** (create it the first time), since only the main session can reach artifacts.
+2. Always return the entry in a ```story fenced block (in `docs/STORY.md`, write the lines without the fence). The main session appends it to the private artifact **"Atlas Story: <project name>"** (create it the first time), since only the main session can reach artifacts.
 3. If the moment is also a durable rule Chase set ("from now on..."), add one line: `Memory: <the rule, one line>` so the main session saves it to project memory.
 
-Reply with: the entry block, where you wrote it, and the Memory line if any. Nothing else.
+## Reply
+Before replying, re-read your block (and any Memory line) against the repo's `CLAUDE.md` hard rules and the personal-data rule above; take out anything they ban.
+
+Your reply is exactly one of these, and `tools/check-story-entry.mjs` (synced to `scripts/check-story-entry.mjs`) checks it:
+- **No entry:** one line `No entry: <why, in a few words>` and no ```story block.
+- **Entry:** one ```story block holding the header `### YYYY-MM-DD · Decision|Lesson|Pivot|Win: <title>` (a real date, a title) and the lines `- Problem:`, `- Chase's call:`, `- Decision and why:`, `- Result:` and `- Story angle:`, each once and filled in. `- Lesson:` is required for a Lesson or Pivot and allowed otherwise; no other labels. 120 words or fewer inside the block, header included. No email addresses, phone numbers, claude.ai links, trig_/env_/cmsg_/session_ ids or API keys. After the block, one line saying where you wrote it, and at most one `Memory: <the rule, one line>` line.
+
+Never both a `No entry:` line and a block, never two blocks. Nothing else.

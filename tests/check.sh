@@ -106,6 +106,52 @@ s=d[\"suites\"]; assert len(s)==2, s
 assert s[1]==dict(name=\"e2e\",command=\"npm run e2e\",runs=[dict(passed=9,failed=0),dict(passed=9,failed=1),dict(passed=9,failed=0)]), s[1]
 f=d[\"findings\"]; assert f==[dict(id=\"QA-R1\",priority=\"P1\",where=\"e2e share sheet\",problem=\"passes on retry only\",test=\"tests/e2e/share.spec.ts\")], f'"
 check "QATDD-PROD qa-tdd.md Output/Report section shows the \`\`\`qa block" bash -c "awk '/^## /{on=(\$0 ~ /^## (Output|Report)/)} on' '$root/plugins/studio/agents/qa-tdd.md' | grep -qF '\`\`\`qa' || { echo 'no \`\`\`qa in a ## Output or ## Report section of qa-tdd.md'; exit 1; }"
+# check-story-entry.mjs: validates a story-keeper reply (STORY-PROD). Same fixture loop as QATDD-PROD: valid-*.md
+# exit 0 with a quiet stderr; invalid-*.md exit exactly 1 and stderr names the broken rule (the "<!-- expect: word -->"
+# line), one reason per line. A reply is exactly one of:
+#   No entry: <reason>                                          (no story block)
+#   one story block (three backticks + story):
+#     ### YYYY-MM-DD · Decision|Lesson|Pivot|Win: <title>       (real date, non-empty title)
+#     - Problem: / - Chase's call: / - Decision and why: / - Result: / - Story angle:   (each once, non-empty)
+#     - Lesson:                                                 (required for Lesson and Pivot; no other labels)
+#     <= 120 whitespace-separated words, header included; no email, phone, claude.ai URL, trig_/env_/cmsg_/session_ id,
+#     or API key (sk-, ghp_, github_pat_)
+#   then optionally one line `Memory: <rule>` after the block.
+# --json: {kind: entry|none, type, date, title, words, fields: {<label>: <text>}, memory}.
+cs="$root/tools/check-story-entry.mjs"; fs="$root/tests/fixtures/story-entry"
+need_cs="test -f '$cs' || { echo 'missing tools/check-story-entry.mjs'; exit 1; }"
+check "STORY-PROD check-story-entry.mjs exists" test -f "$cs"
+for fx in "$fs"/valid-*.md; do
+  check "STORY-PROD check-story-entry passes $(basename "$fx")" bash -c "$need_cs; node '$cs' '$fx' 2>'$tmp/cserr'; rc=\$?; [ \$rc -eq 0 ] || { echo \"exit \$rc\"; cat '$tmp/cserr'; exit 1; }; ! test -s '$tmp/cserr'"
+done
+for fx in "$fs"/invalid-*.md; do
+  exp="$(sed -n 's/^<!-- expect: \(.*\) -->$/\1/p' "$fx")"
+  check "STORY-PROD check-story-entry rejects $(basename "$fx" .md) (stderr names '$exp')" bash -c "$need_cs; node '$cs' '$fx' >/dev/null 2>'$tmp/cserr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/cserr' || { echo 'stderr does not name $exp:'; cat '$tmp/cserr'; exit 1; }"
+done
+# Secret shapes are built at run time so no tracked file holds one (gitleaks, privacy-scan and the id grep below).
+sk_body="$(printf 'Ab1%.0s' 1 2 3 4 5 6 7 8 9 10 11 12)"
+for leak in "trig_${sk_body}:trig_" "env_${sk_body}:env_" "sk-${sk_body}:key" "ghp_${sk_body}:key" "github_pat_${sk_body}:key"; do
+  val="${leak%:*}"; exp="${leak##*:}"; lf="$tmp/leak-${val%%[_-]*}.md"
+  sed "s/^- Result: pending\$/- Result: pending, see ${val}/" "$fs/valid-decision.md" > "$lf"
+  check "STORY-PROD check-story-entry rejects a ${val%%[_-]*} secret (stderr names '$exp')" bash -c "$need_cs; grep -q -- '$val' '$lf' || { echo 'fixture not built'; exit 1; }; node '$cs' '$lf' >/dev/null 2>'$tmp/cserr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/cserr' || { echo 'stderr does not name $exp:'; cat '$tmp/cserr'; exit 1; }"
+done
+check "STORY-PROD check-story-entry gives one reason per line (two broken rules, two lines)" bash -c "$need_cs; node '$cs' '$fs/invalid-two-reasons.md' 2>'$tmp/cserr'; [ \$? -eq 1 ] && [ \$(grep -c . '$tmp/cserr') -ge 2 ] && grep -q Result '$tmp/cserr' && grep -qi email '$tmp/cserr' || { cat '$tmp/cserr'; exit 1; }"
+check "STORY-PROD check-story-entry exits 2 on a usage error (no file, two files, unreadable file)" bash -c "$need_cs; node '$cs' 2>/dev/null; a=\$?; node '$cs' '$fs/valid-decision.md' '$fs/valid-win.md' 2>/dev/null; b=\$?; node '$cs' '$tmp/no-such-reply.md' 2>/dev/null; c=\$?; echo \"exits: \$a \$b \$c\"; [ \$a -eq 2 ] && [ \$b -eq 2 ] && [ \$c -eq 2 ]"
+check "STORY-PROD check-story-entry --json prints the parsed entry" bash -c "$need_cs; node '$cs' --json '$fs/valid-memory.md' | python3 -c '
+import json,sys
+d=json.load(sys.stdin)
+assert d[\"kind\"]==\"entry\" and d[\"type\"]==\"Decision\" and d[\"date\"]==\"2026-11-02\", d
+assert d[\"title\"]==\"Every PR names who ran QA\", d[\"title\"]
+assert d[\"words\"]==67, d[\"words\"]
+f=d[\"fields\"]; assert set(f)=={\"Problem\",\"Chase\x27s call\",\"Decision and why\",\"Result\",\"Story angle\"}, f
+assert f[\"Chase\x27s call\"]==\"\\\"From now on, every PR names who ran QA.\\\"\" and f[\"Result\"]==\"pending\", f
+assert d[\"memory\"]==\"Every PR body names who ran QA on its Agents: line.\", d[\"memory\"]'"
+check "STORY-PROD check-story-entry --json reports a No entry reply as kind none" bash -c "$need_cs; node '$cs' --json '$fs/valid-no-entry.md' | python3 -c '
+import json,sys
+d=json.load(sys.stdin)
+assert d[\"kind\"]==\"none\" and d.get(\"memory\") is None, d'"
+check "STORY-PROD story-keeper.md shows the \`\`\`story block and names check-story-entry" bash -c "f='$root/plugins/studio/agents/story-keeper.md'; grep -qF '\`\`\`story' \$f || { echo 'no \`\`\`story fence in story-keeper.md'; exit 1; }; grep -q 'check-story-entry' \$f || { echo 'story-keeper.md does not name check-story-entry'; exit 1; }"
+check "STORY-PROD the four story-keeper behavior eval cases exist" bash -c "for c in routine-no-entry decision-no-pii no-duplicate memory-line; do test -f '$root/plugins/studio/evals/story-keeper-'\$c/prompt.md || { echo \"missing story-keeper-\$c\"; exit 1; }; done"
 check "sync.sh keeps project-only agents" grep -qx local "$repo/.claude/agents/project-only.md"
 check "sync.sh installs review-rounds with ux-reviewer, identical to the plugin's" diff -r "$root/plugins/studio/skills/review-rounds" "$repo/.claude/skills/review-rounds"
 check "sync.sh keeps project-only skills" grep -qx mine "$repo/.claude/skills/project-skill/SKILL.md"
@@ -251,6 +297,12 @@ for d in "$root"/plugins/studio/evals/*/; do
     # qa-tdd cases: tagged qa-tdd (so `--tag qa-tdd` runs them all) and listed in the evals README.
     tags="$(field "$d/prompt.md" tags | tr -d '[] ' | tr , '\n')"
     check "eval $c: tagged qa-tdd and listed in evals/README.md" bash -c "echo '$tags' | grep -qx qa-tdd || { echo 'missing tag: qa-tdd (have: $(echo $tags))'; exit 1; }; grep -qF '\`$c\`' '$root/plugins/studio/evals/README.md' || { echo 'not in evals/README.md'; exit 1; }"
+  ;; esac
+  case "$c" in story-keeper-*)
+    # story-keeper cases (STORY-PROD): tagged story-keeper, listed in the evals README, invented people and example.com only.
+    tags="$(field "$d/prompt.md" tags | tr -d '[] ' | tr , '\n')"
+    check "eval $c: tagged story-keeper and listed in evals/README.md" bash -c "echo '$tags' | grep -qx story-keeper || { echo 'missing tag: story-keeper (have: $(echo $tags))'; exit 1; }; grep -qF '\`$c\`' '$root/plugins/studio/evals/README.md' || { echo 'not in evals/README.md'; exit 1; }"
+    check "eval $c: only example.com emails and domains in the prompt" bash -c "! grep -oE '[A-Za-z0-9._%+-]*@?[a-z0-9.-]+\.(com|org|net|io|app|dev)\b' '$d/prompt.md' | grep -vqE '^([A-Za-z0-9._%+-]+@)?example\.com\$'"
   ;; esac
   case "$c" in ux-reviewer-recall-*)
     # Recall cases: the 5 tags that let `--tag recall` results be grouped by priority, source and finder.
