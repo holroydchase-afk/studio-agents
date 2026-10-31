@@ -231,6 +231,9 @@ check "own kit: every agent has a .claude/agents/ link to plugins/studio/agents/
 own="$tmp/own"; mkdir -p "$own/scripts"; cp "$root/templates/scripts/check-agents.sh" "$own/scripts/"; cp "$root/CLAUDE.md" "$own/"; cp -rL "$root/.claude" "$own/"
 check "own kit: check-agents.sh passes this repo's CLAUDE.md and .claude/agents/" bash "$own/scripts/check-agents.sh"
 
+# TONE rule: every repo's CLAUDE.md (via the template) and the session rules make the session introduce itself by role.
+check "CLAUDE-agents.md, CLAUDE.md and session-rules.md carry the intro-by-role rule" bash -c "grep -q 'introduces itself by role' '$root/templates/CLAUDE-agents.md' && grep -q 'introduces itself by role' '$root/CLAUDE.md' && grep -q 'opens with who you are, by role' '$root/docs/session-rules.md'"
+
 # Public repo: no claude.ai artifact or session links, no trigger or environment ids.
 check "no claude.ai links or trigger/environment ids" bash -c "! grep -rnE 'claude\.ai/(artifact|code)/|trig_[0-9A-Za-z]{10,}|env_[0-9A-Za-z]{10,}' --exclude-dir=.git --exclude=check.sh '$root'"
 
