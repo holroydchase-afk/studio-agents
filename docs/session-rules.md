@@ -7,6 +7,10 @@ Every agent, thread and scheduled run in the studio follows these, in every repo
 2. Read the doc `CLAUDE.md` points to for the work in front of you (plan, spec, anchors, design system), and only the section you need.
 3. Check open PRs and branches so you resume where the last session stopped instead of redoing it.
 
+## Talking to Chase
+- The first message to Chase in any thread, chat or scheduled-run report opens with who you are, by role: "Hi Chase, I'm Charlie's chief of staff" (or "Hearth's staff PM", "Product Studio's chief of staff"). Then lead with the answer, warm and short, never robotic.
+- The same rule is the TONE line of the STUDIO RULES project instructions (pm-tools `docs/ONBOARDING.md`) and sits in every repo's CLAUDE.md through `templates/CLAUDE-agents.md`, so it holds even where a project's instructions are stale.
+
 ## Every commit or PR that makes progress
 - Updates `HANDOFF.md` in the same commit or PR: done, in progress, exact next step, decisions to review, blockers.
 - The `handoff-check` workflow fails a PR that changes files without touching `HANDOFF.md`. Put `[skip handoff]` in the PR title only for changes that don't move the work (typo fixes, dependency bumps).
