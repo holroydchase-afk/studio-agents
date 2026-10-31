@@ -3,14 +3,16 @@
 stage: live
 goal: agent-team
 milestone: PMT-M3
-now: PMT-M3.4 status header standard (templates, check, session rules)
+now: PR queue rule in session rules (Chase, Oct 31)
 next: Merge PMT-M3.4, then each product adds the header on its next refresh
 waiting_on_chase:
   - Review and merge the PMT-M3.4 status header PR
+  - Paste the updated PR QUEUE block into each project's instructions
 blockers: []
 -->
 
 ## Done
+- PR queue rule (2026-10-31, Chase: "PRs are getting out of control"; Charlie had 6 to 8 open across 4 threads): `docs/session-rules.md` "Pull requests: keep the queue short" and a CLAUDE.md line. New PRs stay fine; each names its owning thread and a `Merge after:` line, the opener drives it to merged or closed, "merge N" first warns Chase about any older open PR in that repo (with its thread) and merges oldest first, every merge ask shows the queue, and owners drain green Dependabot PRs themselves. Paired pm-tools PR puts the same block in ONBOARDING's project-instructions paste.
 - Shared studio agents and skills as a Claude Code plugin (`plugins/studio`), with `scripts/sync.sh` to copy them into product repos.
 - License audit (2026-10-21): added `LICENSE` (MIT) and a License section in the README.
 - `focus-coach` agent and `focus-check` skill (2026-10-21): the "you are procrastinating" check against the job-hunt tracker.
