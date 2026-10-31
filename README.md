@@ -10,6 +10,7 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `privacy-security` | Gold-standard bar scaled to the milestone (OWASP ASVS/MASVS, STRIDE, LINDDUN) |
 | `ux-reviewer` | Cognitive walkthroughs as the least tech-savvy user, measured checks |
 | `positioning` | Claims that are true today, copy, and "why I built it" stories |
+| `story-keeper` | The story log: decisions, lessons, pivots and wins as they happen, in every chat |
 | `architect` | One stack across products: reviews stack-crossing changes, reuse before build, architecture docs that match the code, weekly drift sweep |
 | `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
 | `focus-coach` | The "you are procrastinating" agent: checks the job-hunt tracker, calls out drift in one cheeky line, redirects to the next application |
@@ -25,6 +26,7 @@ Scripts the agents run, copied into each repo's `scripts/` with `scripts/sync-to
 |---|---|
 | `ux-shots` | The ux-reviewer's visual pass in one command: screenshots at 390x844 and 1280x800, light and dark, viewport and full page, plus a report of console errors, failed requests, broken images, sideways scroll, small tap targets, unfinished text and sample links. `node scripts/ux-shots.mjs dist/index.html --click "[role=tab]"`; `--no-network` blocks and lists every request that leaves the page (the privacy gate for local-only apps); `--strict` fails CI on any issue. Needs Playwright (`npm i -D playwright`). Extracted from Role Radar's review pass. |
 | `ux-rules` | Checks a page against the design rules code can check (Layer 1 G rules and Layer V craft counts in `ux-reviewer.md`) at 390, 1280 and 320px. `node scripts/ux-rules.mjs dist/index.html --click "#addBtn"`; `--strict` fails CI on a rule break, `--strict-visual` on a V count too. Needs Playwright. Run it before ux-shots: a failing rule beats a reading of a screenshot. |
+| `check-findings` | Validates the ```findings block that ends every ux-reviewer review: verdict, score out of 10, and one `ID \| P0-P2 \| rule \| where \| problem \| fix` line per finding (Ready needs 8/10 and no P0; Blocker needs a P0). `node scripts/check-findings.mjs review.md`; `--json` prints the parsed findings. Plain Node, no dependencies. |
 
 ## When to use which agent (by default, without being asked)
 Agents only help if the session calls them. Copying them into a repo is not enough: the repo's `CLAUDE.md` must say when to use them. Paste [templates/CLAUDE-agents.md](templates/CLAUDE-agents.md) into it.
@@ -38,6 +40,7 @@ Agents only help if the session calls them. Copying them into a repo is not enou
 | Personal data, sign-in, secrets, telemetry; before a public demo or deploy | `privacy-security` | Threat and privacy review scaled to the milestone; what a public repo could leak |
 | A new dependency, vendor, paid service, schema change or CI/deploy workflow; a new project's stack | `architect` | Verdict on fit, the stack rung, what to reuse instead, the decision entry needed |
 | README, landing or portfolio copy; names; after a milestone | `positioning` | Claims true today, copy, the "why I built it" story |
+| End of any turn with a call, pivot or lesson | `story-keeper` | One Atlas Story entry (and `docs/STORY.md`), in the background |
 
 The usual order for one task: staff-pm, qa-tdd (red), engineer, qa-tdd (green, 3x), then ux-reviewer and privacy-security if users or the public will see it, then positioning for any copy. Each PR ends with an `Agents:` line saying who ran and the verdict; `templates/agents-check.yml` (installed by `install-rules.sh`) fails a PR without one, or a code PR that doesn't name `qa-tdd`. A PreToolUse hook (`templates/scripts/log-agent-run.sh`) logs every real Agent call to `.claude/agent-runs/<branch>.log`, and `check-agent-runs.sh` fails the PR if the line names an agent that never ran; when qa-tdd ran, CI reruns the repo's `agents.verify` command 3x. The main session acts as chief of staff (Hearth's model): it delegates each piece of work to the agent for that moment instead of doing it itself. `sync.sh` skips `orchestrator` and `focus-coach` (Product Studio's) unless you name them.
 
