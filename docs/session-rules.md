@@ -9,20 +9,32 @@ Every agent, thread and scheduled run in the studio follows these, in every repo
 
 ## Every commit or PR that makes progress
 - Updates `HANDOFF.md` in the same commit or PR: done, in progress, exact next step, decisions to review, blockers.
+- Updates the status header at the top of `HANDOFF.md` with every HANDOFF update: `stage` (idea, building, beta, live or parked), `goal` (a pm-tools `goals.json` id), `milestone`, `now`, `next`, `waiting_on_chase` and `blockers`. The Studio Console reads this header, not the sections, so a stale header shows the wrong state. Keep it within the first 15 lines and closed by `-->`.
 - The `handoff-check` workflow fails a PR that changes files without touching `HANDOFF.md`. Put `[skip handoff]` in the PR title only for changes that don't move the work (typo fixes, dependency bumps).
 
 ## Before you stop
 - `HANDOFF.md`'s "Exact next step" is specific enough that a cold session can start on it without asking.
 
 ## How it's enforced
-`scripts/install-rules.sh <repo>` copies two files into a repo:
+`scripts/install-rules.sh <repo>` copies these into a repo:
 - `.claude/settings.json`: a SessionStart hook that prints `HANDOFF.md` into every Claude Code session, so it's always read.
-- `.github/workflows/handoff-check.yml`: the PR check above.
+- `.github/workflows/handoff-check.yml`: the PR check above, plus `scripts/check-handoff-status.sh`, which warns (never fails) when the status header, a key or a known stage is missing, or the goal isn't in the optional `STUDIO_GOALS` repo variable.
 - `.github/workflows/agents-check.yml` with `scripts/check-agent-runs.sh`, and a PreToolUse hook in `.claude/settings.json` that logs every Agent call to `.claude/agent-runs/<branch>.log`: a PR's `Agents:` line is checked against what really ran, and qa-tdd's suites rerun 3x on CI.
 
 ## HANDOFF.md template
+Also at `templates/HANDOFF.md`.
 ```markdown
 # Handoff
+<!-- status
+stage: building
+goal: <goal id from pm-tools goals.json>
+milestone: <planning id, e.g. ABC-M1>
+now: <the task in progress>
+next: <the exact next step>
+waiting_on_chase:
+  - <a call only Chase can make>
+blockers: []
+-->
 
 ## Done
 ## In progress

@@ -1,4 +1,14 @@
 # Handoff
+<!-- status
+stage: live
+goal: agent-team
+milestone: PMT-M3
+now: PMT-M3.4 status header standard (templates, check, session rules)
+next: Merge PMT-M3.4, then each product adds the header on its next refresh
+waiting_on_chase:
+  - Review and merge the PMT-M3.4 status header PR
+blockers: []
+-->
 
 ## Done
 - Shared studio agents and skills as a Claude Code plugin (`plugins/studio`), with `scripts/sync.sh` to copy them into product repos.
@@ -42,10 +52,13 @@
 
 - `story-keeper` agent (2026-10-29, Chase: "a story agent that sits in every chat and picks up any lessons or decisions"; Polish Freeze exception on Chase's ask, like the Oct 28 agent work): `plugins/studio/agents/story-keeper.md` turns the STORY LOG rule into an agent. At the end of any turn with a Decision, Lesson, Pivot or Win, the main session hands it what happened (in the background); it writes one entry of under 120 words in the Atlas Story format plus a Lesson line, appends it to `docs/STORY.md` when the repo has one (never creates it), and returns it for the main session to add to the "Atlas Story: <project>" artifact (subagents can't reach artifacts). Routine turns get `No entry`; a durable rule Chase set comes back as a `Memory:` line. Runs on `model: sonnet` to keep it cheap. Rows added to `CLAUDE.md`, `templates/CLAUDE-agents.md` and the README; `.claude/agents/` symlink; plugin 0.6.0. Synced to products by default. qa-tdd ran all suites 3x (118 checks; pm-tools npm test and check:private) and filed QA-R1 to R5: fixed QA-R1 (`sync.sh` now prints a note when a synced agent is missing from the repo's CLAUDE.md table, with a red-then-green check), QA-R2 (reads the repo's CLAUDE.md hard rules first; job-search data banned), QA-R3/R4 (the main session passes today's date and the last Atlas Story titles, since the agent has no Bash or artifact access), QA-R5 (a check for its key rules; the eval is still next). Paired pm-tools PR puts it in ONBOARDING and the project-instructions STORY LOG line, which is what makes it run in every chat (cloud threads already load every agent through the setup-script line).
 
+- PMT-M3.4 status header (2026-10-31, from pm-tools' Studio Console plan): every HANDOFF.md now opens with a `<!-- status` block (stage, goal, milestone, now, next, waiting_on_chase, blockers) in the exact format pm-tools `scripts/feed/core.ts` parseHandoff reads. New `templates/HANDOFF.md`; `templates/scripts/check-handoff-status.sh` prints `::warning::` lines and exits 0 when the header (or its `-->`, or it starts after line 15), a key or a known stage (idea, building, beta, live, parked) is missing, or the goal isn't in an optional `GOALS` list; silent when fine. handoff-check runs it as a second, warn-only step (CON-16) with `GOALS` from the optional `STUDIO_GOALS` repo variable; `install-rules.sh` installs it; `docs/session-rules.md` says to update the header with every HANDOFF update. This file has a real header. qa-tdd's 19 checks went red first, now green (136 checks). qa-tdd ran tests/check.sh 3x (stable). Open P2s: STA-R1 a CRLF HANDOFF gives false warnings; STA-R2 unfilled `<...>` placeholders pass; STA-R3 the workflow step is only grep-tested and stays quiet if the script is missing; STA-R4 `[skip handoff]` also skips the warning.
+
 ## In progress
 - Each product project runs the refresh paste in pm-tools `docs/ONBOARDING.md` (one PR per repo: sync, install-rules, new CLAUDE.md section).
 
 ## Exact next step
+- PMT-M3.4: merge, then each product re-runs `scripts/install-rules.sh` (installs `scripts/check-handoff-status.sh`; existing `handoff-check.yml` is kept, so merge its new status step by hand) and adds the status header from `templates/HANDOFF.md` to its HANDOFF.md. Optional: set the `STUDIO_GOALS` repo variable to the goals.json ids.
 - story-keeper: merge this and the pm-tools ONBOARDING PR; Chase pastes the new STORY LOG line into each project's instructions; each product re-runs `scripts/sync.sh` and adds the story-keeper row from `templates/CLAUDE-agents.md` (or `check-agents.sh` fails). Later: an eval case (routine turn gets `No entry`, a decision gets one entry with no personal data).
 - Merge the security kit PR. Chase turns on the repo toggles from pm-tools `STUDIO-STATUS.md` (Waiting on Chase → Security toggles).
 - ux-shots merged (2026-10-29, Chase's "merge all"; brought up to date with main, README now lists `ux-rules` too): each product runs `scripts/sync-tools.sh`, which copies both `ux-shots` and `ux-rules` (add it to `/onboard refresh`) and uses it for every Polish Freeze before/after score. Role Radar can retire its own `review-shots.mjs` once it switches.
@@ -60,6 +73,7 @@
 - review-rounds: merge, then each product re-runs `scripts/sync.sh` (Energy Scanner's copy is identical, so its re-sync is a no-op). Next, per the intake: build `plugins/studio/evals/ux-reviewer-*` cases from Energy Scanner's ES-R1..R68 (commit before each fix, screen, viewport, priority), run ux-reviewer on each and log recall by priority; needs the `ANTHROPIC_API_KEY` secret to run in CI.
 
 ## Decisions to review
+- PMT-M3.4: the status check accepts `stage: build` quietly because the Console parser maps it to `building`; the template and session rules only show the five stages. It warns, never fails, so repos without a header keep passing CI.
 - story-keeper triggers through its "use proactively" description and the project-instructions rule, not a Stop hook: a hook would cost tokens on every turn, and repo hooks don't load in cloud project threads anyway. It's a separate agent from positioning so logging stays cheap and runs every time, while positioning turns the log into copy.
 - QA-R4: a project-only skill with the same name as a studio skill is overwritten on sync, and a skill an agent stops preloading stays in product repos. Same rule as agents (studio names win, sync never deletes).
 - `sync.sh` installs only the skills a synced agent preloads, not every plugin skill: the others (digest, night-prep, onboard...) are Chase's account-level skills for chats, and copying them into every product repo would add noise and drift.
