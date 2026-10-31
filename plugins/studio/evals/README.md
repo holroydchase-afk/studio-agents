@@ -42,8 +42,40 @@ Four `qa-tdd-*` cases test whether qa-tdd holds the line when a user pushes for 
 | `qa-tdd-flaky-not-green` | 0.33 | 0.33 |
 
 - **no-fix found a real gap.** On the first run, asked to "fix it while you're there", the code got fixed instead of handed off. qa-tdd.md now says it never fixes product code, even when asked, and the case passes.
-- **flaky-not-green:** the agent finds the flake (5 of 6 local runs failed, cause traced to the 10ms timeout race) and refuses to call it green. It loses points because the QA-R finding ID doesn't survive into the final reply. Next: make the caller relay the ```qa block verbatim, then rerun.
+- **flaky-not-green:** the agent finds the flake (5 of 6 local runs failed, cause traced to the 10ms timeout race) and refuses to call it green. It loses points because the QA-R finding ID doesn't survive into the final reply. Fixed (QATDD-RELAY, Oct 31): qa-tdd's description and Output section, and the Studio agents section every product's CLAUDE.md copies, now tell the caller to paste the ```qa block verbatim. Rerun with qa-tdd only: 1.0, 1.0, 1.0, then 0.86 (on that run CART-2 timed out all 5 times, so the agent rightly said red, not flaky, and the `says-flaky` regex missed). The other four cases stayed at 1.0. About $0.85.
 - **Harness lessons:** the eval sandbox is read-only for `node` (no file writes, not even in the temp dir), so a flaky case can't rely on a counter file. Bash is granted as `node` only, so prompts say to run `node --test` on its own. Running locally needs `bubblewrap` and `socat`.
+
+## qa-tdd recall cases
+Eight `qa-tdd-recall-*` cases measure qa-tdd's recall: does it catch a gap we already know was real? Each is a "this is ready, tests pass, check it before I merge" ask around a tiny ES module and a passing `node:test` file that covers only the happy path, with no hint at the gap. Like the behavior cases they grant `node` only and run once. The `criteria` grader passes only if the report names that gap at its priority or higher, writes a failing test for it that it ran red (or shows the red output), and leaves the source unfixed for the engineer; other findings don't count for or against it.
+
+The sources are **rebuilt reproductions of the pre-fix code, not checkouts**, cut to under 25 lines each.
+
+| Case | Source ID | Priority | Found by |
+|---|---|---|---|
+| `qa-tdd-recall-regex-no-blocker` | STUDIO QA-R (visual critic #20) | P1 | agent |
+| `qa-tdd-recall-path-traversal` | STUDIO review-rounds QA-R1 | P2 | agent |
+| `qa-tdd-recall-inline-list-ignored` | STUDIO review-rounds QA-R2 | P2 | agent |
+| `qa-tdd-recall-first-block` | STUDIO findings-block QA-R1 | P1 | agent |
+| `qa-tdd-recall-duplicate-ids` | STUDIO findings-block QA-R3 | P2 | agent |
+| `qa-tdd-recall-runs-differ` | STUDIO qa-block review | P1 | agent |
+| `qa-tdd-recall-green-no-run` | STUDIO qa-block review | P1 | agent |
+| `qa-tdd-recall-mcp-missing-input` | RR QA-R1 (Role Radar MCP server) | P1 | agent |
+
+Every case carries five tags (`tests/check.sh` enforces them, and that each case is listed in this table): `qa-tdd`, `recall`, the priority (`p0`, `p1`, `p2`), the source (`src-studio`, `src-rr`) and who found it first (`by-human`, `by-agent`). Run only these cases, one run each:
+```bash
+claude plugin eval . --trust-plugin --no-publish --tag recall --case 'qa-tdd-recall-*' --json qa-recall.json
+```
+Score it like ux-reviewer recall: overall (n of 8) and by priority.
+
+**Results (2026-10-31, 1 run per arm, $2.07):**
+
+| Slice | With qa-tdd | Plain session |
+|---|---|---|
+| Overall | 8 of 8 | 0 of 8 |
+| P1 | 5 of 5 | 0 of 5 |
+| P2 | 3 of 3 | 0 of 3 |
+
+Read this carefully: **the plain session spotted the gap in every case too** and said "don't merge yet". It failed because it never wrote and ran a failing test for the gap, which the grader requires. So these cases measure test-first follow-through on a found gap, not detection. Next: harder cases where the gap isn't visible in 20 lines (a gap that only shows when two files interact, or a P0), and a P0 case, so detection itself separates the arms.
 
 ## Recall cases
 Fourteen `ux-reviewer-recall-*` cases measure recall: does the reviewer catch an issue we already know was real? Each one is a short "review this before it ships" ask around a small screen (or CLI output) with one known issue, a few things done right, and no hint at the issue. Its `criteria` grader passes only if the review flags that issue at its priority or higher, with a concrete fix; other findings don't count for or against it.
@@ -71,7 +103,7 @@ Every case carries five tags (`tests/check.sh` enforces them): `ux-reviewer`, `r
 
 **Scoring recall.** Run only these cases, one run each:
 ```bash
-claude plugin eval . --trust-plugin --no-publish --tag recall --json recall.json
+claude plugin eval . --trust-plugin --no-publish --tag recall --case 'ux-reviewer-recall-*' --json recall.json
 ```
 Recall is the share of cases whose `criteria` grader passed. Report it three ways: overall (n of 14), by priority (group by the `p0`/`p1`/`p2` tag; P0 recall is the number that matters most, and a P0 miss is a bug in the agent), and for `by-human` cases on their own: those are issues a person had to find, so a pass there is the agent catching what it missed the first time. The with-plugin arm is the score; the baseline arm shows how much of it a plain session gets anyway. With 1 run per case a single result is noisy; rerun a miss before calling it a regression.
 
