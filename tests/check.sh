@@ -106,6 +106,11 @@ s=d[\"suites\"]; assert len(s)==2, s
 assert s[1]==dict(name=\"e2e\",command=\"npm run e2e\",runs=[dict(passed=9,failed=0),dict(passed=9,failed=1),dict(passed=9,failed=0)]), s[1]
 f=d[\"findings\"]; assert f==[dict(id=\"QA-R1\",priority=\"P1\",where=\"e2e share sheet\",problem=\"passes on retry only\",test=\"tests/e2e/share.spec.ts\")], f'"
 check "QATDD-PROD qa-tdd.md Output/Report section shows the \`\`\`qa block" bash -c "awk '/^## /{on=(\$0 ~ /^## (Output|Report)/)} on' '$root/plugins/studio/agents/qa-tdd.md' | grep -qF '\`\`\`qa' || { echo 'no \`\`\`qa in a ## Output or ## Report section of qa-tdd.md'; exit 1; }"
+# QATDD-RELAY: the caller loses qa-tdd's QA-R ids when it summarizes the report, so every hop says to relay the ```qa block verbatim.
+check "QATDD-RELAY qa-tdd.md description tells the caller to relay the \`\`\`qa block verbatim" bash -c "d=\$(awk 'NR==1&&/^---/{f=1;next} f&&/^---/{exit} f' '$root/plugins/studio/agents/qa-tdd.md' | grep '^description:'); echo \"\$d\" | grep -qi verbatim && echo \"\$d\" | grep -qiE 'qa block|\`\`\`qa' || { echo 'qa-tdd.md description: line lacks \"verbatim\" plus \"qa block\" or \"\`\`\`qa\"'; exit 1; }"
+check "QATDD-RELAY qa-tdd.md Output section says the caller passes the \`\`\`qa block on verbatim" bash -c "awk '/^## /{on=(\$0 ~ /^## Output/)} on' '$root/plugins/studio/agents/qa-tdd.md' | grep -qi verbatim || { echo 'no \"verbatim\" in the ## Output section of qa-tdd.md'; exit 1; }"
+check "QATDD-RELAY templates/CLAUDE-agents.md tells the main session to paste the \`\`\`qa block verbatim" bash -c "grep -F '\`\`\`qa' '$root/templates/CLAUDE-agents.md' | grep -qi verbatim || { echo 'no line with both \`\`\`qa and \"verbatim\" in templates/CLAUDE-agents.md'; exit 1; }"
+check "QATDD-RELAY CLAUDE.md tells the main session to paste the \`\`\`qa block verbatim" bash -c "grep -F '\`\`\`qa' '$root/CLAUDE.md' | grep -qi verbatim || { echo 'no line with both \`\`\`qa and \"verbatim\" in CLAUDE.md'; exit 1; }"
 # check-story-entry.mjs: validates a story-keeper reply (STORY-PROD). Same fixture loop as QATDD-PROD: valid-*.md
 # exit 0 with a quiet stderr; invalid-*.md exit exactly 1 and stderr names the broken rule (the "<!-- expect: word -->"
 # line), one reason per line. A reply is exactly one of:
@@ -345,7 +350,14 @@ for d in "$root"/plugins/studio/evals/*/; do
     # Hearth is private: its screens are rebuilt generically, with invented names and example URLs only.
     check "eval $c: no private product name and only example URLs in the prompt" bash -c "f='$d/prompt.md'; ! grep -v '^tags:' \"\$f\" | grep -qi hearth && ! grep -oE '[a-z0-9.-]+\.(com|org|net|io|app|dev)\b' \"\$f\" | grep -vqxE '(www\.)?example\.com|app\.example'"
   ;; esac
+  case "$c" in qa-tdd-recall-*)
+    # QATDD-RECALL: the 5 tags that let qa-tdd recall results be grouped by priority, source and finder.
+    tags="$(field "$d/prompt.md" tags | tr -d '[] ' | tr , '\n')"
+    check "QATDD-RECALL eval $c: recall tags (qa-tdd, recall, p0|p1|p2, src-studio|src-rr, by-human|by-agent)" bash -c "t='$tags'; for re in qa-tdd recall 'p[012]' 'src-(studio|rr)' 'by-(human|agent)'; do echo \"\$t\" | grep -qxE \"\$re\" || { echo \"missing tag: \$re (have: \$(echo \$t))\"; exit 1; }; done"
+  ;; esac
 done
+# QATDD-RECALL: the 8 qa-tdd recall cases exist and the README's "qa-tdd recall cases" table lists each one.
+check "QATDD-RECALL 8 qa-tdd-recall-* cases, each listed under '## qa-tdd recall cases' in evals/README.md" bash -c "n=0; for d in '$root'/plugins/studio/evals/qa-tdd-recall-*/; do test -d \"\$d\" || continue; n=\$((n+1)); c=\$(basename \"\$d\"); awk '/^## /{on=(\$0 ~ /^## qa-tdd recall cases/)} on' '$root/plugins/studio/evals/README.md' | grep -qF \"\\\`\$c\\\`\" || { echo \"\$c not in the '## qa-tdd recall cases' section\"; exit 1; }; done; test \$n -ge 8 || { echo \"found \$n qa-tdd-recall-* cases, want 8\"; exit 1; }"
 
 # This repo follows its own kit: rules installed, every agent symlinked into .claude/agents/ and named in CLAUDE.md.
 check "own kit: settings.json, handoff-check and agents-check match the templates" bash -c "cmp '$root/templates/claude-settings.json' '$root/.claude/settings.json' && cmp '$root/templates/handoff-check.yml' '$root/.github/workflows/handoff-check.yml' && cmp '$root/templates/agents-check.yml' '$root/.github/workflows/agents-check.yml'"
