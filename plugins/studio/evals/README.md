@@ -127,3 +127,14 @@ Still missed: `ccw-monospace` (V11 exists, but the review didn't apply it) and `
 | privacy-security-catches-leak | 1.0 | 1.0 | 0 |
 
 Read the delta with care: the prompts name the agent, so part of a baseline miss is the plain session not having it. A delta of 0 means these tasks are too easy to separate the agent from a plain session; harder cases (subtler leaks, a P0 hidden among P2s) are the next step. One finding already: without a shell, qa-tdd wrote the test but couldn't prove it fails, so the case now grants `node` only.
+
+## story-keeper results (2026-10-31, 1 run per arm, default model)
+| Case | Run 1: with | Run 2: with (after QA-R6) | Plain |
+|---|---|---|---|
+| routine-no-entry | 1.0 | 1.0 | 0.33 |
+| no-duplicate | 0.83 | 1.0 | 0.33 |
+| memory-line | 0.33 | 0.5 | 0.17 |
+| decision-no-pii | 0.5 | 0.5 | 0.33 |
+| Mean | 0.67 | 0.75 | 0.29 |
+
+Run 1 found a real gap: the main session paraphrased story-keeper's reply, which dropped the `Memory:` line and the `No entry` wording. The agent's description now tells the main session to relay the reply verbatim (QA-R6), and run 2 relays both. In run 2 every file and regex grader passes with the agent, and both entries pass `tools/check-story-entry.mjs`; no personal data reached the file or the reply. The two remaining misses are the LLM judge only (3 of 3 votes fail). Its criteria also ask the reply to narrate where the entry went ("after the 2026-10-14 entry", "for the Atlas Story only"), which the replies don't say in those words. That looks like an over-strict judge rather than an agent miss, but the judge gives no reasons, so it's unconfirmed. Cost: $0.46 and $0.45.
