@@ -57,6 +57,24 @@ check "story-keeper: never creates docs/STORY.md, replies No entry on routine tu
 check "sync.sh copies the studio design rules with ux-reviewer" diff "$root/docs/design-rules.md" "$repo/.claude/design-rules.md"
 check "design rules: every rule ux-rules.mjs checks (G and V) is defined in ux-reviewer.md" bash -c "for g in \$(grep -oE 'add\\(\"[GV][0-9]+' '$root/tools/ux-rules.mjs' | grep -oE '[GV][0-9]+' | sort -u); do grep -q \"\\*\\*\$g\\*\\*\" '$root/plugins/studio/agents/ux-reviewer.md' || { echo \"\$g missing\"; exit 1; }; done"
 check "ux-rules.mjs tests pass (browser cases skip without Playwright)" node --test "$root/tests/ux-rules.test.mjs"
+
+# check-findings.mjs: validates the ```findings block at the end of a ux-reviewer review (UXR-PROD).
+# Fixtures: valid-*.md pass with exit 0 and a quiet stderr; invalid-*.md exit exactly 1, and stderr names the
+# broken rule (the "<!-- expect: word -->" line), one reason per line. Every check first needs the tool to exist,
+# so a missing file can never pass an invalid fixture by accident.
+cf="$root/tools/check-findings.mjs"; ff="$root/tests/fixtures/findings"
+check "UXR-PROD check-findings.mjs exists" test -f "$cf"
+for fx in "$ff"/valid-*.md; do
+  check "UXR-PROD check-findings passes $(basename "$fx")" bash -c "test -f '$cf' || { echo 'missing tools/check-findings.mjs'; exit 1; }; node '$cf' '$fx' 2>'$tmp/cferr'; rc=\$?; [ \$rc -eq 0 ] || { echo \"exit \$rc\"; cat '$tmp/cferr'; exit 1; }; ! test -s '$tmp/cferr'"
+done
+for fx in "$ff"/invalid-*.md; do
+  exp="$(sed -n 's/^<!-- expect: \(.*\) -->$/\1/p' "$fx")"
+  check "UXR-PROD check-findings rejects $(basename "$fx" .md) (stderr names '$exp')" bash -c "test -f '$cf' || { echo 'missing tools/check-findings.mjs'; exit 1; }; node '$cf' '$fx' >/dev/null 2>'$tmp/cferr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/cferr' || { echo 'stderr does not name $exp:'; cat '$tmp/cferr'; exit 1; }"
+done
+check "UXR-PROD check-findings gives one reason per line (two broken rules, two lines)" bash -c "test -f '$cf' || { echo 'missing tools/check-findings.mjs'; exit 1; }; node '$cf' '$ff/invalid-two-reasons.md' 2>'$tmp/cferr'; [ \$? -eq 1 ] && [ \$(grep -c . '$tmp/cferr') -ge 2 ] && grep -qi score '$tmp/cferr' && grep -q P0 '$tmp/cferr'"
+check "UXR-PROD check-findings --json prints the parsed block" bash -c "test -f '$cf' || { echo 'missing tools/check-findings.mjs'; exit 1; }; node '$cf' --json '$ff/valid-needs-changes.md' | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d[\"verdict\"]==\"Needs changes\" and d[\"score\"]==6, d; f=d[\"findings\"]; assert len(f)==3 and f[0]==dict(id=\"UX-R1\",priority=\"P0\",rule=\"G3\",where=\"Projects, 390px\",problem=\"Dialog has no way out\",fix=\"Add a Cancel button\"), f'"
+check "UXR-PROD ux-reviewer reports, never edits: no Edit on its tools: line" bash -c "t=\$(awk 'NR>1&&/^---\$/{exit} /^tools:/' '$root/plugins/studio/agents/ux-reviewer.md'); echo \"tools line: \$t\"; ! echo \"\$t\" | grep -qw Edit"
+check "UXR-PROD ux-reviewer.md Output section shows the \`\`\`findings block" bash -c "awk '/^## /{on=(\$0 ~ /^## Output/)} on' '$root/plugins/studio/agents/ux-reviewer.md' | grep -qF '\`\`\`findings' || { echo 'no \`\`\`findings in ## Output'; exit 1; }"
 check "sync.sh keeps project-only agents" grep -qx local "$repo/.claude/agents/project-only.md"
 check "sync.sh installs review-rounds with ux-reviewer, identical to the plugin's" diff -r "$root/plugins/studio/skills/review-rounds" "$repo/.claude/skills/review-rounds"
 check "sync.sh keeps project-only skills" grep -qx mine "$repo/.claude/skills/project-skill/SKILL.md"
@@ -196,6 +214,15 @@ check "agents-check.yml runs check-agent-runs.sh with the head branch" bash -c "
 for d in "$root"/plugins/studio/evals/*/; do
   c="$(basename "$d")"; [ "$c" = results ] && continue
   check "eval $c: prompt.md, a scored grader, and a dispatch check for an existing agent" bash -c "test -f '$d/prompt.md' && grep -lq 'type: llm' '$d'/graders/*.md && a=\$(grep -ho 'studio:)?[a-z-]*' '$d'/graders/*.md | head -1 | sed 's/studio:)?//') && test -n \"\$a\" -a -f '$root/plugins/studio/agents/'\$a.md"
+  # Front matter must parse as YAML: an unquoted value with ": " in it ("recall X: y") makes `claude plugin eval` refuse the case.
+  check "eval $c: front matter has no unquoted ': ' in a value" bash -c "! awk '/^---$/{n++; next} n==1' '$d/prompt.md' | grep -E '^[a-z_]+: [^\"\x27].*: '"
+  case "$c" in ux-reviewer-recall-*)
+    # Recall cases: the 5 tags that let `--tag recall` results be grouped by priority, source and finder.
+    tags="$(field "$d/prompt.md" tags | tr -d '[] ' | tr , '\n')"
+    check "eval $c: recall tags (ux-reviewer, recall, p0|p1|p2, src-es|src-ccw|src-hearth, by-human|by-agent)" bash -c "t='$tags'; for re in ux-reviewer recall 'p[012]' 'src-(es|ccw|hearth)' 'by-(human|agent)'; do echo \"\$t\" | grep -qxE \"\$re\" || { echo \"missing tag: \$re (have: \$(echo \$t))\"; exit 1; }; done"
+    # Hearth is private: its screens are rebuilt generically, with invented names and example URLs only.
+    check "eval $c: no private product name and only example URLs in the prompt" bash -c "f='$d/prompt.md'; ! grep -v '^tags:' \"\$f\" | grep -qi hearth && ! grep -oE '[a-z0-9.-]+\.(com|org|net|io|app|dev)\b' \"\$f\" | grep -vqxE '(www\.)?example\.com|app\.example'"
+  ;; esac
 done
 
 # This repo follows its own kit: rules installed, every agent symlinked into .claude/agents/ and named in CLAUDE.md.
