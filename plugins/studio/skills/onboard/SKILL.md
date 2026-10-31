@@ -42,7 +42,7 @@ One branch and one PR: `M0.1: studio setup` (new) or `studio refresh` (refresh).
 One INTAKE block (ONBOARDING section 8) asking Product Studio to add this repo to STUDIO-STATUS (ownership table), Build Slate and the digest, plus the planning code if new. Skip anything STUDIO-STATUS already lists.
 
 ## 7. Reply to Chase (one phone screen)
-Introduce yourself by role on first contact. Then:
+Open with who you are, by role ("Hi Chase, I'm <project>'s chief of staff"). Then:
 1. The checklist from step 2 as a short done/fixed/left list.
 2. PR link, what's scheduled, the story link.
 3. **Project instructions** paste, if they are missing or out of date: paste 1 from ONBOARDING "The two pastes", copied verbatim into one fenced block, with the click path (Project settings → Instructions; replace what's there).
