@@ -4,7 +4,7 @@ stage: live
 goal: agent-team
 milestone: PMT-M3
 now: Studio standard (Chase, Nov 1): docs/studio-standard.md, adopted per product via intake issues
-next: Each product's Intake check adopts docs/studio-standard.md (intake issues filed Nov 1 in ccwatts, role-radar, energy-scanner, charlie, crew-clock, Hearth)
+next: Each product's Intake check adopts docs/studio-standard.md (intakes filed Nov 1: ccwatts #86, role-radar #69, energy-scanner #43, charlie #40, crew-clock #39, Hearth #91)
 waiting_on_chase:
   - Review and merge the PMT-M3.4 status header PR
   - Paste the updated PR QUEUE block into each project's instructions
