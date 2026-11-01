@@ -86,7 +86,7 @@ git clone -q --depth 1 https://github.com/holroydchase-afk/studio-agents /tmp/st
 It installs every studio agent at user level (`~/.claude/agents/`) and, through `scripts/install-cloud.sh`, the agent run-log hook (`~/.claude/settings.json`), which stays quiet when a repo's own hook already logs. The hook logs to the repo the session's working directory is in, so the main session should `cd` into the repo before calling an agent; from the parent folder nothing is logged and agents-check fails every agent the PR names. An unreadable `settings.json` is left untouched with a warning.
 
 ## Session rules
-Every agent and run reads `CLAUDE.md` and `HANDOFF.md` before starting and updates `HANDOFF.md` in every commit that makes progress. See [docs/session-rules.md](docs/session-rules.md). `scripts/install-rules.sh ../my-product` installs a SessionStart hook that prints `HANDOFF.md` into every session and a PR check that fails when it wasn't updated.
+Every agent and run reads `CLAUDE.md` and `HANDOFF.md` before starting and updates `HANDOFF.md` in every commit that makes progress. See [docs/session-rules.md](docs/session-rules.md). The one standard every project adopts, merged from Product Studio and Hearth: [docs/studio-standard.md](docs/studio-standard.md). `scripts/install-rules.sh ../my-product` installs a SessionStart hook that prints `HANDOFF.md` into every session and a PR check that fails when it wasn't updated.
 
 It also installs two shared checks (proved in Hearth) and their config, never overwriting a file the repo already has:
 - `scripts/check-agents.sh`: every agent in `.claude/agents/` is named in a `CLAUDE.md` table, and every agent the table names has a file.
