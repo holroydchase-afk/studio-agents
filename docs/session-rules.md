@@ -1,6 +1,6 @@
 # Session rules
 
-Every agent, thread and scheduled run in the studio follows these, in every repo. A repo's `CLAUDE.md` hard rules still win where they say more.
+Every agent, thread and scheduled run in the studio follows these, in every repo. A repo's `CLAUDE.md` hard rules still win where they say more. The whole studio standard, of which these are the session mechanics, is [studio-standard.md](studio-standard.md).
 
 ## Before you start
 1. Read the repo's `CLAUDE.md` and `HANDOFF.md`. If `HANDOFF.md` is missing, create it from the template below before any other change.

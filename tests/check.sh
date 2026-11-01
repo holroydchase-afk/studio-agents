@@ -421,6 +421,8 @@ own="$tmp/own"; mkdir -p "$own/scripts"; cp "$root/templates/scripts/check-agent
 check "own kit: check-agents.sh passes this repo's CLAUDE.md and .claude/agents/" bash "$own/scripts/check-agents.sh"
 
 # TONE rule: every repo's CLAUDE.md (via the template) and the session rules make the session introduce itself by role.
+check "STD-1 docs/studio-standard.md exists and CLAUDE-agents.md, CLAUDE.md, session-rules.md and README point at it" bash -c "test -f '$root/docs/studio-standard.md' && for f in templates/CLAUDE-agents.md CLAUDE.md docs/session-rules.md README.md; do grep -q 'studio-standard.md' \"$root/\$f\" || { echo \"no link in \$f\"; exit 1; }; done"
+check "STD-2 studio-standard.md covers every section an intake checks" bash -c "for h in 'Working with Chase' 'The team' 'Docs every repo keeps' 'How work gets built' 'Shipping and the queue' 'Keeping in sync' 'Token hygiene' 'Public repos' 'Adopting it'; do grep -q \"^## .*\$h\" '$root/docs/studio-standard.md' || { echo \"missing section: \$h\"; exit 1; }; done"
 check "CLAUDE-agents.md, CLAUDE.md and session-rules.md carry the intro-by-role rule" bash -c "grep -q 'introduces itself by role' '$root/templates/CLAUDE-agents.md' && grep -q 'introduces itself by role' '$root/CLAUDE.md' && grep -q 'opens with who you are, by role' '$root/docs/session-rules.md'"
 
 # Public repo: no claude.ai artifact or session links, no trigger or environment ids.

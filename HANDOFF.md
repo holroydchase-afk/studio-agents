@@ -3,8 +3,8 @@
 stage: live
 goal: agent-team
 milestone: PMT-M3
-now: PR queue rule in session rules (Chase, Oct 31)
-next: Merge PMT-M3.4, then each product adds the header on its next refresh
+now: Studio standard (Chase, Nov 1): docs/studio-standard.md, adopted per product via intake issues
+next: Each product's Intake check adopts docs/studio-standard.md (intakes filed Nov 1: ccwatts #86, role-radar #69, energy-scanner #43, charlie #40, crew-clock #39, Hearth #91)
 waiting_on_chase:
   - Review and merge the PMT-M3.4 status header PR
   - Paste the updated PR QUEUE block into each project's instructions
@@ -12,6 +12,7 @@ blockers: []
 -->
 
 ## Done
+- Studio standard (2026-11-01, Chase: "take all yalls instructions, rules, etc. standardize"): `docs/studio-standard.md` merges Product Studio's rules with Hearth's (chief of staff, AGENT-NOTES pattern, DECISIONS, LESSONS, versions from the vendor, every proof in CI, verified on the real target, deep not wide, persona check). Linked from CLAUDE.md, README, session-rules and `templates/CLAUDE-agents.md` (so every product picks it up on its next sync); `tests/check.sh` STD-1/2. Each product adopts it through an `intake` issue; its "Adopting it" section is the done-when.
 - PR queue rule (2026-10-31, Chase: "PRs are getting out of control"; Charlie had 6 to 8 open across 4 threads): `docs/session-rules.md` "Pull requests: keep the queue short" and a CLAUDE.md line. New PRs stay fine; each names its owning thread and a `Merge after:` line, the opener drives it to merged or closed, "merge N" first warns Chase about any older open PR in that repo (with its thread) and merges oldest first, every merge ask shows the queue, and owners drain green Dependabot PRs themselves. Paired pm-tools PR puts the same block in ONBOARDING's project-instructions paste.
 - Shared studio agents and skills as a Claude Code plugin (`plugins/studio`), with `scripts/sync.sh` to copy them into product repos.
 - License audit (2026-10-21): added `LICENSE` (MIT) and a License section in the README.
