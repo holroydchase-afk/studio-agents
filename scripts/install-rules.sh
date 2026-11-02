@@ -14,6 +14,8 @@ install_one() {
 }
 install_one "$root/templates/claude-settings.json" .claude/settings.json
 install_one "$root/templates/handoff-check.yml" .github/workflows/handoff-check.yml
+# HANDOFF.md status header (the Studio Console reads it); handoff-check runs this and only warns.
+install_one "$root/templates/scripts/check-handoff-status.sh" scripts/check-handoff-status.sh
 # PR check: Agents: line (qa-tdd named on code changes) plus the roster check below.
 install_one "$root/templates/agents-check.yml" .github/workflows/agents-check.yml
 # Shared checks: agent roster and log hygiene, with each repo's roots and banned words in studio-checks.json.
