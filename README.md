@@ -85,6 +85,13 @@ git clone -q --depth 1 https://github.com/holroydchase-afk/studio-agents /tmp/st
 ```
 It installs every studio agent at user level (`~/.claude/agents/`) and, through `scripts/install-cloud.sh`, the agent run-log hook (`~/.claude/settings.json`), which stays quiet when a repo's own hook already logs. The hook logs to the repo the session's working directory is in, so the main session should `cd` into the repo before calling an agent; from the parent folder nothing is logged and agents-check fails every agent the PR names. An unreadable `settings.json` is left untouched with a warning.
 
+## Repeat-prompt nudge
+A hook that costs no tokens: a plain Python script (`plugins/studio/hooks/repeat-nudge.py`, no model) runs on every prompt you send. When a similar prompt has now been sent 3 times in one day, it adds one line to the session: "You've asked this 3x today. Want me to automate it?" Claude only does more if you say yes, and then turns it into a skill, a copy-paste prompt or a routine.
+
+It ships with the `studio` plugin (enabled by the settings block above). In cloud sessions the setup-script line above installs it too, through `scripts/install-cloud.sh`.
+
+Private by design: the log (`~/.claude/studio/prompt-log.jsonl`, mode 0600, local only, 7 days) stores the date and short hashes of the words, never the prompt text. Slash commands and prompts under 4 meaningful words are ignored. Turn it off with `STUDIO_REPEAT_NUDGE=off`; tune with `STUDIO_NUDGE_MIN` (default 3) and `STUDIO_NUDGE_SIM` (default 0.6). Tested by `NUDGE-1` to `NUDGE-8` in `tests/check.sh`.
+
 ## Session rules
 Every agent and run reads `CLAUDE.md` and `HANDOFF.md` before starting and updates `HANDOFF.md` in every commit that makes progress. See [docs/session-rules.md](docs/session-rules.md). The one standard every project adopts, merged from Product Studio and Hearth: [docs/studio-standard.md](docs/studio-standard.md). `scripts/install-rules.sh ../my-product` installs a SessionStart hook that prints `HANDOFF.md` into every session and a PR check that fails when it wasn't updated.
 
