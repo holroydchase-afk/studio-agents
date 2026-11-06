@@ -10,6 +10,7 @@ dest="$HOME/.claude"
 mkdir -p "$dest/agents" "$dest/studio"
 cp -f "$root"/plugins/studio/agents/*.md "$dest/agents/"
 cp -f "$root/templates/scripts/log-agent-run.sh" "$dest/studio/log-agent-run.sh"
+cp -f "$root/plugins/studio/hooks/repeat-nudge.py" "$dest/studio/repeat-nudge.py"
 hook="run-log hook in $dest/settings.json"
 rc=0; python3 - "$dest/settings.json" <<'PY' || rc=$?
 import json, os, sys
@@ -31,6 +32,11 @@ cmd = ('git -C "$CLAUDE_PROJECT_DIR" rev-parse --is-inside-work-tree >/dev/null 
 # Drop any earlier copy of our hook, whatever its matcher, so re-runs and old installs never double-log.
 pre[:] = [e for e in pre if not any(".claude/studio/log-agent-run.sh" in str(h.get("command", "")) for h in e.get("hooks", []))]
 pre.append({"matcher": "Agent|Task", "hooks": [{"type": "command", "command": cmd}]})
+# Repeat-prompt nudge (no model runs): one UserPromptSubmit hook, replaced on re-run.
+ups = hooks.setdefault("UserPromptSubmit", [])
+if isinstance(ups, list):
+    ups[:] = [e for e in ups if not any(".claude/studio/repeat-nudge.py" in str(h.get("command", "")) for h in e.get("hooks", []))]
+    ups.append({"hooks": [{"type": "command", "command": 'python3 "$HOME/.claude/studio/repeat-nudge.py"; exit 0'}]})
 with open(path + ".tmp", "w") as f:
     json.dump(s, f, indent=2)
     f.write("\n")

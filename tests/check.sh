@@ -425,6 +425,18 @@ check "STD-1 docs/studio-standard.md exists and CLAUDE-agents.md, CLAUDE.md, ses
 check "STD-2 studio-standard.md covers every section an intake checks" bash -c "for h in 'Working with Chase' 'The team' 'Docs every repo keeps' 'How work gets built' 'Shipping and the queue' 'Keeping in sync' 'Token hygiene' 'Public repos' 'Adopting it'; do grep -q \"^## .*\$h\" '$root/docs/studio-standard.md' || { echo \"missing section: \$h\"; exit 1; }; done"
 check "CLAUDE-agents.md, CLAUDE.md and session-rules.md carry the intro-by-role rule" bash -c "grep -q 'introduces itself by role' '$root/templates/CLAUDE-agents.md' && grep -q 'introduces itself by role' '$root/CLAUDE.md' && grep -q 'opens with who you are, by role' '$root/docs/session-rules.md'"
 
+# Repeat-prompt nudge: hook script, no prompt text in the log, nudges once at 3 similar prompts a day.
+nh="$root/plugins/studio/hooks/repeat-nudge.py"; nl="$tmp/nudge.jsonl"
+nudge() { printf '{"prompt":"%s"}' "$1" | STUDIO_NUDGE_LOG="$nl" python3 "$nh"; }
+check "NUDGE-1 hooks.json registers UserPromptSubmit and parses" python3 -c 'import json,sys;h=json.load(open(sys.argv[1]))["hooks"]["UserPromptSubmit"];assert "repeat-nudge.py" in h[0]["hooks"][0]["command"]' "$root/plugins/studio/hooks/hooks.json"
+check "NUDGE-2 first and second similar prompt: silent" bash -c "$(declare -f nudge); nh='$nh'; nl='$nl'; [ -z \"\$(nudge 'summarize the open pull requests for the portfolio repo')\" ] && [ -z \"\$(nudge 'summarize the open pull requests for the portfolio repo please')\" ]"
+check "NUDGE-3 third similar prompt: one nudge line" bash -c "$(declare -f nudge); nh='$nh'; nl='$nl'; nudge 'summarize the open pull requests for the portfolio repo again' | grep -q \"asked this 3x today. Want me to automate it\""
+check "NUDGE-4 fourth similar prompt: no repeat nudge" bash -c "$(declare -f nudge); nh='$nh'; nl='$nl'; [ -z \"\$(nudge 'summarize the open pull requests for the portfolio repo now')\" ]"
+check "NUDGE-5 unrelated and short prompts never nudge" bash -c "$(declare -f nudge); nh='$nh'; nl='$nl'; for i in 1 2 3 4; do [ -z \"\$(nudge 'yes go')\" ] || exit 1; done; [ -z \"\$(nudge 'draft a linkedin teaser about the hearth launch')\" ]"
+check "NUDGE-6 the log holds no prompt text, is 0600, and STUDIO_REPEAT_NUDGE=off stops it" bash -c "! grep -qi 'summarize\|pull requests' '$nl' && [ \"\$(stat -c %a '$nl')\" = 600 ] && [ -z \"\$(printf '{\"prompt\":\"summarize the open pull requests for the portfolio repo\"}' | STUDIO_REPEAT_NUDGE=off STUDIO_NUDGE_LOG='$tmp/off.jsonl' python3 '$nh')\" ] && [ ! -e '$tmp/off.jsonl' ]"
+check "NUDGE-7 bad input never fails the prompt" bash -c "echo 'not json' | STUDIO_NUDGE_LOG='$tmp/bad.jsonl' python3 '$nh'"
+check "NUDGE-8 install-cloud.sh installs the nudge once, keeps other hooks" bash -c "h=\$(mktemp -d); for i in 1 2; do HOME=\$h bash '$root/scripts/install-cloud.sh' >/dev/null; done; test -f \$h/.claude/studio/repeat-nudge.py && python3 -c 'import json,sys;u=json.load(open(sys.argv[1]))[\"hooks\"][\"UserPromptSubmit\"];assert len(u)==1' \$h/.claude/settings.json"
+
 # Public repo: no claude.ai artifact or session links, no trigger or environment ids.
 check "no claude.ai links or trigger/environment ids" bash -c "! grep -rnE 'claude\.ai/(artifact|code)/|trig_[0-9A-Za-z]{10,}|env_[0-9A-Za-z]{10,}' --exclude-dir=.git --exclude=check.sh '$root'"
 
