@@ -3,7 +3,7 @@
 stage: live
 goal: agent-team
 milestone: PMT-M3
-now: Studio standard (Chase, Nov 1): docs/studio-standard.md, adopted per product via intake issues
+now: Every thread opens and builds the same way (Chase, Nov 19): standard section 2a; paste blocks go to each project. Earlier: Studio standard (Chase, Nov 1): docs/studio-standard.md, adopted per product via intake issues
 next: Each product's Intake check adopts docs/studio-standard.md (intakes filed Nov 1: ccwatts #86, role-radar #69, energy-scanner #43, charlie #40, crew-clock #39, Hearth #91)
 waiting_on_chase:
   - Review and merge the PMT-M3.4 status header PR
@@ -12,6 +12,7 @@ blockers: []
 -->
 
 ## Done
+- Hearth's way in every project (2026-11-19, Chase: "hearth is different and i want everyone to behave the same"): `docs/studio-standard.md` section 2a and a paragraph in `templates/CLAUDE-agents.md` (and this CLAUDE.md) make every thread open with the chief-of-staff intro and one plan line, then run spec (staff-pm), failing tests (qa-tdd), build (engineer), green 3x plus reviews, PR posted, with the checklist in that order. `tests/check.sh` STD-3 (red first). A sync copies the template paragraph into a product's CLAUDE.md only when its agents section is replaced; each project also gets a paste block for its claude.ai instructions (the cloud threads read those first). Paired pm-tools PR adds an OPENING line to ONBOARDING's project-instructions paste.
 - Repeat-prompt nudge (2026-11-06, Chase: "go with your recommendation"): `plugins/studio/hooks/` (a `UserPromptSubmit` hook, plain Python, no model). Logs only date plus word hashes locally, never prompt text; at 3 similar prompts in a day it injects one line offering to automate; Claude acts only on a yes. In the plugin (0.10.0) and, for cloud sessions, installed by `install-cloud.sh`. `tests/check.sh` NUDGE-1 to 8 (436 checks total). A sync copies nothing: product repos get it through the plugin or the cloud setup line. Story angle: "I built a near-zero-token habit detector that nudges me to automate."
 - `recruiter-review` skill (2026-11-05, from the Nov 4 two-persona review of chaseholroyd.com, `pmo/portfolio/2026-11-04-two-persona-review.md`): engineer-on-panel and hiring-manager modes, picked from a posting's reports-to title and level, with a one-line reporting-line flag (CTO: judged on technical fluency). Not preloaded by any agent yet. A sync copies nothing new unless an agent preloads it; qa-tdd or ux-reviewer can adopt it next. Next: Chase's call on whether qa-tdd gates public site changes with it.
 - Studio standard (2026-11-01, Chase: "take all yalls instructions, rules, etc. standardize"): `docs/studio-standard.md` merges Product Studio's rules with Hearth's (chief of staff, AGENT-NOTES pattern, DECISIONS, LESSONS, versions from the vendor, every proof in CI, verified on the real target, deep not wide, persona check). Linked from CLAUDE.md, README, session-rules and `templates/CLAUDE-agents.md` (so every product picks it up on its next sync); `tests/check.sh` STD-1/2. Each product adopts it through an `intake` issue; its "Adopting it" section is the done-when.
