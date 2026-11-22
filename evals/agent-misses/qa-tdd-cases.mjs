@@ -277,4 +277,41 @@ test("GAP the total equals the sum of the days shown", () => {
     gapText: "the week total rounds the raw sum while each day rounds on its own, so the page can show seven days of 2.3 (16.1) beside a total of 16.4. There is no single rounding rule, and the test only uses whole hours so the two always agree. The total must equal the sum of the displayed days (or the days must visibly say they are rounded)",
     gapTest: "for seven days of 2.34, the sum of `dayLabels` must equal `weekTotal`",
   },
+  {
+    id: "name-denylist-case", miss: "HE-Q7", pattern: "privacy-leak-not-tested", priority: "P0", split: "dev", src: "he",
+    ask: "A pre-push check scans text for real family names without keeping the names in the repo: it stores only hashes of the names.",
+    file: "names.mjs",
+    code: `import { createHash } from "node:crypto";
+// Returns the words in \`text\` whose sha256 is in \`bannedHashes\` (hashes of lowercase names).
+const sha = (w) => createHash("sha256").update(w).digest("hex");
+export function leaks(text, bannedHashes) {
+  return text.split(/\\W+/).filter((w) => bannedHashes.includes(sha(w)));
+}
+`,
+    testFile: "names.test.mjs",
+    test: `import { test } from "node:test";
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { leaks } from "./names.mjs";
+const banned = [createHash("sha256").update("quill").digest("hex")];
+test("NAMES-1 flags a banned name", () => {
+  assert.deepEqual(leaks("thanks to quill for the photos", banned), ["quill"]);
+});
+test("NAMES-2 clean text has no leaks", () => {
+  assert.deepEqual(leaks("thanks for the photos", banned), []);
+});
+`,
+    gapName: "gap.test.mjs",
+    gap: `import { test } from "node:test";
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { leaks } from "./names.mjs";
+test("GAP capitalised and shouted names are flagged too", () => {
+  const banned = [createHash("sha256").update("quill").digest("hex")];
+  assert.equal(leaks("Thanks, QUILL and Quill's pie", banned).length, 2);
+});
+`,
+    gapText: "`leaks` hashes each word as written, but the hashes are of lowercase names, so \"Quill\" and \"QUILL\" never match: the names people actually write in prose, headings and commit messages slip through, and the check passes on a repo full of real names. Both tests use a lowercase name. It must lowercase each word before hashing (and the PM should also ask about possessives, punctuation and names split across lines)",
+    gapTest: "`leaks(\"Thanks, QUILL and Quill's pie\", [sha256(\"quill\")])` must return 2 matches",
+  },
 ];

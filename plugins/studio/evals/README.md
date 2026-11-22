@@ -66,7 +66,7 @@ Every case carries five tags (`tests/check.sh` enforces them, and that each case
 ```bash
 claude plugin eval . --trust-plugin --no-publish --tag recall --case 'qa-tdd-recall-*' --json qa-recall.json
 ```
-Score it like ux-reviewer recall: overall (n of 8) and by priority.
+Score it like ux-reviewer recall: overall (n of 9) and by priority.
 
 **Results (2026-10-31, 1 run per arm, $2.07):**
 
@@ -79,7 +79,7 @@ Score it like ux-reviewer recall: overall (n of 8) and by priority.
 Read this carefully: **the plain session spotted the gap in every case too** and said "don't merge yet". It failed because it never wrote and ran a failing test for the gap, which the grader requires. So these cases measure test-first follow-through on a found gap, not detection. Next: harder cases where the gap isn't visible in 20 lines (a gap that only shows when two files interact, or a P0), and a P0 case, so detection itself separates the arms.
 
 ## qa-tdd miss cases
-Eight `qa-tdd-miss-*` cases turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
+Nine `qa-tdd-miss-*` cases turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
 
 Do not edit the generated folders by hand. Change the spec, then:
 ```bash
@@ -98,14 +98,35 @@ node tools/eval-miss-cases.mjs --verify   # proves each repro: shipped test gree
 | `qa-tdd-miss-text-sorted-dates` | RR-Q2 | matching-and-sorting-edges | P2 | heldout |
 | `qa-tdd-miss-risk-bad-inputs` | CH-Q1 | unhandled-input-edges | P1 | dev |
 | `qa-tdd-miss-rounded-totals` | CK-S3 | undefined-rule | P1 | heldout |
+| `qa-tdd-miss-name-denylist-case` | HE-Q7 | privacy-leak-not-tested | P0 | dev |
 
 Run and score (needs `ANTHROPIC_API_KEY`; not run yet, so there are no results):
 ```bash
 claude plugin eval . --trust-plugin --no-publish --tag miss --case 'qa-tdd-miss-*' --allow-tools Write Edit 'Bash(node:*)' --json qa-miss.json
 ```
-Report recall overall (n of 8), by `split-*` tag (held-out is the number to trust), by priority and by pattern tag, for the with-plugin arm and the baseline. A plain session finds most gaps and skips the red test (see the recall results above), so also count how often the grader's failure was "found but no red test". Rerun a miss before calling it a regression.
+Report recall overall (n of 9), by `split-*` tag (held-out is the number to trust), by priority and by pattern tag, for the with-plugin arm and the baseline. A plain session finds most gaps and skips the red test (see the recall results above), so also count how often the grader's failure was "found but no red test". Rerun a miss before calling it a regression.
 
 Next: the pattern families that don't fit a 20-line repro (CC-Q4 and HE-Q5 real-device screenshots, CC-Q5 privacy leak found by review) need a browser or a second file and wait for a harder case format.
+
+## staff-pm miss cases
+Eight `staff-pm-miss-*` cases turn real spec misses from `evals/agent-misses/README.md` into recall cases, built from `evals/agent-misses/staff-pm-cases.mjs` by the same tool as the qa-tdd ones (`node tools/eval-miss-cases.mjs`, checked by `tests/check.sh`). Each is one short spec ask plus the repo notes a PM would have, written without a hint at the miss (the tool rejects hint words). The `criteria` grader passes only if the spec or answer explicitly covers the missed criterion with something testable; generic criteria don't count. Tagged `staff-pm`, `miss`, priority, source, pattern and `split-dev` or `split-heldout`.
+
+| Case | Miss | Pattern | Priority | Split |
+|---|---|---|---|---|
+| `staff-pm-miss-rounding-rule` | CK-S3 | undefined-rule | P1 | dev |
+| `staff-pm-miss-failed-load-saves-visit` | HE-S5 | missing-criteria | P1 | dev |
+| `staff-pm-miss-windows-drive-root` | CC-S2 | missing-criteria | P2 | dev |
+| `staff-pm-miss-done-includes-public-copy` | ES-S4 | done-without-done-check | P0 | dev |
+| `staff-pm-miss-count-beyond-first-page` | HE-S4 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-removed-pages-redirect` | HE-S6 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-phone-first-screen-ci-fonts` | RR-S6 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-green-deploy-not-done` | ES-S5 | done-without-done-check | P1 | heldout |
+
+Run and score (needs `ANTHROPIC_API_KEY`; not run yet, so there are no results):
+```bash
+claude plugin eval . --trust-plugin --no-publish --tag miss --case 'staff-pm-miss-*' --json pm-miss.json
+```
+Report recall overall (n of 8), by split (held-out is the number to trust), priority and pattern, with and without the agent. These cases test spec content only. The misses about thrash and rework (built, then cut or redone) and collisions between two in-flight PRs need repo history to judge and are not covered yet.
 
 ## story-keeper behavior cases
 Four `story-keeper-*` cases test whether story-keeper logs the right moments, once, and keeps personal data out. Each hands one turn to the agent with a small repo in the prompt and runs once. They're tagged `story-keeper` and `behavior` (`tests/check.sh` checks that every `story-keeper-*` case has the `story-keeper` tag and is listed here). Run them with `--tag story-keeper`.

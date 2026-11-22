@@ -84,36 +84,95 @@ export function validate(cases) {
   return errs;
 }
 
+const PM_PREFIX = "staff-pm-miss-";
+
+export function pmCaseFiles(c) {
+  const tags = ["staff-pm", "miss", c.priority.toLowerCase(), SRC_TAGS[c.src], c.pattern, `split-${c.split}`];
+  const prompt = `---
+description: "miss ${c.miss} (${c.pattern}), ${c.id}"
+tags: [${tags.join(", ")}]
+runs: 1
+max_turns: 20
+allowed_tools: [Agent, Read, Glob, Grep]
+---
+
+Use the studio:staff-pm agent. ${c.ask}
+
+What the repo already says:
+${c.context}
+`;
+  const criteria = `---
+type: llm
+weight: 3
+---
+
+Recall of ${c.miss}, a spec miss we already know was real (pattern: ${c.pattern}). The answer must be a spec or plan with testable acceptance criteria, and it passes only if it explicitly includes: ${c.mustCover}. Generic criteria, or a mention in passing with nothing testable, do not count. Rank at ${c.priority} or higher where it ranks anything. Other content doesn't change the result.
+`;
+  const dispatched = `---
+type: tool_used
+tool: Agent
+input_match: '"subagent_type"\\s*:\\s*"(?:studio:)?staff-pm"'
+arm: with-only
+---
+`;
+  const dir = path.join(EVALS, PM_PREFIX + c.id);
+  return [
+    [path.join(dir, "prompt.md"), prompt],
+    [path.join(dir, "graders", "criteria.md"), criteria],
+    [path.join(dir, "graders", "dispatched.md"), dispatched],
+  ];
+}
+
+export function validatePm(cases) {
+  const errs = [];
+  const ids = new Set();
+  for (const c of cases) {
+    for (const k of ["id", "miss", "pattern", "priority", "split", "src", "ask", "context", "mustCover"])
+      if (typeof c[k] !== "string" || !c[k].trim()) errs.push(`${c.id ?? "?"}: missing ${k}`);
+    if (typeof c.id !== "string" || !/^[a-z0-9-]+$/.test(c.id)) { errs.push(`${c.id}: id must match [a-z0-9-]+`); continue; }
+    if (ids.has(c.id)) errs.push(`duplicate id ${c.id}`);
+    ids.add(c.id);
+    if (!/^P[012]$/.test(c.priority)) errs.push(`${c.id}: priority ${c.priority}`);
+    if (!["dev", "heldout"].includes(c.split)) errs.push(`${c.id}: split ${c.split}`);
+    if (!SRC_TAGS[c.src]) errs.push(`${c.id}: src ${c.src}`);
+    if (!/^[A-Z]{2}-[QS]\d+$/.test(c.miss)) errs.push(`${c.id}: miss id ${c.miss}`);
+    if (typeof c.ask !== "string" || typeof c.context !== "string") continue;
+    if (/\b(gap|bug|fix|broken|wrong)\b/i.test(c.ask + " " + c.context)) errs.push(`${c.id}: ask or context hints at the miss`);
+    if ((c.ask + c.context).includes("```")) errs.push(`${c.id}: a code fence breaks the prompt`);
+  }
+  return errs;
+}
+
 function filesUnder(dir) {
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory() ? filesUnder(path.join(dir, e.name)) : [path.join(dir, e.name)]);
 }
 
-function extras(c) {
-  const want = new Set(caseFiles(c).map(([p]) => p));
-  return filesUnder(path.join(EVALS, PREFIX + c.id)).filter((f) => !want.has(f));
+function extras(c, files = caseFiles, prefix = PREFIX) {
+  const want = new Set(files(c).map(([p]) => p));
+  return filesUnder(path.join(EVALS, prefix + c.id)).filter((f) => !want.has(f));
 }
 
-function write(cases) {
+function write(cases, files = caseFiles, prefix = PREFIX) {
   for (const c of cases) {
-    for (const f of extras(c)) fs.rmSync(f);
-    for (const [p, body] of caseFiles(c)) {
+    for (const f of extras(c, files, prefix)) fs.rmSync(f);
+    for (const [p, body] of files(c)) {
       fs.mkdirSync(path.dirname(p), { recursive: true });
       fs.writeFileSync(p, body);
     }
   }
 }
 
-function check(cases) {
+function check(cases, files = caseFiles, prefix = PREFIX) {
   const bad = [];
-  for (const c of cases) for (const [p, body] of caseFiles(c)) {
+  for (const c of cases) for (const [p, body] of files(c)) {
     if (!fs.existsSync(p)) bad.push(`missing ${path.relative(ROOT, p)}`);
     else if (fs.readFileSync(p, "utf8") !== body) bad.push(`stale ${path.relative(ROOT, p)}`);
   }
-  for (const c of cases) for (const f of extras(c)) bad.push(`extra ${path.relative(ROOT, f)}`);
-  const want = new Set(cases.map((c) => PREFIX + c.id));
-  for (const d of fs.readdirSync(EVALS)) if (d.startsWith(PREFIX) && !want.has(d)) bad.push(`orphan ${d}`);
+  for (const c of cases) for (const f of extras(c, files, prefix)) bad.push(`extra ${path.relative(ROOT, f)}`);
+  const want = new Set(cases.map((c) => prefix + c.id));
+  for (const d of fs.readdirSync(EVALS)) if (d.startsWith(prefix) && !want.has(d)) bad.push(`orphan ${d}`);
   return bad;
 }
 
@@ -152,24 +211,28 @@ function verify(cases) {
 
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain) {
-  const { QA_CASES } = await import(pathToFileURL(process.env.EVAL_MISS_SPEC || path.join(ROOT, "evals", "agent-misses", "qa-tdd-cases.mjs")).href);
+  const specUrl = (env, name) => pathToFileURL(process.env[env] || path.join(ROOT, "evals", "agent-misses", name)).href;
+  const { QA_CASES } = await import(specUrl("EVAL_MISS_SPEC", "qa-tdd-cases.mjs"));
+  const { PM_CASES } = await import(specUrl("EVAL_MISS_PM_SPEC", "staff-pm-cases.mjs"));
   const mode = process.argv[2] || "write";
   if (process.argv.length > 3 || !["write", "--check", "--verify"].includes(mode)) {
     console.error("usage: node tools/eval-miss-cases.mjs [--check | --verify]");
     process.exit(2);
   }
-  const errs = validate(QA_CASES);
+  const errs = [...validate(QA_CASES), ...validatePm(PM_CASES)];
   if (errs.length) { console.error(errs.join("\n")); process.exit(1); }
   if (mode === "--check") {
-    const bad = check(QA_CASES);
+    const bad = [...check(QA_CASES), ...check(PM_CASES, pmCaseFiles, PM_PREFIX)];
     if (bad.length) { console.error(bad.join("\n") + "\nRun: node tools/eval-miss-cases.mjs"); process.exit(1); }
-    console.log(`ok: ${QA_CASES.length} qa-tdd miss cases are up to date`);
+    console.log(`ok: ${QA_CASES.length} qa-tdd and ${PM_CASES.length} staff-pm miss cases are up to date`);
   } else if (mode === "--verify") {
+    // staff-pm cases have no repro to run; validatePm above is their check.
     const bad = verify(QA_CASES);
     if (bad.length) { console.error(bad.join("\n")); process.exit(1); }
-    console.log(`ok: ${QA_CASES.length} repros hold (shipped test green, gap test red)`);
+    console.log(`ok: ${QA_CASES.length} qa-tdd repros hold (shipped test green, gap test red); ${PM_CASES.length} staff-pm cases validated`);
   } else {
     write(QA_CASES);
-    console.log(`wrote ${QA_CASES.length} cases under plugins/studio/evals/${PREFIX}*`);
+    write(PM_CASES, pmCaseFiles, PM_PREFIX);
+    console.log(`wrote ${QA_CASES.length} qa-tdd and ${PM_CASES.length} staff-pm cases under plugins/studio/evals/`);
   }
 }
