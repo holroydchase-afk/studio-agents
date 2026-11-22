@@ -12,18 +12,21 @@ Rules for entries: one line each, a link to the PR or commit, no personal data. 
 | Role Radar | 9 | 7 (+2 no link) | received |
 | Hearth | 6 | 8 | received |
 | Cohort (persona-twins repo) | 4 | 5 | received |
+| Product Studio (portfolio site, pm-tools, studio-agents) | 7 | 8 | received |
 | Energy Scanner | 0 | 0 | waiting |
 | Charlie | 5 | 5 | received |
 | Crew Clock | 5 | 5 | received |
-| **Total** | **34** | **35 (+2)** | |
+| **Total** | **41** | **43 (+2)** | |
 
 ## Patterns so far
 
 QA-TDD
-- **date-clock**: test depends on today's date or timezone and the clock isn't pinned (CC-Q1, Q2, Q3; HE-Q3, Q4, CK-Q5). Biggest family, 6 of 34 (CK-Q5 too).
+- **date-clock**: test depends on today's date or timezone and the clock isn't pinned (CC-Q1, Q2, Q3; HE-Q3, Q4, CK-Q5). Biggest family, 6 of 41.
 - **real-device-gap**: passes in desktop Chrome or fresh browsers, breaks on iPhone Safari, returning visitors, CI fonts, narrow phones, caching (CC-Q4; HE-Q1, Q2, Q5; RR-Q5; CK-Q1, Q3, Q4).
 - **flaky-or-wrong-timing**: races, load flakes, timing the tool instead of the app (RR-Q6, Q8; HE-Q6; CK-Q2).
 - **self-referential-or-skipped-tests**: tests check math against its own output, or a skip looks like a pass, or deps/files missing on a fresh copy (CH-Q1, Q3, Q4, Q5).
+- **guard-written-after-the-bug**: a check or guard added only after the same defect shipped, or checks too narrow (regex, case, quoting) (PS-Q1, Q2, Q3).
+- **tool-tests-missed-edge-cases**: studio tooling passed its own tests until a qa-tdd review found edges (PS-Q4, Q5, Q6, Q7).
 - **unhandled-input-edges**: zero/negative values, unknown ticker, double clicks (CH-Q1, Q2).
 - **ci-environment-drift**: runner or image changed (RR-Q7), red main left unfixed (RR-Q9, HE-Q3).
 - **matching-and-sorting-edges**: substring match, text-sorted dates, null input (RR-Q1, Q2, Q3).
@@ -38,6 +41,7 @@ Staff PM
 - **wrong-identity-detail**: license named a login, not the person (CO-S1).
 - **ambiguous-wording-or-copy**: misread requirement or claim of what isn't true (CC-S4, S5; HE-S2).
 - **overlong-page-or-ux-budget** (CC-S3).
+- **built-then-cut**: feature or page built, then hidden or removed once its premise failed (PS-S1, S2, S6, S7; also CO-S2, S3).
 - **undefined-rule** (rounding, risk sizing) (CK-S3, CH-S4).
 
 ## ccwatts
@@ -152,6 +156,29 @@ Staff PM
 - CH-S3 [missing-criteria] Stale-date fix relied on a Monday rebuild with no check it ran; skipped twice, demo showed Nov 2 on Nov 17. [#27](https://github.com/holroydchase-afk/charlie/pull/27)
 - CH-S4 [undefined-rule] Risk sizing undefined for cash-tying trades; a Conservative idea showed a $12,135 max loss. From the MVP, still open. [c08a0e4](https://github.com/holroydchase-afk/charlie/commit/c08a0e4)
 - CH-S5 [concurrent-work-collision] Hunch pipeline planned while two P1 demo bugs were live; Chase paused it. [#48](https://github.com/holroydchase-afk/charlie/pull/48)
+
+## Product Studio (portfolio site, pm-tools, studio-agents)
+
+Basis: commit subjects, merge order and Chase's standing rules in project memory; commit bodies are thin, so causes are stated only as far as a subject or rule supports. Treat as lower confidence than the product lists above.
+
+QA-TDD
+- PS-Q1 [guard-written-after-the-bug] The home greeting animated and drifted again after earlier fixes; a CI check (HOME-7) arrived only with the fix. [5b9152b](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/5b9152b), [#74](https://github.com/holroydchase-afk/holroydchase-afk.github.io/pull/74)
+- PS-Q2 [guard-written-after-the-bug] Third-party-host check missed case and quoting variants, rewritten on an HTML parser; HOME-7 had the same weakness for style tags. [31304d3](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/31304d3), [9010c6d](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/9010c6d), [#73](https://github.com/holroydchase-afk/holroydchase-afk.github.io/pull/73), [#74](https://github.com/holroydchase-afk/holroydchase-afk.github.io/pull/74)
+- PS-Q3 [guard-written-after-the-bug] pm-tools Console passed its tests but CodeQL flagged routing lookup and unescape order; fixed after. [473c71b](https://github.com/holroydchase-afk/pm-tools/commit/473c71b), [29161e4](https://github.com/holroydchase-afk/pm-tools/commit/29161e4)
+- PS-Q4 [tool-tests-missed-edge-cases] Demo roadmap Undo needed a second pass to restore position quietly after round 4 shipped it. [fdf46a5](https://github.com/holroydchase-afk/pm-tools/commit/fdf46a5), [92b095d](https://github.com/holroydchase-afk/pm-tools/commit/92b095d)
+- PS-Q5 [tool-tests-missed-edge-cases] ux-rules passed its tests until qa-tdd review found 8 bugs (50% circles counted as radius, form controls as cards, verdict regex matched "No blocker"). [560dc5e](https://github.com/holroydchase-afk/studio-agents/commit/560dc5e)
+- PS-Q6 [tool-tests-missed-edge-cases] story-keeper checker: 6 review findings (strict bullets, leaks outside the block, key shapes, relay). [cd13a90](https://github.com/holroydchase-afk/studio-agents/commit/cd13a90)
+- PS-Q7 [tool-tests-missed-edge-cases] qa-tdd's own skip rule was too loose; tightened after review (QA-R1, QA-R2). [5b8df31](https://github.com/holroydchase-afk/studio-agents/commit/5b8df31)
+
+Staff PM
+- PS-S1 [built-then-cut] Large portrait built as v68, reverted next step because no 1600px photo exists. [e891dd8](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/e891dd8), [aef7602](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/aef7602)
+- PS-S2 [built-then-cut] Studio and Studio Console pages built, then hidden. [5fd7b4f](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/5fd7b4f), [1ee4b7c](https://github.com/holroydchase-afk/pm-tools/commit/1ee4b7c)
+- PS-S3 [missing-criteria] Product plans carried dates, against Chase's no-dates rule; fixed in a later PR. [e2ca67b](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/e2ca67b), [#71](https://github.com/holroydchase-afk/holroydchase-afk.github.io/pull/71)
+- PS-S4 [thrash-and-reversal] Persona Twins card named and copy-edited, then renamed Stakeholder Twins days later. [c93ceb1](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/c93ceb1), [8ad1e33](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/8ad1e33)
+- PS-S5 [thrash-and-reversal] Home work block, skill filter and chips reworked across #80 to #88 (single-select filter, three chips plus View all). [f136716](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/f136716), [2f71fc1](https://github.com/holroydchase-afk/holroydchase-afk.github.io/commit/2f71fc1)
+- PS-S6 [built-then-cut] Managed Agents recommended as the deploy target with a cost estimate, then not adopted (no paid API route). [03aed0f](https://github.com/holroydchase-afk/studio-agents/commit/03aed0f), [fce428d](https://github.com/holroydchase-afk/studio-agents/commit/fce428d)
+- PS-S7 [built-then-cut] focus-coach shipped as an agent, moved out because it is a skill. [86528b7](https://github.com/holroydchase-afk/studio-agents/commit/86528b7)
+- PS-S8 [missing-criteria] pm-tools HANDOFF carried stale portfolio facts until a sweep. [9505f7b](https://github.com/holroydchase-afk/pm-tools/commit/9505f7b)
 
 ## Still to collect
 
