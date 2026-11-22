@@ -208,6 +208,7 @@ for f in "$root"/tools/*.mjs; do
   check "tool $(basename "$f" .mjs): listed in the README" grep -q "\`$(basename "$f" .mjs)\`" "$root/README.md"
 done
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
+check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
