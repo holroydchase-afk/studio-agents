@@ -24,4 +24,6 @@ install_one "$root/templates/scripts/check-logs.mjs" scripts/check-logs.mjs
 # Agent run log: the hook (in settings.json) records real Agent calls; agents-check holds the Agents: line to it.
 install_one "$root/templates/scripts/log-agent-run.sh" scripts/log-agent-run.sh
 install_one "$root/templates/scripts/check-agent-runs.sh" scripts/check-agent-runs.sh
+# Cloud project threads can't load .claude/agents types: this builds the prompt that runs a studio agent as general-purpose.
+install_one "$root/templates/scripts/agent-prompt.sh" scripts/agent-prompt.sh
 install_one "$root/templates/studio-checks.json" studio-checks.json

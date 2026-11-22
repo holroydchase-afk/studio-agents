@@ -337,6 +337,20 @@ printf '{"agents":{"verify":"false","runs":3}}' > "$lr/studio-checks.json"
 check "run check fails when the verify command fails" bash -c "$(declare -f crun); lr='$lr'; ! crun 'Agents: qa-tdd green'"
 check "agents-check.yml runs check-agent-runs.sh with the head branch" bash -c "grep -q 'check-agent-runs.sh' '$root/templates/agents-check.yml' && grep -q 'github.head_ref' '$root/templates/agents-check.yml'"
 
+# AGT: agents come from studio-agents, never a project's own copy (Chase, Nov 22). Cloud threads can't load the agent
+# types, so a general-purpose subagent runs the studio agent's own prompt (agent-prompt.sh) and logs itself (--as).
+check "AGT-1 install-rules.sh installs agent-prompt.sh" test -f "$r2/scripts/agent-prompt.sh"
+ar="$tmp/asrepo"; git init -q -b feat/y "$ar"; mkdir -p "$ar/.claude/agents" "$ar/scripts"; printf -- '---\nname: qa-tdd\ntools: Read, Bash\n---\nBody line\n' > "$ar/.claude/agents/qa-tdd.md"
+cp "$root/templates/scripts/log-agent-run.sh" "$root/templates/scripts/agent-prompt.sh" "$ar/scripts/" 2>/dev/null
+check "AGT-2 agent-prompt.sh builds the agent's prompt with its tools, body, log line and the task" bash -c "cd '$ar' && out=\$(bash scripts/agent-prompt.sh qa-tdd 'write red tests') && echo \"\$out\" | grep -q 'log-agent-run.sh --as qa-tdd' && echo \"\$out\" | grep -q 'Use only these tools: Read, Bash' && echo \"\$out\" | grep -q 'Body line' && echo \"\$out\" | grep -q 'write red tests'"
+check "AGT-3 log-agent-run.sh --as logs '<agent> via-general-purpose' and refuses an unknown agent" bash -c "cd '$ar' && bash scripts/log-agent-run.sh --as qa-tdd && grep -qE '^[0-9T:-]+Z qa-tdd via-general-purpose\$' .claude/agent-runs/feat-y.log && ! bash scripts/log-agent-run.sh --as nope 2>/dev/null"
+check "AGT-4 check-agent-runs accepts a via-general-purpose entry for a named agent" bash -c "cd '$ar' && HEAD_REF=feat/y BODY='Agents: qa-tdd red then green, 3x' bash '$root/templates/scripts/check-agent-runs.sh'"
+check "AGT-5 the standard and template say: agents come from studio-agents, 'agent' means look there first, recommend a new one, never write your own, qa-tdd runs without being told" bash -c "for f in docs/studio-standard.md templates/CLAUDE-agents.md; do for k in 'Agents come from studio-agents' 'says \"agent\"' 'recommend' 'never write your own' 'agent-prompt.sh' 'without being told'; do grep -q \"\$k\" '$root/'\$f || { echo \"\$f missing: \$k\"; exit 1; }; done; done"
+echo x > "$ag/cfg.json"; acommit cfg
+check "AGT-6 agents-check fails a code PR that says 'qa-tdd skipped' for a reason other than docs or config only" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: no run log'; arun 'Agents: qa-tdd skipped: docs only'"
+check "AGT-7 agents-check fails a code PR that dodges with 'qa-tdd skipped: not docs only' or 'no config only'" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: not docs only' && ! arun 'Agents: qa-tdd skipped: this is no config only change'"
+check "AGT-8 agents-check fails a code PR whose first 'qa-tdd skipped' has a bad reason even if a later one says docs only" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: no time; qa-tdd skipped: docs only'"
+
 # Cloud sessions start in the parent of several repos (CLAUDE_PROJECT_DIR is not a git repo), so the log hook
 # falls back to the hook input's "cwd", and install-cloud.sh installs agents and the hook at user level ($HOME).
 cr="$tmp/cwdrepo"; git init -q -b feat/cloud "$cr"; mkdir -p "$cr/sub"; ng="$tmp/nogit"; mkdir -p "$ng"
