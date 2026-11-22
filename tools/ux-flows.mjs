@@ -11,8 +11,10 @@
 // Usage: node scripts/ux-flows.mjs <flows.json> [--out DIR] [--dry-run] [--json]
 //   --out DIR   where shots go, one folder per flow (default dist/ux-run)
 //   --dry-run   print the plan (one line per flow) and run nothing; with --json, the plan as JSON
-// Exit 0 ok; 1 with one reason per line on stderr when the file is invalid; 2 on a usage error or unreadable file.
-import { readFileSync } from "node:fs";
+// A failing flow is retried once, then reported as `flow-failed: <name> | <reason>`; the rest still run, and
+// <out>/run.json records every flow. Exit 0 all captured; 1 if any flow failed, or the file is invalid (reasons
+// on stderr); 2 on a usage error or unreadable file.
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -59,7 +61,46 @@ export function planFlows(c, outDir) {
   });
 }
 
-export const skeleton = (c, outDir) => c.flows.map((f) => `flow: ${f.name} | phone,laptop | ${join(outDir, slug(f.name))}`).join("\n");
+// Run every flow in order. A flow is ok when the runner returns status 0 or 1 (ux-shots: 1 means findings);
+// any other status, or a throw, is a failure and is retried (default once). A failed flow never stops the rest.
+export async function runFlows(plan, { runner, retries = 1, outDir = "dist/ux-run" } = {}) {
+  const flows = [];
+  for (const p of plan) {
+    let attempts = 0, exit = null, error = null, status = "failed";
+    while (attempts < 1 + retries) {
+      attempts++;
+      try {
+        const r = await runner(p);
+        exit = r && r.status !== undefined ? r.status : null;
+        error = null;
+        if (exit === 0 || exit === 1) { status = "ok"; break; }
+        error = `ux-shots exit ${exit}`;
+      } catch (e) { exit = null; error = String((e && e.message) || e); }
+    }
+    const f = { name: p.name, out: p.out, status, attempts, exit };
+    if (status !== "ok") f.error = error;
+    flows.push(f);
+  }
+  return { outDir, flows, ok: flows.every((f) => f.status === "ok") };
+}
+
+export function summary(result, { product = "", now = () => new Date() } = {}) {
+  return {
+    product,
+    date: now().toISOString(),
+    ok: result.ok,
+    failed: result.flows.filter((f) => f.status !== "ok").map((f) => f.name),
+    flows: result.flows,
+  };
+}
+
+export function skeleton(c, outDir, result) {
+  return c.flows.map((f) => {
+    const r = result && result.flows.find((x) => x.name === f.name);
+    if (r && r.status !== "ok") return `flow-failed: ${f.name} | ${r.error || "failed"}`;
+    return `flow: ${f.name} | phone,laptop | ${join(outDir, slug(f.name))}`;
+  }).join("\n");
+}
 
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 if (isMain) {
@@ -86,9 +127,14 @@ if (isMain) {
     process.exit(0);
   }
   const shots = join(dirname(fileURLToPath(import.meta.url)), "ux-shots.mjs");
-  for (const p of plan) {
+  const runner = async (p) => {
     const r = spawnSync(process.execPath, [shots, ...p.args], { stdio: "inherit" });
-    if (r.status !== 0 && r.status !== 1) { console.error(`flow "${p.name}": ux-shots failed (exit ${r.status})`); process.exit(2); }
-  }
-  console.log(skeleton(config, out));
+    if (r.error) throw r.error;
+    return { status: r.status };
+  };
+  const result = await runFlows(plan, { runner, outDir: out });
+  mkdirSync(out, { recursive: true });
+  writeFileSync(join(out, "run.json"), JSON.stringify(summary(result, { product: config.product }), null, 2) + "\n");
+  console.log(skeleton(config, out, result));
+  process.exit(result.ok ? 0 : 1);
 }

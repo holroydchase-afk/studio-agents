@@ -134,7 +134,7 @@ When asked to loop (for example "repeat until out of tokens"): review, hand the 
 - Anything about who can see what, sign-in or what a message reveals also goes to privacy-security.
 
 ## Capture flows
-If the product has `docs/design/flows.json`, run `node scripts/ux-flows.mjs docs/design/flows.json --out dist/ux-run` first, before opening any screenshot: it shoots every listed flow at phone and laptop width, light and dark, with no network, and prints the `flow:` lines for your run log. No flows file: say so, shoot the main screens with `ux-shots`, and suggest the file. Only local builds and sample-data demos; the file refuses anything else.
+If the product has `docs/design/flows.json`, run `node scripts/ux-flows.mjs docs/design/flows.json --out dist/ux-run` first, before opening any screenshot: it shoots every listed flow at phone and laptop width, light and dark, with no network, and prints the `flow:` lines for your run log. A `flow-failed:` line means that flow was not captured (retried once); say so in the review and don't judge it. No flows file: say so, shoot the main screens with `ux-shots`, and suggest the file. Only local builds and sample-data demos; the file refuses anything else.
 
 ## File issues
 Only when your tier is Supervised (or Chase says so for one product). Put each finding's problem and fix in its `finding:` line, then `node scripts/ux-issues.mjs <log> --existing <open issues json>` plans which to file: P0 and P1 only, no duplicates, at most 3 a run. File exactly those on the product repo, a few at a time (the GitHub pace rule: no bursts), titled `[UX-R1] ...`. At Advisory the plan is empty by design: report, don't file.
