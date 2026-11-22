@@ -103,3 +103,11 @@ test("UXFLOW-1 usage errors and unreadable files exit 2", () => {
   assert.equal(cli(join(here, "fixtures", "ux-flows", "missing.json"), "--dry-run").status, 2);
   assert.equal(cli(fx("malformed"), "--dry-run").status, 2);
 });
+
+test("UXFLOW-SETTLE a flow's settle_ms becomes --settle and must be a number from 0 to 10000", () => {
+  const c = { product: "P", target: "p.html", flows: [{ name: "Scan", clicks: ["#go"], settle_ms: 1500 }] };
+  assert.deepEqual(validateFlows(c), []);
+  const args = planFlows(c, "out")[0].args;
+  assert.equal(args[args.indexOf("--settle") + 1], "1500");
+  assert.match(validateFlows({ ...c, flows: [{ name: "Scan", settle_ms: 99999 }] }).join(), /settle_ms/);
+});
