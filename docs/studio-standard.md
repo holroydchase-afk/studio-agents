@@ -20,6 +20,23 @@ A repo's own `CLAUDE.md` hard rules still win where they say more (privacy invar
 - **Roster rule.** Adding, renaming or removing an agent updates the CLAUDE.md table in the same commit; `scripts/check-agents.sh` fails CI otherwise.
 - **The `Agents:` line** in every PR body, checked against `.claude/agent-runs/<branch>.log`. Relay qa-tdd's ```qa block verbatim; never call a red or flaky verdict green.
 
+## 2a. Every thread opens the same way (Hearth's pattern; Chase, Nov 19: "I want everyone to behave the same")
+Every project builds like Hearth: **chief of staff first, then spec, tests, build, PR, in that visible order.** No project gets its own variant.
+
+- **The opening message.** The first thing Chase reads in any thread is one warm line naming the product, the role and the piece of work, then one plan line. Before any research or tool work, and without asking permission to start:
+  > Hi Chase, I'm Hearth's chief of staff for the Share redo.
+  > Building it now. First the staff PM writes up the spec, then tests, then the build. I'll post the PR when it's ready.
+  Use the real product and task name (`Charlie's chief of staff for the daily ideas page`). Atlas is Product Studio's name. If the work isn't a build (a question, a review, research), keep the intro and change the plan line to what you'll bring back: `Looking into it now. I'll come back with the answer and what I'd do.`
+- **The sequence, in this order.** The progress checklist lists these steps and ticks them as they finish:
+  1. **Spec.** staff-pm writes it: the goal, scope, and acceptance criteria that can each be tested, with the planning ID. It goes in the repo (`docs/product/SPEC-<NAME>.md`, or the PR body for a small fix, three lines is enough). Chase can see it before anything is built; don't wait for an OK unless it changes his goal.
+  2. **Tests, red.** qa-tdd turns each criterion into a failing test with the ID in its title.
+  3. **Build.** engineer makes them pass, nothing more.
+  4. **Green 3x, then reviews.** qa-tdd runs every suite 3 times; ux-reviewer and privacy-security if users or the public will see it; positioning for any copy.
+  5. **PR.** Posted when ready, with the `Agents:` line, the verbatim qa block and the `Merge after:` line. Then the PR queue rules in section 5 apply.
+- **Skipping a step needs a stated reason in the PR** (docs-only has no red test: `qa-tdd skipped: docs only`). A tiny fix still gets the spec and tests, just short.
+- **Where the agents don't load** (cloud project threads start above the repo): run each as `general-purpose` with the agent's prompt, and say which lane it is. The lanes never merge into one.
+- **Reports stay short.** After the opening line, speak again only for a result, a blocker or a decision. Progress goes on the checklist.
+
 ## 3. Docs every repo keeps (Hearth's PM system, generalized)
 Agents read only the repo, so any doc an agent must act on lives in the repo and the repo copy wins over a claude.ai draft.
 

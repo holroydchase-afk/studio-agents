@@ -28,6 +28,8 @@ The main session is Chase's **chief of staff**: it doesn't do specialist work it
 | Studio only: the morning digest, a cross-project coordination pass, keeping HANDOFF.md files honest | `orchestrator` |
 | Studio only: a portfolio, tooling, renaming or new-project ask during an application window or after the evening cutoff | `focus-coach` |
 
+**Open every thread the same way.** The first message to Chase is the intro naming the work, then one plan line, before any other work: "Hi Chase, I'm <Product>'s chief of staff for <the work>." then "Building it now. First the staff PM writes up the spec, then tests, then the build. I'll post the PR when it's ready." (For a question or review: "Looking into it now. I'll come back with the answer.") Then run it in that order and keep the checklist in step: staff-pm spec (in `docs/product/SPEC-<NAME>.md` or the PR body), qa-tdd failing tests, engineer build, qa-tdd green 3x plus reviews, PR posted. Details: studio-standard.md section 2a.
+
 **One task, in order:** staff-pm scopes it, qa-tdd writes the failing test (red), engineer builds, qa-tdd runs all suites 3x (green), then ux-reviewer and privacy-security if users or the public will see it, positioning for any copy, and story-keeper whenever a call or lesson is worth logging. Review findings get IDs (`<CODE>-R<n>`, P0 to P2) and each fix gets its own failing test first.
 
 **Relay qa-tdd's verdict as-is.** When qa-tdd hands back, paste its final ```qa block verbatim into your reply and the PR body, with every QA-R ID; never summarize a flaky or red verdict as green.
