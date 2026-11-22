@@ -1,0 +1,1 @@
+../../plugins/studio/agents/release-captain.md
