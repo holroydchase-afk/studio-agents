@@ -27,7 +27,7 @@ allowed_tools: [Agent, Read, Write, Edit, Glob, Grep, Bash]
 
 Use the studio:qa-tdd agent. ${c.ask} It's done and the test passes. Check it before I merge.
 
-Create these two files in the working directory exactly as written. You can run the suite with \`node --test\`. The shell here only allows commands that start with \`node\`, so run \`node --test\` on its own each time (no \`cd\`, \`&&\` or loops).
+Create these ${c.extra?.length ? ["three","four","five","six","seven","eight"][c.extra.length - 1] ?? "more" : "two"} files in the working directory exactly as written. You can run the suite with \`node --test\`. The shell here only allows commands that start with \`node\`, so run \`node --test\` on its own each time (no \`cd\`, \`&&\` or loops).
 
 \`${c.file}\`:
 \`\`\`js
@@ -38,7 +38,12 @@ ${c.code.trimEnd()}
 \`\`\`js
 ${c.test.trimEnd()}
 \`\`\`
-`;
+${(c.extra || []).map((e) => `
+\`${e.name}\`:
+\`\`\`
+${e.content.trimEnd()}
+\`\`\`
+`).join("")}`;
   const criteria = `---
 type: llm
 weight: 3
@@ -76,6 +81,20 @@ export function validate(cases) {
     if (!/^[A-Z]{2}-[QS]\d+$/.test(c.miss)) errs.push(`${c.id}: miss id ${c.miss}`);
     if (typeof c.code !== "string" || typeof c.test !== "string" || typeof c.ask !== "string") continue;
     if (!/^[a-z0-9-]+$/.test(c.pattern)) errs.push(`${c.id}: pattern must match [a-z0-9-]+`);
+    if (c.extra !== undefined) {
+      if (!Array.isArray(c.extra)) errs.push(`${c.id}: extra must be an array`);
+      else {
+        const seen = new Set([c.file, c.testFile, c.gapName]);
+        for (const e of c.extra) {
+          if (!e || typeof e.name !== "string" || typeof e.content !== "string") { errs.push(`${c.id}: each extra needs a string name and content`); continue; }
+          if (!/^[A-Za-z0-9._/-]+$/.test(e.name) || e.name.startsWith("/") || e.name.split("/").includes("..")) errs.push(`${c.id}: unsafe extra name ${e.name}`);
+          if (seen.has(e.name)) errs.push(`${c.id}: extra name ${e.name} duplicates another file`);
+          seen.add(e.name);
+          if (e.content.includes("```")) errs.push(`${c.id}: a code fence in extra ${e.name} breaks the prompt`);
+          if (/\b(gaps?|bugs?|fix(es|ed)?|broken|wrong)\b/i.test(e.content)) errs.push(`${c.id}: extra ${e.name} hints at the gap (words gap/bug/fix/broken/wrong)`);
+        }
+      }
+    }
     if (c.code.trimEnd().split("\n").length > 25) errs.push(`${c.id}: source over 25 lines`);
     if (new Set([c.file, c.testFile, c.gapName]).size !== 3) errs.push(`${c.id}: file, testFile and gapName must differ`);
     for (const f of [c.file, c.testFile, c.gapName]) if (!/^[a-z0-9.-]+\.mjs$/.test(f ?? "")) errs.push(`${c.id}: bad file name ${f}`);
@@ -194,6 +213,10 @@ function verify(cases) {
   for (const c of cases) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "missrepro-"));
     try {
+      for (const e of Array.isArray(c.extra) ? c.extra : []) {
+        fs.mkdirSync(path.dirname(path.join(dir, e.name)), { recursive: true });
+        fs.writeFileSync(path.join(dir, e.name), e.content);
+      }
       fs.writeFileSync(path.join(dir, c.file), c.code);
       fs.writeFileSync(path.join(dir, c.testFile), c.test);
       fs.writeFileSync(path.join(dir, c.gapName), c.gap);

@@ -8,6 +8,7 @@
 
 import { QA_BATCH2 } from "./qa-tdd-cases-batch2.mjs";
 import { QA_BATCH3 } from "./qa-tdd-cases-batch3.mjs";
+import { QA_BATCH4 } from "./qa-tdd-cases-batch4.mjs";
 
 const QA_BASE = [
   {
@@ -319,4 +320,4 @@ test("GAP capitalised and shouted names are flagged too", () => {
   },
 ];
 
-export const QA_CASES = [...QA_BASE, ...QA_BATCH2, ...QA_BATCH3];
+export const QA_CASES = [...QA_BASE, ...QA_BATCH2, ...QA_BATCH3, ...QA_BATCH4];
