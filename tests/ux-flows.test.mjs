@@ -111,3 +111,17 @@ test("UXFLOW-SETTLE a flow's settle_ms becomes --settle and must be a number fro
   assert.equal(args[args.indexOf("--settle") + 1], "1500");
   assert.match(validateFlows({ ...c, flows: [{ name: "Scan", settle_ms: 99999 }] }).join(), /settle_ms/);
 });
+
+test("UXFLOW-SETTLE edges: bounds, bad types, and no --settle unless set", () => {
+  const base = { product: "P", target: "p.html" };
+  const ok = (v) => validateFlows({ ...base, flows: [{ name: "A", settle_ms: v }] });
+  assert.deepEqual(ok(0), []);
+  assert.deepEqual(ok(10000), []);
+  for (const bad of [10001, -1, NaN, Infinity, "1500", null, true]) {
+    assert.match(ok(bad).join(), /settle_ms/, `settle_ms ${String(bad)}`);
+  }
+  const noSettle = planFlows({ ...base, flows: [{ name: "A" }] }, "out")[0].args;
+  assert.equal(noSettle.includes("--settle"), false);
+  const zero = planFlows({ ...base, flows: [{ name: "A", settle_ms: 0 }] }, "out")[0].args;
+  assert.equal(zero[zero.indexOf("--settle") + 1], "0");
+});
