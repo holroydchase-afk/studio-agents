@@ -1,0 +1,73 @@
+{
+  "run": "2026-11-22-dev-1",
+  "date": "2026-11-22",
+  "phase": "dev",
+  "agent_model": "claude-sonnet-5-5 (qa-tdd and staff-pm subagents, as installed in studio-agents at the start of this run)",
+  "grader_model": "sonnet subagents, fresh context, saw only the criteria file and the saved report",
+  "change": "baseline, no agent file changes yet",
+  "results": [
+    {
+      "case": "qa-tdd-miss-weekday-clock",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names QA-R1 at P1 (Sunday returns 7), PACE-3 red with 7 !== 0, source unfixed, verdict RED.",
+      "transcript": "transcripts/qa-tdd-miss-weekday-clock-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-storage-throws",
+      "arm": "agent",
+      "pass": false,
+      "reason": "Names the no-try/catch gap with red tests and leaves the source unfixed, but never ranks it P1 or higher.",
+      "transcript": "transcripts/qa-tdd-miss-storage-throws-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-substring-match",
+      "arm": "agent",
+      "pass": false,
+      "reason": "Finds the bug and runs it red, but never ranks it P1 or higher and its test does not use the revolt.example case.",
+      "transcript": "transcripts/qa-tdd-miss-substring-match-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-risk-bad-inputs",
+      "arm": "agent",
+      "pass": false,
+      "reason": "Writes RangeError tests for bad inputs, but gives no P1-or-higher ranking.",
+      "transcript": "transcripts/qa-tdd-miss-risk-bad-inputs-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-name-denylist-case",
+      "arm": "agent",
+      "pass": false,
+      "reason": "Finds the lowercase-hash gap with red output, but never ranks it P0.",
+      "transcript": "transcripts/qa-tdd-miss-name-denylist-case-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-rounding-rule",
+      "arm": "agent",
+      "pass": false,
+      "reason": "States week total equals sum of displayed days, but has no criterion with values that round differently summed vs one by one, and leaves the rule undecided.",
+      "transcript": "transcripts/staff-pm-miss-rounding-rule-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-failed-load-saves-visit",
+      "arm": "agent",
+      "pass": true,
+      "reason": "FEED-6 says a failed, timed-out or offline load leaves last-visit unchanged and the badge keeps its count, testable and named the biggest risk.",
+      "transcript": "transcripts/staff-pm-miss-failed-load-saves-visit-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-windows-drive-root",
+      "arm": "agent",
+      "pass": true,
+      "reason": "LABEL-2 and LABEL-4 map \"/\", \"C:\\\", \"C:/\", \"c:\" to (root); LABEL-6 and LABEL-5 cover trailing separators.",
+      "transcript": "transcripts/staff-pm-miss-windows-drive-root-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-done-includes-public-copy",
+      "arm": "agent",
+      "pass": false,
+      "reason": "BED-6 covers a README or portfolio blurb with a screenshot but never mentions the case study.",
+      "transcript": "transcripts/staff-pm-miss-done-includes-public-copy-agent.md"
+    }
+  ]
+}

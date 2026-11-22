@@ -1,0 +1,66 @@
+{
+  "run": "2026-11-22-heldout-1",
+  "date": "2026-11-22",
+  "phase": "heldout",
+  "agent_model": "claude-sonnet-5-5 (general-purpose subagents given the tuned qa-tdd and staff-pm role prompts)",
+  "grader_model": "sonnet subagents, fresh context, saw only the criteria file and the saved report",
+  "change": "qa-tdd and staff-pm tuned on dev-1 and dev-2 lessons (qa block and priority required; boundary list; privacy leaks P0; rounding rules; public-copy done items); no plain-session arm run",
+  "results": [
+    {
+      "case": "qa-tdd-miss-night-key-utc",
+      "arm": "agent",
+      "pass": false,
+      "reason": "Names the nightKey/tzOffsetMin gap with a red test and no source fix, but ranks it P1 not P0 and omits the specific 10:30 PM Pacific example.",
+      "transcript": "transcripts/qa-tdd-miss-night-key-utc-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-stale-demo-family",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names the stale-version gap as QA-R1 at P1 with red DEMO-3, source untouched, red verdict.",
+      "transcript": "transcripts/qa-tdd-miss-stale-demo-family-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-text-sorted-dates",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names the text-sort gap at P1 with red tests (2026-11-9 above 2026-11-10), source untouched.",
+      "transcript": "transcripts/qa-tdd-miss-text-sorted-dates-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-rounded-totals",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names the day-label versus total rounding mismatch at P1 with red HOURS-2 to HOURS-4, source untouched.",
+      "transcript": "transcripts/qa-tdd-miss-rounded-totals-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-count-beyond-first-page",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Requires a server-side count with N+1 and 2N+5 cases and ranks the first-page undercount as the biggest risk.",
+      "transcript": "transcripts/staff-pm-miss-count-beyond-first-page-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-removed-pages-redirect",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Requires redirects for every old route with NAV-1, NAV-2, NAV-4 and ranks broken links P1.",
+      "transcript": "transcripts/staff-pm-miss-removed-pages-redirect-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-phone-first-screen-ci-fonts",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Gives a testable 390x844 first-screen criterion and a font-loaded rule on the critical path.",
+      "transcript": "transcripts/staff-pm-miss-phone-first-screen-ci-fonts-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-green-deploy-not-done",
+      "arm": "agent",
+      "pass": true,
+      "reason": "No-go on done and live; the phone-load check is marked not met and Chase owns it.",
+      "transcript": "transcripts/staff-pm-miss-green-deploy-not-done-agent.md"
+    }
+  ]
+}
