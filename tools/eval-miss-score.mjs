@@ -28,20 +28,24 @@ async function loadSpecs() {
 export function problems(run, dir, specs) {
   const errs = [];
   if (!run || !Array.isArray(run.results)) return ["results.json: missing results array"];
+  if (run.results.length === 0) return ["results.json: results is empty"];
   if (!["dev", "heldout"].includes(run.phase)) errs.push(`phase must be dev or heldout (got ${run.phase})`);
   if (!run.run || !run.date) errs.push("missing run or date");
   const seen = new Set();
   for (const r of run.results) {
+    if (!r || typeof r !== "object" || Array.isArray(r)) { errs.push("results entry is not an object"); continue; }
     const c = specs.get(r.case);
     if (!c) { errs.push(`unknown case ${r.case}`); continue; }
     if (!["agent", "plain"].includes(r.arm)) errs.push(`${r.case}: arm ${r.arm}`);
     if (typeof r.pass !== "boolean") errs.push(`${r.case}/${r.arm}: pass must be true or false`);
-    if (!r.reason) errs.push(`${r.case}/${r.arm}: missing reason`);
+    if (typeof r.reason !== "string" || !r.reason.trim()) errs.push(`${r.case}/${r.arm}: missing reason`);
     if (c.split !== run.phase) errs.push(`${r.case}: a ${c.split} case in a ${run.phase} run`);
     const key = r.case + "|" + r.arm;
     if (seen.has(key)) errs.push(`${r.case}/${r.arm}: scored twice in one run`);
     seen.add(key);
-    if (!r.transcript || !fs.existsSync(path.join(dir, r.transcript))) errs.push(`${r.case}/${r.arm}: transcript file missing (${r.transcript})`);
+    const tp = typeof r.transcript === "string" ? path.resolve(dir, r.transcript) : "";
+    if (!tp || path.isAbsolute(r.transcript) || path.relative(path.resolve(dir), tp).startsWith("..")) errs.push(`${r.case}/${r.arm}: transcript must be a file inside the run folder (${r.transcript})`);
+    else if (!fs.existsSync(tp)) errs.push(`${r.case}/${r.arm}: transcript file missing (${r.transcript})`);
   }
   return errs;
 }
@@ -75,7 +79,8 @@ export function render(run, specs) {
 async function one(dir, specs, check) {
   const file = path.join(dir, "results.json");
   if (!fs.existsSync(file)) return [`${dir}: no results.json`];
-  const run = JSON.parse(fs.readFileSync(file, "utf8"));
+  let run;
+  try { run = JSON.parse(fs.readFileSync(file, "utf8")); } catch (e) { return [`${path.basename(dir)}: results.json is not valid JSON (${e.message.split("\n")[0]})`]; }
   const errs = problems(run, dir, specs);
   if (errs.length) return errs.map((e) => `${path.basename(dir)}: ${e}`);
   const md = render(run, specs);
@@ -92,7 +97,21 @@ if (isMain) {
   const specs = await loadSpecs();
   let errs = [];
   if (args[0] === "--check-all") {
-    if (fs.existsSync(RUNS)) for (const d of fs.readdirSync(RUNS)) if (fs.statSync(path.join(RUNS, d)).isDirectory()) errs.push(...(await one(path.join(RUNS, d), specs, true)));
+    if (!fs.existsSync(RUNS)) errs.push(`runs folder missing: ${RUNS}`);
+    else {
+      const ids = new Map();
+      let heldouts = 0;
+      for (const d of fs.readdirSync(RUNS).sort()) {
+        const dir = path.join(RUNS, d);
+        if (!fs.statSync(dir).isDirectory()) continue;
+        errs.push(...(await one(dir, specs, true)));
+        try {
+          const run = JSON.parse(fs.readFileSync(path.join(dir, "results.json"), "utf8"));
+          if (run.run) { if (ids.has(run.run)) errs.push(`${d}: run id ${run.run} is also used by ${ids.get(run.run)}`); else ids.set(run.run, d); }
+          if (run.phase === "heldout" && heldouts++ > 0 && !String(run.change || "").trim()) errs.push(`${d}: a second held-out run must say what changed in \`change\``);
+        } catch { /* reported by one() */ }
+      }
+    }
   } else if (args[0] === "--check" && args[1] && args.length === 2) errs = await one(path.resolve(args[1]), specs, true);
   else if (args.length === 1 && !args[0].startsWith("--")) errs = await one(path.resolve(args[0]), specs, false);
   else { console.error("usage: node tools/eval-miss-score.mjs <run-dir> | --check <run-dir> | --check-all"); process.exit(2); }
