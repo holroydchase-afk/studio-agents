@@ -27,7 +27,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { importAll } from "./import.mjs";
 test("IMPORT-1 maps two emails", () => {
-  const rows = importAll([{ from: "A@X.com", subject: " Hi " }, { from: "b@y.com", subject: "Yo" }]);
-  assert.deepEqual(rows, [{ from: "a@x.com", subject: "Hi" }, { from: "b@y.com", subject: "Yo" }]);
+  const rows = importAll([{ from: "A@EXAMPLE.com", subject: " Hi " }, { from: "b@example.com", subject: "Yo" }]);
+  assert.deepEqual(rows, [{ from: "a@example.com", subject: "Hi" }, { from: "b@example.com", subject: "Yo" }]);
 });
 ```

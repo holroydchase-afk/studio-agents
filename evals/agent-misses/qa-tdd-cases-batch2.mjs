@@ -46,20 +46,20 @@ export function importAll(emails) {
     testFile: "import.test.mjs",
     test: `${T}import { importAll } from "./import.mjs";
 test("IMPORT-1 maps two emails", () => {
-  const rows = importAll([{ from: "A@X.com", subject: " Hi " }, { from: "b@y.com", subject: "Yo" }]);
-  assert.deepEqual(rows, [{ from: "a@x.com", subject: "Hi" }, { from: "b@y.com", subject: "Yo" }]);
+  const rows = importAll([{ from: "A@EXAMPLE.com", subject: " Hi " }, { from: "b@example.com", subject: "Yo" }]);
+  assert.deepEqual(rows, [{ from: "a@example.com", subject: "Hi" }, { from: "b@example.com", subject: "Yo" }]);
 });
 `,
     gapName: "gap.test.mjs",
     gap: `${T}import { importAll } from "./import.mjs";
 test("GAP a null entry or a missing subject does not stop the import", () => {
   let rows;
-  assert.doesNotThrow(() => { rows = importAll([null, { from: "a@x.com" }, { from: "b@y.com", subject: "Yo" }]); });
+  assert.doesNotThrow(() => { rows = importAll([null, { from: "a@example.com" }, { from: "b@example.com", subject: "Yo" }]); });
   assert.ok(rows.length >= 2);
 });
 `,
     gapText: "`toRow` reads `email.from` and `email.subject` without checking they exist. The connector returns null entries and emails with no subject, and one of them throws and stops the whole import, so no rows are saved. The test uses two well-formed emails only",
-    gapTest: "`importAll([null, {from: \"a@x.com\"}, {from: \"b@y.com\", subject: \"Yo\"}])` must not throw and must return rows for the usable emails",
+    gapTest: "`importAll([null, {from: \"a@example.com\"}, {from: \"b@example.com\", subject: \"Yo\"}])` must not throw and must return rows for the usable emails",
   },
   {
     id: "status-case-count", miss: "RR-Q4", pattern: "public-demo-shipped-with-defects", priority: "P1", split: "heldout", src: "rr",
