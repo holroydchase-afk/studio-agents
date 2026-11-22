@@ -432,6 +432,8 @@ check "CLOUD-11 (QA-R4) existing matcher \"Agent\" log hook is replaced: exactly
 check "MISS-1 qa-tdd miss case folders match their spec (no stale or orphaned files)" bash -c "cd '$root' && node tools/eval-miss-cases.mjs --check"
 check "MISS-2 each qa-tdd miss repro holds: shipped test green, gap test red" bash -c "cd '$root' && node tools/eval-miss-cases.mjs --verify"
 check "MISS-3 eval-miss-cases tool regression tests (QA-R1..R6)" bash -c "cd '$root' && node --test tests/eval-miss-cases.test.mjs"
+check "MISS-4 every recorded miss-eval run is valid and its results.md is current" bash -c "cd '$root' && node tools/eval-miss-score.mjs --check-all"
+check "MISS-5 eval-miss-score tool regression tests" bash -c "cd '$root' && node --test tests/eval-miss-score.test.mjs"
 
 # Agent evals: every case dispatches a real studio agent and has a scoring grader.
 for d in "$root"/plugins/studio/evals/*/; do

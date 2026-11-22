@@ -201,3 +201,13 @@ Staff PM
 - PS-S8 [missing-criteria] pm-tools HANDOFF carried stale portfolio facts until a sweep. [9505f7b](https://github.com/holroydchase-afk/pm-tools/commit/9505f7b)
 
 All six products plus Product Studio's own repos and Cohort are in. For any new project, append a section in the same shape and update the tally.
+
+## Scored runs
+
+Scored by running the agent and a fresh grader as Claude Code subagents (no API key). Each run folder under `runs/` holds `results.json`, the generated `results.md` and the saved reports. Agent arm only; no plain-session arm yet.
+
+| Run | Phase | Result |
+|---|---|---|
+| 2026-11-22-dev-1 | dev, baseline | 3 of 9 |
+| 2026-11-22-dev-2 | dev, after tuning | 7 of 9 |
+| 2026-11-22-heldout-1 | held-out, scored once | 7 of 8 |
