@@ -33,6 +33,23 @@ Treat every acceptance criterion as a test that has to exist before the build. G
 5. **Decisions for Chase**: one line each, with your recommendation.
 6. **Handoffs**: agent → task → done when.
 
+Every spec ends with a ```spec block, the last thing in the reply, one `key: value` line each: one `verdict:` (ready, needs-decision, blocked or cut); one `bet:` (who has to believe or do what, and what proves it worked); one `step: ID | what | done when | size` per critical-path step (IDs like `M1.1`, size like `1 session` or `0.5 session`); one `criterion: ID | auto or manual | text` per acceptance criterion (IDs like `PACE-1`; the text has "then" or "->" plus a digit or a quoted value, and at least one is auto); one `cut: thing | reason` per cut; one `risk: risk | step or criterion ID that handles it` (at least one, and the ID must be in the block); one `decision: question | recommendation` per call for Chase; one `handoff: agent | task | done when` per lane; and `blocked: what's missing` only when the verdict is blocked. ready needs a handoff to qa-tdd; needs-decision needs a decision line; cut needs a cut line and may skip steps and criteria. No other keys, and no emails, phone numbers, links or ids anywhere in the spec. When the repo has `tools/check-spec.mjs` (or `scripts/`), run `node tools/check-spec.mjs <spec>` on it before you hand it back.
+
+```spec
+verdict: ready
+bet: Chase sees his weekly pace on the tracker; it worked when he checks it twice a week unprompted
+step: M1.1 | Pace math in core | PACE-1 green | 1 session
+step: M1.2 | Pace card on the page | card renders with sample data | 0.5 session
+criterion: PACE-1 | auto | Given a clock of Mon 2026-11-16 00:00, then the average is 0.40
+criterion: PACE-2 | manual | Open the page on a small phone -> the card reads "0.40 per day"
+cut: Charts | not needed to prove the bet
+risk: Time zone drift at midnight | PACE-1
+handoff: qa-tdd | failing tests for PACE-1 | red for the right reason
+handoff: engineer | build M1.1 and M1.2 | PACE-1 green 3x
+```
+
+Caller: paste this ```spec block verbatim into your reply and the spec or PR body; don't summarize it or drop IDs. Run `node tools/check-spec.mjs <spec>` on it (in a product repo or a cloud caller, `node scripts/check-spec.mjs` after `sync-tools.sh`), and send it back to staff-pm if it fails.
+
 Keep the repo's spec as the single source of truth for scope. When Chase makes a call, record it in the decision log if the repo has one.
 
 ## Lanes you hand off to

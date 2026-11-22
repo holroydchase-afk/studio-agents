@@ -218,6 +218,8 @@ check "UXSTATE-1 tool ux-state exists and is listed in the README" bash -c "test
 check "ux-state tests" node --test "$root/tests/ux-state.test.mjs"
 check "UXSEARCH-1 tool ux-search exists and is listed in the README" bash -c "test -f '$root/tools/ux-search.mjs' || { echo missing tools/ux-search.mjs; exit 1; }; grep -q '\`ux-search\`' '$root/README.md'"
 check "ux-search tests" node --test "$root/tests/ux-search.test.mjs"
+check "CHKSPEC-1 tool check-spec exists and is listed in the README" bash -c "test -f '$root/tools/check-spec.mjs' || { echo missing tools/check-spec.mjs; exit 1; }; grep -q '\`check-spec\`' '$root/README.md'"
+check "CHKSPEC-2 check-spec tests" node --test "$root/tests/check-spec.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
