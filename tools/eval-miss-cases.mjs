@@ -75,11 +75,12 @@ export function validate(cases) {
     if (!SRC_TAGS[c.src]) errs.push(`${c.id}: src ${c.src}`);
     if (!/^[A-Z]{2}-[QS]\d+$/.test(c.miss)) errs.push(`${c.id}: miss id ${c.miss}`);
     if (typeof c.code !== "string" || typeof c.test !== "string" || typeof c.ask !== "string") continue;
+    if (!/^[a-z0-9-]+$/.test(c.pattern)) errs.push(`${c.id}: pattern must match [a-z0-9-]+`);
     if (c.code.trimEnd().split("\n").length > 25) errs.push(`${c.id}: source over 25 lines`);
     if (new Set([c.file, c.testFile, c.gapName]).size !== 3) errs.push(`${c.id}: file, testFile and gapName must differ`);
     for (const f of [c.file, c.testFile, c.gapName]) if (!/^[a-z0-9.-]+\.mjs$/.test(f ?? "")) errs.push(`${c.id}: bad file name ${f}`);
     if ((c.code + c.test + c.ask).includes("```")) errs.push(`${c.id}: a code fence in code, test or ask breaks the prompt`);
-    if (/\b(gap|bug|fix|broken|wrong)\b/i.test(c.code + c.test + c.ask)) errs.push(`${c.id}: repro or ask hints at the gap (words gap/bug/fix/broken/wrong)`);
+    if (/\b(gaps?|bugs?|fix(es|ed)?|broken|wrong)\b/i.test(c.code + c.test + c.ask)) errs.push(`${c.id}: repro or ask hints at the gap (words gap/bug/fix/broken/wrong)`);
   }
   return errs;
 }
@@ -106,7 +107,7 @@ type: llm
 weight: 3
 ---
 
-Recall of ${c.miss}, a spec miss we already know was real (pattern: ${c.pattern}). The answer must be a spec or plan with testable acceptance criteria, and it passes only if it explicitly includes: ${c.mustCover}. Generic criteria, or a mention in passing with nothing testable, do not count. Rank at ${c.priority} or higher where it ranks anything. Other content doesn't change the result.
+Recall of ${c.miss}, a spec miss we already know was real (pattern: ${c.pattern}). The answer (a spec, plan or go/no-go verdict) must give testable criteria or evidence-based verdicts, and it passes only if it explicitly includes: ${c.mustCover}. Generic criteria, or a mention in passing with nothing testable, do not count. Rank at ${c.priority} or higher where it ranks anything. Other content doesn't change the result.
 `;
   const dispatched = `---
 type: tool_used
@@ -137,7 +138,9 @@ export function validatePm(cases) {
     if (!SRC_TAGS[c.src]) errs.push(`${c.id}: src ${c.src}`);
     if (!/^[A-Z]{2}-[QS]\d+$/.test(c.miss)) errs.push(`${c.id}: miss id ${c.miss}`);
     if (typeof c.ask !== "string" || typeof c.context !== "string") continue;
-    if (/\b(gap|bug|fix|broken|wrong)\b/i.test(c.ask + " " + c.context)) errs.push(`${c.id}: ask or context hints at the miss`);
+    if (/\b(gaps?|bugs?|fix(es|ed)?|broken|wrong)\b/i.test(c.ask + " " + c.context)) errs.push(`${c.id}: ask or context hints at the miss`);
+    if (c.mustCover.includes("```")) errs.push(`${c.id}: a code fence in mustCover`);
+    if (!/^[a-z0-9-]+$/.test(c.pattern)) errs.push(`${c.id}: pattern must match [a-z0-9-]+`);
     if ((c.ask + c.context).includes("```")) errs.push(`${c.id}: a code fence breaks the prompt`);
   }
   return errs;
@@ -223,7 +226,7 @@ if (isMain) {
   if (errs.length) { console.error(errs.join("\n")); process.exit(1); }
   if (mode === "--check") {
     const bad = [...check(QA_CASES), ...check(PM_CASES, pmCaseFiles, PM_PREFIX)];
-    if (bad.length) { console.error(bad.join("\n") + "\nRun: node tools/eval-miss-cases.mjs"); process.exit(1); }
+    if (bad.length) { console.error(bad.join("\n") + "\nRun: node tools/eval-miss-cases.mjs (it rewrites stale files and removes extras; delete an orphan folder by hand)"); process.exit(1); }
     console.log(`ok: ${QA_CASES.length} qa-tdd and ${PM_CASES.length} staff-pm miss cases are up to date`);
   } else if (mode === "--verify") {
     // staff-pm cases have no repro to run; validatePm above is their check.

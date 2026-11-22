@@ -9,4 +9,4 @@ allowed_tools: [Agent, Read, Glob, Grep]
 Use the studio:staff-pm agent. Spec the public demo page for a job-search tracker: a ranked list of roles with a score and a status for each.
 
 What the repo already says:
-Recruiters open portfolio links on their phones first. Layout tests run in CI on a different machine than the one the page is built on.
+Recruiters open portfolio links. Layout tests run in CI.
