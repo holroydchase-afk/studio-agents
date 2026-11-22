@@ -1,0 +1,3 @@
+# pages.yml
+
+The workflow builds and deploys after CI passes on main and skips itself while the repo is private, because going public is the owner's call.

@@ -1,0 +1,66 @@
+{
+ "run": "2026-11-22-batch6-dev",
+ "date": "2026-11-22",
+ "phase": "dev",
+ "agent_model": "claude-sonnet-5-5 (agent arm: general-purpose subagent told to read and follow the current plugins/studio/agents/staff-pm.md, throwaway sandbox repo; agent-memory crashed there because check-ux-run.mjs was not copied, a sandbox mistake; plain arm: only the ask)",
+ "grader_model": "opus, fresh context, saw only the criteria file and the saved report, blind to arm (arm labels shuffled per case)",
+ "change": "batch 6 dev: 4 cases built from real past misses mined from the product repos' review files and lessons (not written by the case author). Read while tuning.",
+ "results": [
+  {
+   "case": "staff-pm-miss-hearth-demo-returning-visitors",
+   "arm": "agent",
+   "pass": true,
+   "reason": "Version the saved demo so a returning browser reseeds; DEMO-6 and DEMO-8 test the new family over an older saved copy; ranked P1.",
+   "transcript": "transcripts/hearth-demo-returning-visitors-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-demo-returning-visitors",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Names the old-family risk but only says 'add a test for it' with no named check of the new family over an older saved copy; risk unranked.",
+   "transcript": "transcripts/hearth-demo-returning-visitors-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-group-names-raw-api",
+   "arm": "agent",
+   "pass": true,
+   "reason": "Closes table read, export, RPC and screen; GRP-1 and GRP-3 test a relative's raw read and export; leak ranked P0.",
+   "transcript": "transcripts/hearth-group-names-raw-api-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-group-names-raw-api",
+   "arm": "plain",
+   "pass": true,
+   "reason": "Closes table read, export and other paths; tests a relative's raw read and export; ranks nothing, so the rank rule does not apply.",
+   "transcript": "transcripts/hearth-group-names-raw-api-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-readme-claim-not-in-register",
+   "arm": "agent",
+   "pass": true,
+   "reason": "Register first, E2EE claim cut, README-1 is a check that fails on an unregistered claim, ranked P0.",
+   "transcript": "transcripts/hearth-readme-claim-not-in-register-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-readme-claim-not-in-register",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Every claim maps to a register row, but only as a manual audit, no check listing unmatched claims; nothing ranked P1.",
+   "transcript": "transcripts/hearth-readme-claim-not-in-register-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-migrations-no-deploy-record",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Rewords README to 'built, not yet live' and records the deploy in HANDOFF, but never makes merged its own state or says where the smoke tests are recorded.",
+   "transcript": "transcripts/hearth-migrations-no-deploy-record-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-migrations-no-deploy-record",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Names only HANDOFF for the deploy; no merged state, no record place for the phone check, README claim before deploy not stated.",
+   "transcript": "transcripts/hearth-migrations-no-deploy-record-plain.md"
+  }
+ ]
+}

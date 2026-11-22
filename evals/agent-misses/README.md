@@ -213,6 +213,11 @@ Scored by running the agent and a fresh grader as Claude Code subagents (no API 
 | 2026-11-22-heldout-1 | held-out, scored once | 7 of 8 |
 | 2026-11-22-heldout-2 | fresh held-out (27 batch-2 cases + 4 cross-lane runs), scored once | with agent 23 of 27 (qa-tdd 11 of 11, staff-pm 12 of 16); cross-lane 2 of 4 |
 | 2026-11-22-heldout-3 | fresh held-out (20 batch-3 cases), scored once, Opus graders blind to arm | with agent 19 of 20 (qa-tdd 10 of 10, staff-pm 9 of 10); plain session 8 of 20 (qa-tdd 1 of 10, staff-pm 7 of 10); format-neutral re-grade of the qa-tdd reports: agent 10 of 10, plain 9 of 10 |
+| 2026-11-22-batch5-dev | dev, 4 dossier staff-pm cases (fixture repo, two traps each), before tuning | agent 1 of 4; plain 0 of 4 (Opus graders blind to arm) |
+| 2026-11-22-batch5-heldout | held-out, 6 staff-pm cases (4 dossier plus the 2 triage cases), scored once after tuning | agent 5 of 6; plain 3 of 6. Agent only passed 2 (console page, phone font); tied 3; both missed dream-roles. 6 cases, one run, author knew the traps; demo-criteria case weak (both arms read a real repo outside the sandbox) |
+| 2026-11-22-batch6-dev | dev, 4 staff-pm cases built from real past misses (mined from product repos, not written by me) | agent 3 of 4; plain 1 of 4. Read while tuning |
+| 2026-11-22-batch6-heldout | held-out, 5 real-miss cases, scored once after one tuning change | agent 0 of 5; plain 0 of 5. No lift shown. 5 cases, one run, graded by Opus blind to arm; sandbox repos were thin (several runs said so) |
+| 2026-11-22-batch6-heldout-fullrepo | held-out re-run of 4 of the 5 cases with both arms on a full real-repo copy at the pre-miss commit | agent 1 of 4; plain 0 of 4 (thin-fixture run on the same 4: agent 0, plain 0). SDK case not rebuildable. Full repos changed some premises (feature already built), so not like-for-like |
 
 ### Batch 3 (unread held-out)
 

@@ -1,0 +1,94 @@
+{
+ "run": "2026-11-22-batch5-heldout",
+ "date": "2026-11-22",
+ "phase": "heldout",
+ "agent_model": "claude-sonnet-5-5 (agent arm: general-purpose subagent told to read and follow the current plugins/studio/agents/staff-pm.md, studio tools copied into a throwaway sandbox repo (agent-memory crashed there: check-ux-run.mjs was not copied, a sandbox mistake); plain arm: general-purpose subagent given only the ask)",
+ "grader_model": "opus, fresh context, saw only the criteria file and the saved report, blind to arm (arm labels shuffled per case)",
+ "change": "batch 5 (4 dossier cases) plus the 2 triage cases (batch 4), 6 held-out cases, scored once after tuning staff-pm.md (three read-the-repo traps) and adding spec-lint SL-10 and SL-11 from the dev lessons only. Agent and plain arm, Opus graders blind to arm. I wrote these cases myself, so the author knew the traps (limit).",
+ "results": [
+  {
+   "case": "staff-pm-miss-four-demo-issues-already-in-flight",
+   "arm": "agent",
+   "pass": true,
+   "reason": "Names PR 34 on claude/demo-issues covering issues 1 to 3, says review not respec; issue 4 scoped with DEMO-4 (1h30+1h30+0h1 = 3h 1m) and DEMO-5.",
+   "transcript": "transcripts/four-demo-issues-already-in-flight-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-four-demo-issues-already-in-flight",
+   "arm": "plain",
+   "pass": true,
+   "reason": "Names PR 34 and branch, says resume there; issue 4 scoped as new work. No numeric hours example (borderline).",
+   "transcript": "transcripts/four-demo-issues-already-in-flight-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-console-page-built-then-hidden",
+   "arm": "agent",
+   "pass": true,
+   "reason": "Cites pages hidden over the '8 agents' overclaim, needs-decision; WCON-10 traces every figure to a file, unscored agents 'no scored runs yet', limits shown.",
+   "transcript": "transcripts/console-page-built-then-hidden-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-console-page-built-then-hidden",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Figures trace to run files and agents without runs show 'No runs yet', but names only the Console as hidden and asks build-now-or-wait, not whether the premise changed.",
+   "transcript": "transcripts/console-page-built-then-hidden-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-phone-font-again",
+   "arm": "agent",
+   "pass": true,
+   "reason": "Cites DEC-58, PR 146 and DEC-31, needs-decision; FONT-3 tests relatives before any build with a 10 of 10 bar; FONT-4 keeps 17pt.",
+   "transcript": "transcripts/phone-font-again-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-phone-font-again",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Cites the reversal and holds for Chase's call, keeps 17pt; the relatives' 1/l/I check runs after the build as a review step and states no pass bar.",
+   "transcript": "transcripts/phone-font-again-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-dream-roles-live-page-ahead",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Syncing main to the live page's scoring is step one and is testable; DREAM-7 checks the README against the live page, not against docs/status.md.",
+   "transcript": "transcripts/dream-roles-live-page-ahead-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-dream-roles-live-page-ahead",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Syncs from live first and marks the digest not built; nothing checks every README feature against docs/status.md.",
+   "transcript": "transcripts/dream-roles-live-page-ahead-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-demo-criteria-unconfigured",
+   "arm": "agent",
+   "pass": true,
+   "reason": "Seeded sample criteria on the demo Criteria screen: DCRIT-1, DCRIT-3 and DCRIT-8 check it on the demo build. Read a real repo outside its sandbox.",
+   "transcript": "transcripts/demo-criteria-unconfigured-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-demo-criteria-unconfigured",
+   "arm": "plain",
+   "pass": true,
+   "reason": "D1 and D2 require sample criteria always loaded and no blank editor in the demo; acceptance test 1 checks the built demo. Read a real repo outside its sandbox.",
+   "transcript": "transcripts/demo-criteria-unconfigured-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-empty-state-no-action",
+   "arm": "agent",
+   "pass": true,
+   "reason": "EVT-1 is its own zero-events criterion: text 'No birthdays or visits yet' plus one primary 'Add a birthday' button; EVT-10 checks 48pt buttons.",
+   "transcript": "transcripts/empty-state-no-action-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-empty-state-no-action",
+   "arm": "plain",
+   "pass": true,
+   "reason": "EVT-1 is a separate zero-events criterion with the explanation sentence and an 'Add an event' button; 56pt button and wording given.",
+   "transcript": "transcripts/empty-state-no-action-plain.md"
+  }
+ ]
+}

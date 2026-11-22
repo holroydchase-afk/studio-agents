@@ -88,6 +88,8 @@ export function validate(cases) {
 const PM_PREFIX = "staff-pm-miss-";
 
 export function pmCaseFiles(c) {
+  const hasRepo = c.repo && typeof c.repo === "object" && !Array.isArray(c.repo) && Object.keys(c.repo).length > 0;
+  const repoNote = hasRepo ? "\nThe repo is in the working directory. Read what you need from it.\n" : "";
   const tags = ["staff-pm", "miss", c.priority.toLowerCase(), SRC_TAGS[c.src], c.pattern, `split-${c.split}`];
   const prompt = `---
 description: "miss ${c.miss} (${c.pattern}), ${c.id}"
@@ -98,7 +100,7 @@ allowed_tools: [Agent, Read, Glob, Grep]
 ---
 
 Use the studio:staff-pm agent. ${c.ask}
-
+${repoNote}
 What the repo already says:
 ${c.context}
 `;
@@ -117,11 +119,29 @@ arm: with-only
 ---
 `;
   const dir = path.join(EVALS, PM_PREFIX + c.id);
-  return [
+  const out = [
     [path.join(dir, "prompt.md"), prompt],
     [path.join(dir, "graders", "criteria.md"), criteria],
     [path.join(dir, "graders", "dispatched.md"), dispatched],
   ];
+  if (hasRepo) {
+    out.push([path.join(dir, "case.yaml"), `schema_version: "1.1"\nname: ${PM_PREFIX}${c.id}\ncontext:\n  scaffold_script: setup.sh\n`]);
+    out.push([path.join(dir, "setup.sh"), `#!/bin/bash\n# Copies the fixture repo into the working directory. Needs --scaffold.\ncp -R "$(dirname "$0")/fixture/." .\n`]);
+    for (const [rel, body] of Object.entries(c.repo)) out.push([path.join(dir, "fixture", ...rel.split("/")), body]);
+  }
+  return out;
+}
+
+function repoErrors(id, repo) {
+  if (repo === undefined) return [];
+  if (!repo || typeof repo !== "object" || Array.isArray(repo) || Object.keys(repo).length === 0) return [`${id}: repo must be a non-empty object of path to text`];
+  const errs = [];
+  for (const [rel, body] of Object.entries(repo)) {
+    const parts = rel.split("/");
+    if (!rel || rel.startsWith("/") || parts.some((x) => x === ".." || x === "." || x === "")) errs.push(`${id}: repo path ${JSON.stringify(rel)} must be relative and stay inside the fixture`);
+    if (typeof body !== "string") errs.push(`${id}: repo file ${rel} must be text`);
+  }
+  return errs;
 }
 
 export function validatePm(cases) {
@@ -137,6 +157,7 @@ export function validatePm(cases) {
     if (!["dev", "heldout"].includes(c.split)) errs.push(`${c.id}: split ${c.split}`);
     if (!SRC_TAGS[c.src]) errs.push(`${c.id}: src ${c.src}`);
     if (!/^[A-Z]{2}-[QS]\d+$/.test(c.miss)) errs.push(`${c.id}: miss id ${c.miss}`);
+    errs.push(...repoErrors(c.id, c.repo));
     if (typeof c.ask !== "string" || typeof c.context !== "string") continue;
     if (/\b(gaps?|bugs?|fix(es|ed)?|broken|wrong)\b/i.test(c.ask + " " + c.context)) errs.push(`${c.id}: ask or context hints at the miss`);
     if (c.mustCover.includes("```")) errs.push(`${c.id}: a code fence in mustCover`);

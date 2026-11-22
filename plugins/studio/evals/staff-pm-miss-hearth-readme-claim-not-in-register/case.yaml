@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: staff-pm-miss-hearth-readme-claim-not-in-register
+context:
+  scaffold_script: setup.sh

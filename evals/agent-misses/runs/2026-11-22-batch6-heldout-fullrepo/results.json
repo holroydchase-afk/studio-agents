@@ -1,0 +1,66 @@
+{
+ "run": "2026-11-22-batch6-heldout-fullrepo",
+ "date": "2026-11-22",
+ "phase": "heldout",
+ "agent_model": "claude-sonnet-5-5 (agent arm: general-purpose subagent told to read and follow the current plugins/studio/agents/staff-pm.md, with the studio tools; plain arm: only the ask)",
+ "grader_model": "opus, fresh context, saw only the criteria file and the saved report, blind to arm (arm labels shuffled per case)",
+ "change": "Re-run of 4 of the 5 batch-6 held-out cases with a fixed sandbox: both arms get the same full copy of the real product repo at its pre-miss commit (git archive, then reviews and LESSONS removed; Charlie also keeps the case's own PLAN.md and pages.yml). The SDK case could not be rebuilt (Hearth clone history starts Nov 1, after the miss). No agent change since the first held-out run. Caveat: the full repos changed some case premises (ccwatts History and the Hearth tab bar were already built; Charlie was already public), so these are not like-for-like with the thin-fixture run.",
+ "results": [
+  {
+   "case": "staff-pm-miss-hearth-readme-icon-rule-drift",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Names the docs to fix and a DOCS-1 grep, but DOCS-1 covers GOALS and PERSONA-CHECK only, never the README; no check that no doc still states the old rule.",
+   "transcript": "transcripts/hearth-readme-icon-rule-drift-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-readme-icon-rule-drift",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Flags README line 34 but says CLAUDE.md and DESIGN-SYSTEM already carry the exception, calls the README grep an optional guard, ranks nothing.",
+   "transcript": "transcripts/hearth-readme-icon-rule-drift-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-charlie-public-before-the-go",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Treats go-public as already done; never names who flips visibility or that nothing deploys before the go is recorded; no check of visibility against a recorded go before the first Pages run.",
+   "transcript": "transcripts/charlie-public-before-the-go-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-charlie-public-before-the-go",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Names who flips visibility and 'visibility first, merge second', but not how the go is recorded and no check of real visibility against a recorded go before the first Pages run.",
+   "transcript": "transcripts/charlie-public-before-the-go-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-ccwatts-sample-merged-into-history",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Hardening plan; no statement that sample or explicit-path runs never touch the real history and no throwaway-home test asserting the file is unchanged.",
+   "transcript": "transcripts/ccwatts-sample-merged-into-history-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-ccwatts-sample-merged-into-history",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Same gap: history written on every run with a tests-only opt-out; no rule or test for sample or --path runs.",
+   "transcript": "transcripts/ccwatts-sample-merged-into-history-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-crew-clock-consent-and-retention",
+   "arm": "agent",
+   "pass": true,
+   "reason": "Consent record gates GPS incl. foreman clock-in (CON-2); retention periods stated (90 days GPS and photos, 30 days chat) with RET-1 to RET-3 testing removal.",
+   "transcript": "transcripts/crew-clock-consent-and-retention-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-crew-clock-consent-and-retention",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Consent gate present, but no retention period given ('do not invent them') and no test that old rows are removed.",
+   "transcript": "transcripts/crew-clock-consent-and-retention-plain.md"
+  }
+ ]
+}
