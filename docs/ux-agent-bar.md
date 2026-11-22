@@ -39,6 +39,13 @@ Every review leaves a `uxrun` block (see `check-ux-run`): date, product, tier, m
 ## 6. Observability and a shared foundation (Not yet)
 One run-log shape for every studio agent (identity, tokens, cost, verdict) instead of one-offs. `check-ux-run` is the first; qa-tdd's ```qa and story-keeper's ```story blocks are the others. A fleet view (one table across agents and products) waits until a second agent has a run log in the same shape.
 
+### State and search
+The agent records each run with `ux-state` (`docs/design/ux-state.json` in the product repo), so it knows what is open, fixed or back.
+Before filing, it searches the rules and past findings with `ux-search`.
+The issue planner also skips a finding that reads like an open issue with a different id.
+Repeats are caught before they reach the issue list.
+Both tools are plain scripts: no network and no embeddings.
+
 ## 7. Cost (Partial)
 Each run log records `tokens` and `cost_usd`. Known costs: a recall eval round is about $2 with a baseline, the fresh set baseline cost $1.85. Limit per review: set a cap per run (proposed $1) and stop with `escalated: yes` when it would exceed it. Not yet enforced.
 

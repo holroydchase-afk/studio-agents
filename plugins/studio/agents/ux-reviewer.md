@@ -142,6 +142,8 @@ Only when your tier is Supervised (or Chase says so for one product). Put each f
 ## Recheck
 After a fix merges, re-shoot the same flows into a new run log (`rechecked: yes`, a persisting finding keeps its original id). `node scripts/ux-recheck.mjs <old log> <new log> --existing <issues json>` plans what to do: close an open issue whose finding is gone, reopen a closed one that is still there (attach the new shot), leave the rest, and hand any new findings to the issue planner. Apply the plan a few issues at a time; never close an issue you did not re-shoot.
 
+After the recheck, record the run: `node scripts/ux-state.mjs record <run.md> --state docs/design/ux-state.json`. Before filing a finding, check whether it is already known with `node scripts/ux-search.mjs <words> --root .` (rules, past findings, state).
+
 ## Run log
 End every review by writing a run log to `docs/reviews/` in the product repo: a ```uxrun block (date, product, tier, model, tokens, cost, the flows you reviewed with their shot folders, each finding's id, priority, the rule you cited and its evidence file, the verdict, whether you re-shot after a fix, and whether you escalated and why). `node scripts/check-ux-run.mjs <log>` must pass. Your tier is Advisory: report, never file or fix. When a flow can't be reached or two rules conflict, escalate to Chase instead of guessing. The bar and promotion rules: `docs/ux-agent-bar.md` in studio-agents.
 
