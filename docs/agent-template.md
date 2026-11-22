@@ -21,8 +21,11 @@ The checklist every studio agent is held to (Chase, Nov 22: "this is a good temp
 - **positioning:** has none of 2 to 8; the next demotion candidate (see [agent-audit.md](agent-audit.md)).
 
 ## Order of work for ux-reviewer
-1. File issues (in flight), then recheck.
-2. Context budget (9) and memory (3): write the load order and token budget; read the last run and open issues first.
-3. The scheduled run (8): a CI workflow that does capture, issues and recheck, with the kill switch and cost cap (6).
-4. Grounding corpus (4) with structured retrieval (10), then the run viewer (5); embeddings only if the corpus outgrows keyword search.
-5. Aggregate monitoring (7), then promotion to Supervised under the bar's criteria.
+Principle (Chase, Nov 22, from a post on building agents): production agents are mostly a good prompt, a few reliable tools, clear guardrails, structured outputs, human approval where needed, and lots of testing. No agent frameworks (LangChain, CrewAI and the like): the Claude Code agent loop plus our own validators is the stack. Reliability before reach.
+1. File issues (merged) and recheck (in flight): the loop Chase asked for.
+2. **Reliability**, in this order: structured JSON output for findings (the run log already is the contract; add a `--json` findings file), tool error handling and retries (`ux-flows` fails one flow without losing the rest, retries once), permissions (a written list of what the agent may touch, enforced by the tool list and the demo-only rule), state persistence between runs (read the last run log and open `[UX-R*]` issues first; template points 3 and 9).
+3. **A static showcase page** (portfolio-hosted, no backend): before and after shots, the issues the agent filed, its eval score, and one sample run log. This is what a hiring manager sees, so it comes as soon as the loop has one real run on a product. It is a site change: preview it for Chase before it goes live.
+4. The scheduled run (8): a CI workflow that does capture, issues and recheck, with the kill switch and cost cap (6).
+5. Grounding corpus with structured retrieval (4 and 10); embeddings only if the corpus outgrows keyword search.
+6. Aggregate monitoring (7) and promotion to Supervised under the bar's criteria.
+7. Last: a live run viewer with a backend (5) and any hosted API such as FastAPI (8), only if a demo needs them; the static showcase page covers most of the need.
