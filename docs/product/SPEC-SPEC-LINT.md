@@ -51,7 +51,7 @@ Each is a test qa-tdd writes red before the build. The block below holds them wi
 - SLINT-1: the passing and failing example for each of SL-1 to SL-9 in the table are fixtures; failing gives exactly that rule at the right line, passing gives none.
 - SLINT-2: the 4 heldout-2 failures (SL-4, SL-5, SL-6, SL-9) are reproduced as fixtures and each is flagged by its rule.
 - SLINT-3: the 8 passing heldout-2 specs (saved results) give at most 1 finding each.
-- SLINT-4: a spec with no numbers or lists, nothing public and no phone raises no SL-2, SL-3 or SL-4 (the empty case: a docs-only spec lints clean).
+- SLINT-4: a spec with no numbers or lists, nothing public and no phone raises no SL-2, SL-3 or SL-4 (the empty case: a docs-only spec lints clean). SL-7 does not fire on it either: SL-7 triggers on README, copy, landing, quickstart or claim words, never on a bare "docs", and never on a done-definition line (that is SL-8's job).
 - SLINT-5: a block that fails `check-spec` exits 2 and prints the check-spec errors; no lint findings are printed.
 - SLINT-6: a waiver line with a reason silences its rule and lists it under `waived`; a waiver with no reason is itself a finding.
 - SLINT-7: the same input twice gives byte-identical output (no clock, no randomness), and the tool opens no network connection and writes no file.
@@ -90,7 +90,7 @@ step: M1.3 | Wire into staff-pm.md after check-spec and log the build in the tra
 criterion: SLINT-1 | auto | Given the failing and passing fixture for each of SL-1 to SL-9, then the failing one gives exactly 1 finding with that rule id and the passing one gives 0
 criterion: SLINT-2 | auto | Given the 4 held-out-2 failure specs (phone height, fairness bar, different-user, P1 risk), then each is flagged by SL-4, SL-5, SL-6 and SL-9 respectively
 criterion: SLINT-3 | auto | Given the 8 known-good held-out-2 specs, then each gives at most 1 finding
-criterion: SLINT-4 | auto | Given a docs-only spec with no numbers, lists, public change or phone, then the output has 0 findings and the exit code is 0
+criterion: SLINT-4 | auto | Given a docs-only spec with no numbers, lists, public change, phone or README claim, then the output has 0 findings (no SL-7 on a bare "docs") and the exit code is 0
 criterion: SLINT-5 | auto | Given a spec whose block fails check-spec, then the exit code is 2 and no SL rule is printed
 criterion: SLINT-6 | auto | Given the line "lint-ok: SL-3 internal tool only", then SL-3 is silenced and listed under waived, and "lint-ok: SL-3" with no reason gives 1 finding
 criterion: SLINT-7 | auto | Given the same spec run twice with no network and a read-only directory, then both outputs are byte-identical and exit 0

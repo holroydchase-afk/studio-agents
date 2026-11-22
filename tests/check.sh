@@ -224,6 +224,8 @@ check "QARUN3-1 tool qa-run3 exists and is listed in the README" bash -c "test -
 check "QARUN3-2 qa-run3 tests" node --test "$root/tests/qa-run3.test.mjs"
 check "AGRUN-1 tool check-agent-run exists and is listed in the README" bash -c "test -f '$root/tools/check-agent-run.mjs' || { echo missing tools/check-agent-run.mjs; exit 1; }; grep -q '\`check-agent-run\`' '$root/README.md'"
 check "AGRUN-2 check-agent-run tests" node --test "$root/tests/check-agent-run.test.mjs"
+check "SLINT-1 tool spec-lint exists and is listed in the README" bash -c "test -f '$root/tools/spec-lint.mjs' || { echo missing tools/spec-lint.mjs; exit 1; }; grep -q '\`spec-lint\`' '$root/README.md'"
+check "SLINT-2 spec-lint tests" node --test "$root/tests/spec-lint.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"

@@ -5,7 +5,7 @@ Rollback: the change ships behind one flag; turning the flag off restores the ol
 
 ```spec
 verdict: ready
-bet: Only Chase sees the recruiter list; it worked when a signed-out visitor gets nothing back
+bet: Only the owner sees the recruiter list; it worked when a signed-out visitor gets nothing back
 step: M1.1 | Sign-in gate on the list | AUTH-1 green | 1 session
 step: M1.2 | Rollback flag | flag off restores the old page | 0.5 session
 criterion: AUTH-1 | auto | Given signed out, then the list request returns 401
