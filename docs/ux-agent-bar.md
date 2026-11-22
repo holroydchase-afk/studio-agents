@@ -2,6 +2,8 @@
 
 What `ux-reviewer` must be to count as a production agent, not a prompt file. The checklist follows the framework in AWS's "Operationalizing Agentic AI" leaders' guide, as relayed to us; we have not read the guide ourselves, so check the wording against it before quoting it. Status is honest: Done, Partial or Not yet.
 
+The eight-point template every studio agent is held to, with ux-reviewer's status on each, is in [agent-template.md](agent-template.md).
+
 ## 1. Job description (Partial)
 - **Input:** a product URL or build, a flow list, the product's `docs/design/` tokens and the studio rules (`design-rules.md`).
 - **Steps:** run the app, capture each flow at phone (390) and laptop (1280), light and dark with `ux-shots`; run `ux-rules`; review as the least tech-savvy user and the harshest critic; rank findings P0 to P2; re-shoot after a fix.

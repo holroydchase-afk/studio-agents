@@ -7,7 +7,7 @@
 //   product: <name>                    tier: advisory | supervised | full
 //   model: <id>                        tokens: <integer>      cost_usd: <number>
 //   flow: <name> | phone,laptop | <shots path>          (one or more; widths from phone, laptop)
-//   finding: UX-R1 | P0-P2 | <rule id> | <evidence path>   (zero or more; unique ids)
+//   finding: UX-R1 | P0-P2 | <rule id> | <evidence path> [| <problem> | <fix>]   (zero or more; unique ids)
 //   verdict: Ready | Needs changes | Blocker             (Blocker needs a P0; Ready allows none)
 //   rechecked: yes | no | n/a                            (n/a is invalid when there are findings)
 //   escalated: yes | no                                  (yes needs `escalation_reason: <text>`)
@@ -84,12 +84,12 @@ export function checkUxRun(text) {
   const outFindings = [], seen = new Set();
   for (const f of findings) {
     const p = f.split("|").map((s) => s.trim());
-    if (p.length !== 4 || p.some((s) => !s)) { errors.push(`finding "${f}" must be <ID> | <P0-P2> | <rule> | <evidence path>`); continue; }
+    if ((p.length !== 4 && p.length !== 6) || p.some((s) => !s)) { errors.push(`finding "${f}" must be <ID> | <P0-P2> | <rule> | <evidence path> [| <problem> | <fix>]`); continue; }
     if (!/^[A-Z][A-Z0-9]*-R\d+$/.test(p[0])) errors.push(`finding id "${p[0]}" must look like UX-R1`);
     if (seen.has(p[0])) errors.push(`duplicate finding id ${p[0]}: each id appears once`);
     seen.add(p[0]);
     if (!/^P[0-2]$/.test(p[1])) errors.push(`finding ${p[0]} has priority "${p[1]}": use P0, P1 or P2`);
-    outFindings.push({ id: p[0], priority: p[1], rule: p[2], shots: p[3] });
+    outFindings.push({ id: p[0], priority: p[1], rule: p[2], shots: p[3], problem: p[4] ?? null, fix: p[5] ?? null });
   }
   const p0 = outFindings.some((f) => f.priority === "P0");
   if (kv.verdict === "Blocker" && !p0) errors.push("verdict Blocker needs at least one P0 finding");
