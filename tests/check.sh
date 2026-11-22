@@ -230,6 +230,8 @@ check "GUARD-1 tool agent-guard exists and is listed in the README" bash -c "tes
 check "GUARD-2 agent-guard tests" node --test "$root/tests/agent-guard.test.mjs"
 check "AMEM-1 tool agent-memory exists and is listed in the README" bash -c "test -f '$root/tools/agent-memory.mjs' || { echo missing tools/agent-memory.mjs; exit 1; }; grep -q '\`agent-memory\`' '$root/README.md'"
 check "AMEM-2 agent-memory tests" node --test "$root/tests/agent-memory.test.mjs"
+check "SCORE-1 tool agent-scorecard exists and is listed in the README" bash -c "test -f '$root/tools/agent-scorecard.mjs' || { echo missing tools/agent-scorecard.mjs; exit 1; }; grep -q '\`agent-scorecard\`' '$root/README.md'"
+check "SCORE-2 agent-scorecard tests" node --test "$root/tests/agent-scorecard.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
