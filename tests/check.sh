@@ -219,6 +219,7 @@ check "ux-state tests" node --test "$root/tests/ux-state.test.mjs"
 check "UXSEARCH-1 tool ux-search exists and is listed in the README" bash -c "test -f '$root/tools/ux-search.mjs' || { echo missing tools/ux-search.mjs; exit 1; }; grep -q '\`ux-search\`' '$root/README.md'"
 check "ux-search tests" node --test "$root/tests/ux-search.test.mjs"
 check "UXLOG-1..5 ux-reviewer run log on the shared agentrun format plus uxrun (fixture passes both checkers; prompt text)" node --test "$root/tests/ux-shared-log.test.mjs"
+check "UXPREC-1..5 ux-reviewer Scope and severity precision rule (P1 needs three things, by-eye is P2, read product rules, re-rank over two P1s, clean screen scores 8+)" node --test "$root/tests/ux-precision.test.mjs"
 check "CHKSPEC-1 tool check-spec exists and is listed in the README" bash -c "test -f '$root/tools/check-spec.mjs' || { echo missing tools/check-spec.mjs; exit 1; }; grep -q '\`check-spec\`' '$root/README.md'"
 check "CHKSPEC-2 check-spec tests" node --test "$root/tests/check-spec.test.mjs"
 check "QARUN3-1 tool qa-run3 exists and is listed in the README" bash -c "test -f '$root/tools/qa-run3.mjs' || { echo missing tools/qa-run3.mjs; exit 1; }; grep -q '\`qa-run3\`' '$root/README.md'"
@@ -386,10 +387,17 @@ check "AGT-2 agent-prompt.sh builds the agent's prompt with its tools, body, log
 check "AGT-3 log-agent-run.sh --as logs '<agent> via-general-purpose' and refuses an unknown agent" bash -c "cd '$ar' && bash scripts/log-agent-run.sh --as qa-tdd && grep -qE '^[0-9T:-]+Z qa-tdd via-general-purpose\$' .claude/agent-runs/feat-y.log && ! bash scripts/log-agent-run.sh --as nope 2>/dev/null"
 check "AGT-4 check-agent-runs accepts a via-general-purpose entry for a named agent" bash -c "cd '$ar' && HEAD_REF=feat/y BODY='Agents: qa-tdd red then green, 3x' bash '$root/templates/scripts/check-agent-runs.sh'"
 check "AGT-5 the standard and template say: agents come from studio-agents, 'agent' means look there first, recommend a new one, never write your own, qa-tdd runs without being told" bash -c "for f in docs/studio-standard.md templates/CLAUDE-agents.md; do for k in 'Agents come from studio-agents' 'says \"agent\"' 'recommend' 'never write your own' 'agent-prompt.sh' 'without being told'; do grep -q \"\$k\" '$root/'\$f || { echo \"\$f missing: \$k\"; exit 1; }; done; done"
+cbase="$(git -C "$ag" rev-parse HEAD)"
 echo x > "$ag/cfg.json"; acommit cfg
-check "AGT-6 agents-check fails a code PR that says 'qa-tdd skipped' for a reason other than docs or config only" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: no run log'; arun 'Agents: qa-tdd skipped: docs only'"
+arunc() { (cd "$ag" && BASE=$cbase HEAD=$(git rev-parse HEAD) BODY="$1" bash "$astep"); }
+check "AGT-6 agents-check fails a code PR that says 'qa-tdd skipped' for a reason other than docs or config only" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: no run log'"
+check "AGT-9 agents-check fails 'qa-tdd skipped: docs only' when the diff has non-doc files (QA-R1, ccwatts #105)" bash -c "$(declare -f arun arunc); abase=$abase cbase=$cbase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: docs only' && ! arunc 'Agents: qa-tdd skipped: docs only'"
+check "AGT-10 'qa-tdd skipped: config only' fails when the diff has real code, passes when every non-doc file is config" bash -c "$(declare -f arun arunc); abase=$abase cbase=$cbase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: config only' && arunc 'Agents: qa-tdd skipped: config only'"
 check "AGT-7 agents-check fails a code PR that dodges with 'qa-tdd skipped: not docs only' or 'no config only'" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: not docs only' && ! arun 'Agents: qa-tdd skipped: this is no config only change'"
-check "AGT-8 agents-check fails a code PR whose first 'qa-tdd skipped' has a bad reason even if a later one says docs only" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: no time; qa-tdd skipped: docs only'"
+check "AGT-8 agents-check fails a code PR whose first 'qa-tdd skipped' has a bad reason even if a later one says docs only" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: no time; qa-tdd skipped: config only'"
+rn="$tmp/rngit"; git init -q "$rn"; mkdir -p "$rn/src" "$rn/docs"; seq 1 40 > "$rn/src/a.py"; git -C "$rn" add -A; git -C "$rn" -c user.email=t@t -c user.name=t commit -q -m base; rnbase="$(git -C "$rn" rev-parse HEAD)"
+git -C "$rn" mv src/a.py docs/a.py; git -C "$rn" -c user.email=t@t -c user.name=t commit -q -m "move code into docs/"
+check "AGT-11 agents-check sees code moved into docs/ (rename) as non-doc, so 'qa-tdd skipped: docs only' fails (QA-R1)" bash -c "! (cd '$rn' && BASE=$rnbase HEAD=\$(git rev-parse HEAD) BODY='Agents: qa-tdd skipped: docs only' bash '$astep')"
 
 # Cloud sessions start in the parent of several repos (CLAUDE_PROJECT_DIR is not a git repo), so the log hook
 # falls back to the hook input's "cwd", and install-cloud.sh installs agents and the hook at user level ($HOME).
@@ -549,3 +557,6 @@ check "no claude.ai links or trigger/environment ids" bash -c "! grep -rnE 'clau
 
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]
+
+# Greeting examples in templates and docs use <product>, never one product's name (intake from ccwatts, Nov 22).
+check "GREET-1 templates and docs say \"<product>'s chief of staff\", not Charlie's" bash -c "cd '$root' && ! grep -n \"Charlie's chief\" templates/CLAUDE-agents.md docs/studio-standard.md docs/session-rules.md && grep -q \"<product>'s chief of staff\" templates/CLAUDE-agents.md"
