@@ -21,8 +21,31 @@ The checklist every studio agent is held to (Chase, Nov 22: "this is a good temp
 - **positioning:** has none of 2 to 8; the next demotion candidate (see [agent-audit.md](agent-audit.md)).
 
 ## Order of work for ux-reviewer
-1. File issues (in flight), then recheck.
-2. Context budget (9) and memory (3): write the load order and token budget; read the last run and open issues first.
-3. The scheduled run (8): a CI workflow that does capture, issues and recheck, with the kill switch and cost cap (6).
-4. Grounding corpus (4) with structured retrieval (10), then the run viewer (5); embeddings only if the corpus outgrows keyword search.
-5. Aggregate monitoring (7), then promotion to Supervised under the bar's criteria.
+Principle (Chase, Nov 22, from a post on building agents): production agents are mostly a good prompt, a few reliable tools, clear guardrails, structured outputs, human approval where needed, and lots of testing. No agent frameworks (LangChain, CrewAI and the like): the Claude Code agent loop plus our own validators is the stack. Reliability before reach.
+1. File issues (merged) and recheck (in flight): the loop Chase asked for.
+2. **Reliability**, in this order: structured JSON output for findings (the run log already is the contract; add a `--json` findings file), tool error handling and retries (`ux-flows` fails one flow without losing the rest, retries once), permissions (a written list of what the agent may touch, enforced by the tool list and the demo-only rule), state persistence between runs (read the last run log and open `[UX-R*]` issues first; template points 3 and 9).
+3. **A static showcase page** (portfolio-hosted, no backend): before and after shots, the issues the agent filed, its eval score, and one sample run log. This is what a hiring manager sees, so it comes as soon as the loop has one real run on a product. It is a site change: preview it for Chase before it goes live.
+4. The scheduled run (8): a Claude Managed Agents scheduled deployment if Chase says yes to paid API use (see the recommendation below), otherwise a CI workflow that does capture, issues and recheck, with the kill switch and cost cap (6).
+5. Grounding corpus with structured retrieval (4 and 10); embeddings only if the corpus outgrows keyword search.
+6. Aggregate monitoring (7) and promotion to Supervised under the bar's criteria.
+7. Last: a live run viewer with a backend (5); FastAPI is dropped in favor of Managed Agents (8), only if a demo needs them; the static showcase page covers most of the need.
+
+## Deploy target: Claude Managed Agents (recommendation, Nov 22)
+Read Anthropic's "Scaling Managed Agents" post and the Managed Agents docs and pricing pages (beta, header `managed-agents-2026-04-01`). It is a hosted harness: an **agent** (model, prompt, tools, skills), an **environment** (cloud sandbox or self-hosted), a **session** (an append-only event log) and **events**. Brain, hands and session log are decoupled, so a crashed harness resumes from the log.
+
+**Recommendation: use it instead of FastAPI, but not yet.** First prove capture, issues and recheck locally in Claude Code on one product (no API cost). Then pilot one Managed Agents run with a small session budget, after Chase's yes, because it is paid API usage, separate from his Claude subscription.
+
+How our reliability items map onto its built-ins (from the docs' page list; I read the overview and pricing pages, not each feature page):
+| Our item | Managed Agents feature |
+|---|---|
+| Permissions (what it may touch) | Permission policies, web tool restrictions, vaults (credentials never in the sandbox), GitHub access |
+| State between runs | Persistent memory, attached files, and the session log |
+| Run logs | Session event stream, usage tracking; our `uxrun` block stays the output contract |
+| Budget and cost cap | Session budgets |
+| Scheduled run | Scheduled deployments |
+| Done criteria | Defined outcomes |
+What stays ours: the validators (`check-ux-run`, `check-findings`), the planners (`ux-issues`, `ux-recheck`), the autonomy tiers and the evals. Those are the contract; Managed Agents is only where it runs.
+
+**Cost, from the pricing page.** Tokens at normal model rates (Sonnet 5.5 $2 in and $10 out per million; Opus 5.5 $4 and $20) plus session runtime of $0.08 per session-hour, counted only while running. My estimate, not measured: one review of five flows is about 150,000 input and 20,000 output tokens over ten minutes, so about $0.50 on Sonnet 5.5 and about $1 on Opus 5.5, with runtime under two cents. At 20 runs a month that is roughly $10 to $20. The $1 per-run cap in the agent bar fits.
+
+**Cautions.** Beta, and behaviors can change. Not eligible for zero data retention or HIPAA: sessions are stored until deleted, so only demo and sample-data targets, never real user data. Not verified: whether the cloud sandbox ships Chromium for `ux-shots`, and how a localhost target is served there (likely a repo clone plus a local server); the pilot has to prove both.
