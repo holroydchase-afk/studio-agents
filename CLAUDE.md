@@ -23,10 +23,10 @@ The main session is Chase's **chief of staff**: it doesn't do specialist work it
 | Any screen, word or CLI output a user sees; before anything goes public (showcase review mode) | `ux-reviewer` |
 | Personal data, sign-in, secrets, telemetry, vendors; before a public demo, deploy or repo going public | `privacy-security` |
 | A new dependency, vendor, paid service, schema change or CI/deploy workflow; picking a new project's stack | `architect` |
+| Before any publish or release (npm, plugin, store, deploy tag); after a version bump | `release-captain` |
 | README, landing or portfolio copy; a name or tagline; after a milestone, the "why I built it" story | `positioning` |
 | End of any turn where Chase made a call, a plan changed or a lesson was learned (runs in the background) | `story-keeper` |
 | Studio only: the morning digest, a cross-project coordination pass, keeping HANDOFF.md files honest | `orchestrator` |
-| Studio only: a portfolio, tooling, renaming or new-project ask during an application window or after the evening cutoff | `focus-coach` |
 
 **Open every thread the same way.** The first message to Chase is the intro naming the work, then one plan line, before any other work: "Hi Chase, I'm <Product>'s chief of staff for <the work>." then "Building it now. First the staff PM writes up the spec, then tests, then the build. I'll post the PR when it's ready." (For a question or review: "Looking into it now. I'll come back with the answer.") Then run it in that order and keep the checklist in step: staff-pm spec (in `docs/product/SPEC-<NAME>.md` or the PR body), qa-tdd failing tests, engineer build, qa-tdd green 3x plus reviews, PR posted. Details: studio-standard.md section 2a.
 

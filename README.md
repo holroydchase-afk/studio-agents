@@ -9,11 +9,15 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `engineer` | Builds only after the failing test exists, within the repo's hard rules |
 | `privacy-security` | Gold-standard bar scaled to the milestone (OWASP ASVS/MASVS, STRIDE, LINDDUN) |
 | `ux-reviewer` | Cognitive walkthroughs as the least tech-savvy user, measured checks |
+| `release-captain` | Proves a release is safe (version, packed install in an empty HOME, suites 3x, publish path) and hands Chase one button; never publishes |
 | `positioning` | Claims that are true today, copy, and "why I built it" stories |
 | `story-keeper` | The story log: decisions, lessons, pivots and wins as they happen, in every chat |
 | `architect` | One stack across products: reviews stack-crossing changes, reuse before build, architecture docs that match the code, weekly drift sweep |
 | `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
-| `focus-coach` | The "you are procrastinating" agent: checks the job-hunt tracker, calls out drift in one cheeky line, redirects to the next application |
+
+The checklist every agent is held to: [docs/agent-template.md](docs/agent-template.md).
+
+Which of these are real agents and which are skills or rules, with the proof each has: [docs/agent-audit.md](docs/agent-audit.md).
 
 Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`, `digest` (the morning digest on demand, in any project), `night-prep` (each evening: unblock list, foreseen blockers and tonight's goal for the 2:15am night shift), `onboard` (bring a new project into the studio per pm-tools `docs/ONBOARDING.md`; `onboard refresh` for an existing one), `recruiter-review` (two hiring-panel modes, engineer-on-panel and hiring-manager, chosen from a posting's reporting line and level; REC-R IDs), `review-rounds` (numbered review-then-fix rounds until nothing at P2 or above is left; from Energy Scanner's ES-R1 to R68).
 
@@ -29,6 +33,14 @@ Scripts the agents run, copied into each repo's `scripts/` with `scripts/sync-to
 | `check-findings` | Validates the ```findings block that ends every ux-reviewer review: verdict, score out of 10, and one `ID \| P0-P2 \| rule \| where \| problem \| fix` line per finding (Ready needs 8/10 and no P0; Blocker needs a P0). `node scripts/check-findings.mjs review.md`; `--json` prints the parsed findings. Plain Node, no dependencies. |
 | `check-qa-report` | Validates the ```qa block that ends every qa-tdd report: one verdict (green, red, flaky or blocked), `suite: name \| command \| runs` lines with 3 passed/failed runs each, and one `QA-R<n> \| P0-P2 \| where \| problem \| test` line per finding (green needs 0 failed and identical runs; flaky needs a QA-R finding). `node scripts/check-qa-report.mjs report.md`; `--json` prints the parsed block. Plain Node, no dependencies. |
 | `check-story-entry` | Validates a story-keeper reply: either one `No entry: <reason>` line, or one ```story block with a `### YYYY-MM-DD · Decision\|Lesson\|Pivot\|Win: <title>` header and the Problem, Chase's call, Decision and why, Result and Story angle lines (Lesson required for a Lesson or Pivot), 120 words or fewer, no emails, phone numbers, claude.ai links, ids or API keys, plus at most one `Memory:` line after it. `node scripts/check-story-entry.mjs reply.md`; `--json` prints the parsed entry. Plain Node, no dependencies. |
+| `check-ux-run` | Validates the ```uxrun block in a ux-reviewer run log: date, product, tier (advisory, supervised, full), model, tokens, cost, the flows reviewed, each finding with the rule it cites and its evidence, the verdict, whether it re-checked, and why it escalated. Bar and tiers: [docs/ux-agent-bar.md](docs/ux-agent-bar.md). `node scripts/check-ux-run.mjs run.md` |
+| `ux-flows` | The ux-reviewer's capture step: reads a product's `docs/design/flows.json` (target, flows, clicks) and runs `ux-shots` once per flow, no network, local or demo targets only, then prints the `flow:` lines for the run log. A flow that fails is retried once, printed as `flow-failed: <name> | <reason>`, and the rest still run; `<out>/run.json` records every flow and the exit is 1 if any failed. `node scripts/ux-flows.mjs docs/design/flows.json --dry-run` shows the plan |
+| `ux-issues` | The file-issues planner: from a validated run log, picks the P0/P1 findings to file on the product repo, skips duplicates and anything over a small daily cap, and files nothing at the Advisory tier. It never calls GitHub; the agent files from the plan. `node scripts/ux-issues.mjs run.md --existing issues.json` |
+| `ux-recheck` | The recheck planner: compares a re-shoot run log with the run that found the problems and says which issues to close (finding gone), reopen (closed but still there) or keep, plus any new findings. Never calls GitHub. `node scripts/ux-recheck.mjs before.md after.md --existing issues.json` |
+| `eval-miss-cases` | Builds the qa-tdd and staff-pm miss eval cases (`plugins/studio/evals/qa-tdd-miss-*`, `staff-pm-miss-*`) from `evals/agent-misses/qa-tdd-cases.mjs` and `staff-pm-cases.mjs`. `--check` fails on a stale or orphaned case folder, `--verify` proves each repro (shipped test green, gap test red). `node tools/eval-miss-cases.mjs` |
+| `eval-miss-score` | Scores a miss-eval run recorded from subagent transcripts (no API key). Reads `evals/agent-misses/runs/<run>/results.json`, writes `results.md` (recall by agent, priority, pattern, arm), and `--check` fails on a stale report, a dev case in a held-out run (or the reverse), a missing transcript or a double score. `node tools/eval-miss-score.mjs <run-dir>` |
+| `ux-state` | The ux-reviewer's memory between runs: records each run log into one JSON file in the product repo (`docs/design/ux-state.json`), tracking each finding as open, fixed (gone from a rechecked run) or reopened. `node scripts/ux-state.mjs record run.md --state docs/design/ux-state.json`, then `show --state ...` lists what is open |
+| `ux-search` | Keyword search over the design rules, past run-log findings and the state file, so the agent checks whether a problem is already known before filing it. No network. `node scripts/ux-search.mjs <words> --root . [--limit N] [--json]` |
 
 ## When to use which agent (by default, without being asked)
 Agents only help if the session calls them. Copying them into a repo is not enough: the repo's `CLAUDE.md` must say when to use them. Paste [templates/CLAUDE-agents.md](templates/CLAUDE-agents.md) into it.
@@ -41,6 +53,7 @@ Agents only help if the session calls them. Copying them into a repo is not enou
 | Any screen, word or CLI output; before anything goes public | `ux-reviewer` | Walkthrough as the least tech-savvy user; showcase review for recruiter-facing work |
 | Personal data, sign-in, secrets, telemetry; before a public demo or deploy | `privacy-security` | Threat and privacy review scaled to the milestone; what a public repo could leak |
 | A new dependency, vendor, paid service, schema change or CI/deploy workflow; a new project's stack | `architect` | Verdict on fit, the stack rung, what to reuse instead, the decision entry needed |
+| Before any publish or release; after a version bump | `release-captain` | Verdict, REL findings, and the one step Chase presses |
 | README, landing or portfolio copy; names; after a milestone | `positioning` | Claims true today, copy, the "why I built it" story |
 | End of any turn with a call, pivot or lesson | `story-keeper` | One Atlas Story entry (and `docs/STORY.md`), in the background |
 

@@ -1,0 +1,7 @@
+[
+  { "title": "[UX-R1] Sign in button is below the fold on a phone", "state": "open" },
+  { "title": "[UX-R2] Text is unreadable in dark mode", "state": "closed" },
+  { "title": "[UX-R3] Tap target is too small", "state": "open" },
+  { "title": "[UX-R4] An older closed issue", "state": "closed" },
+  { "title": "Unrelated bug", "state": "open" }
+]

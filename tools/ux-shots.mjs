@@ -10,6 +10,7 @@
 //                      e.g. --click "[role=tab]" for a tabbed app (repeatable)
 //   --path PATH        another page under the same site, e.g. --path /about (repeatable)
 //   --wait SELECTOR    wait for this element before shooting (default body)
+//   --settle MS        wait this long after a click before shooting (default 150), for scans and other timed results
 //   --tap N            smallest tap target height in px on phones (default 44)
 //   --no-network       block and report every request that leaves the page's own origin (any
 //                      http request for a file target): the privacy gate for local-only apps
@@ -24,7 +25,7 @@ export const SIZES = [["phone", 390, 844], ["laptop", 1280, 800]];
 export const SCHEMES = ["light", "dark"];
 
 export function parseArgs(argv) {
-  const o = { target: null, out: "dist/ux-shots", clicks: [], paths: [], wait: "body", tap: 44, strict: false, noNetwork: false };
+  const o = { target: null, out: "dist/ux-shots", clicks: [], paths: [], wait: "body", tap: 44, settle: 150, strict: false, noNetwork: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i], next = () => {
       const v = argv[++i];
@@ -36,6 +37,7 @@ export function parseArgs(argv) {
     else if (a === "--path") o.paths.push(next());
     else if (a === "--wait") o.wait = next();
     else if (a === "--tap") o.tap = Number(next());
+    else if (a === "--settle") { o.settle = Number(next()); if (!(o.settle >= 0 && o.settle <= 10000)) throw new Error("--settle must be 0 to 10000 (ms)"); }
     else if (a === "--strict") o.strict = true;
     else if (a === "--no-network") o.noNetwork = true;
     else if (a === "-h" || a === "--help") o.help = true;
@@ -148,7 +150,7 @@ export async function run(o) {
           await page.evaluate(() => document.fonts && document.fonts.ready);
           const shoot = async (name) => {
             await page.mouse.move(0, 0);
-            await page.waitForTimeout(150);
+            await page.waitForTimeout(o.settle);
             const shot = join(o.out, `${name}.png`), full = join(o.out, `${name}-full.png`);
             await page.screenshot({ path: shot });
             await page.screenshot({ path: full, fullPage: true });

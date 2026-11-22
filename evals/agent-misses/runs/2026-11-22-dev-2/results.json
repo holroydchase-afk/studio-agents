@@ -1,0 +1,73 @@
+{
+  "run": "2026-11-22-dev-2",
+  "date": "2026-11-22",
+  "phase": "dev",
+  "agent_model": "claude-sonnet-5-5 (general-purpose subagents given the tuned qa-tdd and staff-pm role prompts)",
+  "grader_model": "sonnet subagents, fresh context, saw only the criteria file and the saved report",
+  "change": "qa-tdd and staff-pm agent files tuned on dev-1 lessons (qa block and priority required; rounding rules and public-copy done items)",
+  "results": [
+    {
+      "case": "qa-tdd-miss-weekday-clock",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names QA-R1 at P1 (Sunday returns 7), Sunday tests red, source unfixed, red verdict.",
+      "transcript": "transcripts/qa-tdd-miss-weekday-clock-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-storage-throws",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names the unguarded setItem as QA-R1 at P1 with a red EASY-2 test, source untouched.",
+      "transcript": "transcripts/qa-tdd-miss-storage-throws-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-substring-match",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names substring includes as QA-R1 at P1 with red MATCH-3 and MATCH-4, source untouched, red verdict.",
+      "transcript": "transcripts/qa-tdd-miss-substring-match-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-risk-bad-inputs",
+      "arm": "agent",
+      "pass": false,
+      "reason": "Ranks negatives P1 and leaves source alone, but never names the zero strike or zero iv gap.",
+      "transcript": "transcripts/qa-tdd-miss-risk-bad-inputs-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-name-denylist-case",
+      "arm": "agent",
+      "pass": false,
+      "reason": "Names the case-sensitivity gap with red tests but ranks it P1, not the P0 the criteria require.",
+      "transcript": "transcripts/qa-tdd-miss-name-denylist-case-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-rounding-rule",
+      "arm": "agent",
+      "pass": true,
+      "reason": "States one rounding rule (total equals sum of displayed days) with a WK-4 test that rounds differently summed versus singly.",
+      "transcript": "transcripts/staff-pm-miss-rounding-rule-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-failed-load-saves-visit",
+      "arm": "agent",
+      "pass": true,
+      "reason": "NEW-5 says a failed load must not save last-visit; ranked P0 with NEW-6 and NEW-7.",
+      "transcript": "transcripts/staff-pm-miss-failed-load-saves-visit-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-windows-drive-root",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Includes C:\\, C: and c:/ as root cases plus trailing separators with testable criteria.",
+      "transcript": "transcripts/staff-pm-miss-windows-drive-root-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-done-includes-public-copy",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Done definition lists README, screenshots and case study as a testable gate.",
+      "transcript": "transcripts/staff-pm-miss-done-includes-public-copy-agent.md"
+    }
+  ]
+}

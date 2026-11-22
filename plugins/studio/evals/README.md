@@ -66,7 +66,7 @@ Every case carries five tags (`tests/check.sh` enforces them, and that each case
 ```bash
 claude plugin eval . --trust-plugin --no-publish --tag recall --case 'qa-tdd-recall-*' --json qa-recall.json
 ```
-Score it like ux-reviewer recall: overall (n of 8) and by priority.
+Score it like ux-reviewer recall: overall (n of 9) and by priority.
 
 **Results (2026-10-31, 1 run per arm, $2.07):**
 
@@ -77,6 +77,83 @@ Score it like ux-reviewer recall: overall (n of 8) and by priority.
 | P2 | 3 of 3 | 0 of 3 |
 
 Read this carefully: **the plain session spotted the gap in every case too** and said "don't merge yet". It failed because it never wrote and ran a failing test for the gap, which the grader requires. So these cases measure test-first follow-through on a found gap, not detection. Next: harder cases where the gap isn't visible in 20 lines (a gap that only shows when two files interact, or a P0), and a P0 case, so detection itself separates the arms.
+
+## qa-tdd miss cases
+Twenty `qa-tdd-miss-*` cases (nine in `qa-tdd-cases.mjs`, eleven fresh held-out ones in `qa-tdd-cases-batch2.mjs`) turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
+
+Do not edit the generated folders by hand. Change the spec, then:
+```bash
+node tools/eval-miss-cases.mjs            # regenerate the case folders
+node tools/eval-miss-cases.mjs --check    # fails if any folder is stale or orphaned (tests/check.sh runs this)
+node tools/eval-miss-cases.mjs --verify   # proves each repro: shipped test green, gap test red
+```
+
+| Case | Miss | Pattern | Priority | Split |
+|---|---|---|---|---|
+| `qa-tdd-miss-weekday-clock` | CC-Q1 | date-clock | P1 | dev |
+| `qa-tdd-miss-night-key-utc` | ES-Q3 | date-clock | P0 | heldout |
+| `qa-tdd-miss-storage-throws` | HE-Q1 | real-device-gap | P1 | dev |
+| `qa-tdd-miss-stale-demo-family` | HE-Q2 | real-device-gap | P1 | heldout |
+| `qa-tdd-miss-substring-match` | RR-Q1 | matching-and-sorting-edges | P1 | dev |
+| `qa-tdd-miss-text-sorted-dates` | RR-Q2 | matching-and-sorting-edges | P2 | heldout |
+| `qa-tdd-miss-risk-bad-inputs` | CH-Q1 | unhandled-input-edges | P1 | dev |
+| `qa-tdd-miss-rounded-totals` | CK-S3 | undefined-rule | P1 | heldout |
+| `qa-tdd-miss-name-denylist-case` | HE-Q7 | privacy-leak-not-tested | P0 | dev |
+| `qa-tdd-miss-path-hash-leak` | CC-Q5 | privacy-leak-not-tested | P0 | heldout |
+| `qa-tdd-miss-null-gmail-import` | RR-Q3 | matching-and-sorting-edges | P1 | heldout |
+| `qa-tdd-miss-status-case-count` | RR-Q4 | public-demo-shipped-with-defects | P1 | heldout |
+| `qa-tdd-miss-monday-divide` | CC-Q2 | date-clock | P1 | heldout |
+| `qa-tdd-miss-zero-close-price` | CH-Q2 | unhandled-input-edges | P1 | heldout |
+| `qa-tdd-miss-contrast-locked-in` | ES-Q5 | self-referential-or-skipped-tests | P1 | heldout |
+| `qa-tdd-miss-host-check-variants` | PS-Q2 | guard-written-after-the-bug | P1 | heldout |
+| `qa-tdd-miss-double-click-trade` | CH-Q2 | unhandled-input-edges | P1 | heldout |
+| `qa-tdd-miss-percent-radius` | PS-Q5 | tool-tests-missed-edge-cases | P2 | heldout |
+| `qa-tdd-miss-stale-cache-name` | CK-Q1 | real-device-gap | P1 | heldout |
+| `qa-tdd-miss-rename-first-only` | CO-Q1 | rename-and-coverage-gaps | P2 | heldout |
+
+Run and score (needs `ANTHROPIC_API_KEY`; not run yet, so there are no results):
+```bash
+claude plugin eval . --trust-plugin --no-publish --tag miss --case 'qa-tdd-miss-*' --allow-tools Write Edit 'Bash(node:*)' --json qa-miss.json
+```
+Report recall overall (n of 9), by `split-*` tag (held-out is the number to trust), by priority and by pattern tag, for the with-plugin arm and the baseline. A plain session finds most gaps and skips the red test (see the recall results above), so also count how often the grader's failure was "found but no red test". Rerun a miss before calling it a regression.
+
+Next: the pattern families that don't fit a 20-line repro (CC-Q4 and HE-Q5 real-device screenshots, CC-Q5 privacy leak found by review) need a browser or a second file and wait for a harder case format.
+
+## staff-pm miss cases
+Twenty-four `staff-pm-miss-*` cases (eight in `staff-pm-cases.mjs`, sixteen fresh held-out ones in `staff-pm-cases-batch2.mjs`, the last four with a TDD mindset: the test input that would have caught a QA-TDD miss) turn real spec misses from `evals/agent-misses/README.md` into recall cases, built from `evals/agent-misses/staff-pm-cases.mjs` by the same tool as the qa-tdd ones (`node tools/eval-miss-cases.mjs`, checked by `tests/check.sh`). Each is one short spec ask plus the repo notes a PM would have, written without a hint at the miss (the tool rejects hint words). The `criteria` grader passes only if the spec or answer explicitly covers the missed criterion with something testable; generic criteria don't count. Tagged `staff-pm`, `miss`, priority, source, pattern and `split-dev` or `split-heldout`.
+
+| Case | Miss | Pattern | Priority | Split |
+|---|---|---|---|---|
+| `staff-pm-miss-rounding-rule` | CK-S3 | undefined-rule | P1 | dev |
+| `staff-pm-miss-failed-load-saves-visit` | HE-S5 | missing-criteria | P1 | dev |
+| `staff-pm-miss-windows-drive-root` | CC-S2 | missing-criteria | P2 | dev |
+| `staff-pm-miss-done-includes-public-copy` | ES-S4 | done-without-done-check | P0 | dev |
+| `staff-pm-miss-count-beyond-first-page` | HE-S4 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-removed-pages-redirect` | HE-S6 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-phone-first-screen-ci-fonts` | RR-S6 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-green-deploy-not-done` | ES-S5 | done-without-done-check | P1 | heldout |
+| `staff-pm-miss-phone-page-height` | CC-S3 | overlong-page-or-ux-budget | P2 | heldout |
+| `staff-pm-miss-sample-data-window-claim` | CC-S4 | ambiguous-wording-or-copy | P1 | heldout |
+| `staff-pm-miss-readme-unreleased-features` | CC-S5 | ambiguous-wording-or-copy | P0 | heldout |
+| `staff-pm-miss-san-francisco-remote` | RR-S3 | missing-criteria | P2 | heldout |
+| `staff-pm-miss-recruiter-page-rollback` | RR-S7 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-easy-view-laptop` | HE-S3 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-banned-photos-replacement` | ES-S3 | missing-criteria | P0 | heldout |
+| `staff-pm-miss-crew-app-single-backend` | CK-S4 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-geofence-fairness` | CK-S5 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-live-vs-saved-data` | CH-S1 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-weekly-rebuild-no-check` | CH-S3 | missing-criteria | P1 | heldout |
+| `staff-pm-miss-cash-tying-risk-size` | CH-S4 | undefined-rule | P1 | heldout |
+| `staff-pm-miss-tdd-zero-exit-price` | CH-Q2 | unhandled-input-edges | P1 | heldout |
+| `staff-pm-miss-tdd-status-as-saved` | RR-Q4 | public-demo-shipped-with-defects | P1 | heldout |
+| `staff-pm-miss-tdd-double-press` | CH-Q2 | unhandled-input-edges | P1 | heldout |
+| `staff-pm-miss-tdd-week-boundaries` | CC-Q2 | date-clock | P1 | heldout |
+
+Run and score (needs `ANTHROPIC_API_KEY`; not run yet, so there are no results):
+```bash
+claude plugin eval . --trust-plugin --no-publish --tag miss --case 'staff-pm-miss-*' --json pm-miss.json
+```
+Report recall overall (n of 8), by split (held-out is the number to trust), priority and pattern, with and without the agent. These cases test spec content only. The misses about thrash and rework (built, then cut or redone) and collisions between two in-flight PRs need repo history to judge and are not covered yet.
 
 ## story-keeper behavior cases
 Four `story-keeper-*` cases test whether story-keeper logs the right moments, once, and keeps personal data out. Each hands one turn to the agent with a small repo in the prompt and runs once. They're tagged `story-keeper` and `behavior` (`tests/check.sh` checks that every `story-keeper-*` case has the `story-keeper` tag and is listed here). Run them with `--tag story-keeper`.

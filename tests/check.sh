@@ -49,9 +49,21 @@ PY
 # sync.sh: copies every agent and its preloaded skills, keeps project-only agents and skills, rejects unknown names.
 repo="$tmp/repo"; mkdir -p "$repo/.claude/agents" "$repo/.claude/skills/project-skill"; echo local > "$repo/.claude/agents/project-only.md"; echo mine > "$repo/.claude/skills/project-skill/SKILL.md"
 check "sync.sh copies all agents" bash "$root/scripts/sync.sh" "$repo"
-check "sync.sh: every product agent present and identical" diff -r -x project-only.md -x orchestrator.md -x focus-coach.md "$root/plugins/studio/agents" "$repo/.claude/agents"
-check "sync.sh skips studio-only agents by default" test ! -e "$repo/.claude/agents/orchestrator.md" -a ! -e "$repo/.claude/agents/focus-coach.md"
+check "sync.sh: every product agent present and identical" diff -r -x project-only.md -x orchestrator.md "$root/plugins/studio/agents" "$repo/.claude/agents"
+check "sync.sh skips studio-only agents by default" test ! -e "$repo/.claude/agents/orchestrator.md"
 check "sync.sh copies a studio-only agent when named" bash -c "bash '$root/scripts/sync.sh' '$repo' orchestrator >/dev/null && test -f '$repo/.claude/agents/orchestrator.md' && rm '$repo/.claude/agents/orchestrator.md'"
+
+# AGENTSORT-1..3: focus-coach is a nudge, not an agent; the focus-check skill holds the behavior. Agent audit doc lists every agent.
+check "AGENTSORT-1 focus-coach agent file is gone" test ! -e "$root/plugins/studio/agents/focus-coach.md"
+check "AGENTSORT-1 focus-check SKILL.md exists and has Override and Applied" bash -c "f='$root/plugins/studio/skills/focus-check/SKILL.md'; test -f \$f && grep -qi 'override' \$f && grep -qi 'applied' \$f"
+check "AGENTSORT-2 sync.sh with no names still skips orchestrator" bash -c "r=\$(mktemp -d); mkdir -p \$r/.claude/agents; bash '$root/scripts/sync.sh' \$r >/dev/null && test ! -e \$r/.claude/agents/orchestrator.md && test -f \$r/.claude/agents/staff-pm.md"
+check "AGENTSORT-2 sync.sh source no longer mentions focus-coach" bash -c "! grep -q 'focus-coach' '$root/scripts/sync.sh'"
+check "AGENTSORT-2 README agent table has no focus-coach row, Skills paragraph still lists focus-check" bash -c "! awk '/^\\|/{on=1} on&&!/^\\|/{exit} on' '$root/README.md' | grep -q 'focus-coach' && grep -q '^Skills.*\`focus-check\`' '$root/README.md'"
+check "AGENTSORT-2 CLAUDE.md table has no focus-coach row" bash -c "! grep -q '^| .*\`focus-coach\`' '$root/CLAUDE.md'"
+aa="$root/docs/agent-audit.md"
+check "AGENTSORT-3 docs/agent-audit.md exists" test -f "$aa"
+check "AGENTSORT-3 agent-audit.md has a table row for every agent file, focus-coach and release-captain" bash -c "test -f '$aa' || { echo 'missing docs/agent-audit.md'; exit 1; }; for a in \$(cd '$root/plugins/studio/agents' && ls *.md | sed 's/\\.md\$//') focus-coach release-captain; do grep -q \"^|.*\$a\" '$aa' || { echo \"no row for \$a\"; exit 1; }; done"
+check "AGENTSORT-3 README links to docs/agent-audit.md" grep -q 'docs/agent-audit.md' "$root/README.md"
 check "sync.sh notes a synced agent missing from the repo's CLAUDE.md table (QA-R1)" bash -c "echo '| x | \`staff-pm\` |' > '$repo/CLAUDE.md'; bash '$root/scripts/sync.sh' '$repo' staff-pm story-keeper | grep -q 'add the story-keeper row' && ! bash '$root/scripts/sync.sh' '$repo' staff-pm | grep -q note; rc=\$?; rm '$repo/CLAUDE.md'; exit \$rc"
 check "story-keeper: never creates docs/STORY.md, replies No entry on routine turns, reads CLAUDE.md hard rules" bash -c "f='$root/plugins/studio/agents/story-keeper.md'; grep -q 'Never create the file' \$f && grep -q 'No entry' \$f && grep -q 'CLAUDE.md\` hard rules' \$f"
 check "sync.sh copies the studio design rules with ux-reviewer" diff "$root/docs/design-rules.md" "$repo/.claude/design-rules.md"
@@ -196,6 +208,16 @@ for f in "$root"/tools/*.mjs; do
   check "tool $(basename "$f" .mjs): listed in the README" grep -q "\`$(basename "$f" .mjs)\`" "$root/README.md"
 done
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
+check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
+check "UXREL-1..5 ux-flows reliability and permissions tests" node --test "$root/tests/ux-reliability.test.mjs"
+check "UXISSUE-1 tool ux-issues exists and is listed in the README" bash -c "test -f '$root/tools/ux-issues.mjs' || { echo missing tools/ux-issues.mjs; exit 1; }; grep -q '\`ux-issues\`' '$root/README.md'"
+check "ux-issues tests" node --test "$root/tests/ux-issues.test.mjs"
+check "UXRECHK-1 tool ux-recheck exists and is listed in the README" bash -c "test -f '$root/tools/ux-recheck.mjs' || { echo missing tools/ux-recheck.mjs; exit 1; }; grep -q '\`ux-recheck\`' '$root/README.md'"
+check "ux-recheck tests" node --test "$root/tests/ux-recheck.test.mjs"
+check "UXSTATE-1 tool ux-state exists and is listed in the README" bash -c "test -f '$root/tools/ux-state.mjs' || { echo missing tools/ux-state.mjs; exit 1; }; grep -q '\`ux-state\`' '$root/README.md'"
+check "ux-state tests" node --test "$root/tests/ux-state.test.mjs"
+check "UXSEARCH-1 tool ux-search exists and is listed in the README" bash -c "test -f '$root/tools/ux-search.mjs' || { echo missing tools/ux-search.mjs; exit 1; }; grep -q '\`ux-search\`' '$root/README.md'"
+check "ux-search tests" node --test "$root/tests/ux-search.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
@@ -362,7 +384,7 @@ check "CLOUD-6 log hook: neither project dir nor cwd is a repo, writes nothing a
 ch="$tmp/cloudhome"; mkdir -p "$ch/.claude"
 printf '{"model":"opus","hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"echo keep-me"}]}]}}' > "$ch/.claude/settings.json"
 check "CLOUD-1 install-cloud.sh runs and exits 0" bash -c "HOME='$ch' bash '$root/scripts/install-cloud.sh'"
-check "CLOUD-1 install-cloud.sh copies every agent (incl. orchestrator, focus-coach) to \$HOME/.claude/agents" bash -c "for f in '$root'/plugins/studio/agents/*.md; do cmp \"\$f\" '$ch/.claude/agents/'\$(basename \$f) || exit 1; done; test -f '$ch/.claude/agents/orchestrator.md' -a -f '$ch/.claude/agents/focus-coach.md'"
+check "CLOUD-1 install-cloud.sh copies every agent (incl. orchestrator) to \$HOME/.claude/agents" bash -c "for f in '$root'/plugins/studio/agents/*.md; do cmp \"\$f\" '$ch/.claude/agents/'\$(basename \$f) || exit 1; done; test -f '$ch/.claude/agents/orchestrator.md'"
 check "CLOUD-2 install-cloud.sh copies log-agent-run.sh to \$HOME/.claude/studio" cmp "$root/templates/scripts/log-agent-run.sh" "$ch/.claude/studio/log-agent-run.sh"
 { echo stale > "$ch/.claude/agents/qa-tdd.md"; } 2>/dev/null
 check "CLOUD-1 install-cloud.sh re-run overwrites a stale agent with the latest and exits 0" bash -c "HOME='$ch' bash '$root/scripts/install-cloud.sh' && cmp '$root/plugins/studio/agents/qa-tdd.md' '$ch/.claude/agents/qa-tdd.md'"
@@ -405,6 +427,13 @@ check "CLOUD-10 (QA-R2) settings.json with \"hooks\": null: exits 0, copies agen
 ch3="$tmp/cloudhome3"; mkdir -p "$ch3/.claude"
 printf '{"hooks":{"PreToolUse":[{"matcher":"Agent","hooks":[{"type":"command","command":"bash \\"$HOME/.claude/studio/log-agent-run.sh\\""}]}]}}' > "$ch3/.claude/settings.json"
 check "CLOUD-11 (QA-R4) existing matcher \"Agent\" log hook is replaced: exactly one PreToolUse entry runs log-agent-run.sh" bash -c "HOME='$ch3' bash '$root/scripts/install-cloud.sh' && python3 -c 'import json,sys;pre=json.load(open(sys.argv[1]))[\"hooks\"][\"PreToolUse\"];n=sum(1 for e in pre if any(\".claude/studio/log-agent-run.sh\" in h.get(\"command\",\"\") for h in e.get(\"hooks\",[])));assert n==1, f\"want 1 entry referencing log-agent-run.sh, got {n}: {pre}\"' '$ch3/.claude/settings.json'"
+
+# MISS-1/2: the qa-tdd miss cases are generated from evals/agent-misses/qa-tdd-cases.mjs; a stale folder or a repro without its gap fails.
+check "MISS-1 qa-tdd miss case folders match their spec (no stale or orphaned files)" bash -c "cd '$root' && node tools/eval-miss-cases.mjs --check"
+check "MISS-2 each qa-tdd miss repro holds: shipped test green, gap test red" bash -c "cd '$root' && node tools/eval-miss-cases.mjs --verify"
+check "MISS-3 eval-miss-cases tool regression tests (QA-R1..R6)" bash -c "cd '$root' && node --test tests/eval-miss-cases.test.mjs"
+check "MISS-4 every recorded miss-eval run is valid and its results.md is current" bash -c "cd '$root' && node tools/eval-miss-score.mjs --check-all"
+check "MISS-5 eval-miss-score tool regression tests" bash -c "cd '$root' && node --test tests/eval-miss-score.test.mjs"
 
 # Agent evals: every case dispatches a real studio agent and has a scoring grader.
 for d in "$root"/plugins/studio/evals/*/; do
@@ -462,6 +491,40 @@ check "NUDGE-5 unrelated and short prompts never nudge" bash -c "$(declare -f nu
 check "NUDGE-6 the log holds no prompt text, is 0600, and STUDIO_REPEAT_NUDGE=off stops it" bash -c "! grep -qi 'summarize\|pull requests' '$nl' && [ \"\$(stat -c %a '$nl')\" = 600 ] && [ -z \"\$(printf '{\"prompt\":\"summarize the open pull requests for the portfolio repo\"}' | STUDIO_REPEAT_NUDGE=off STUDIO_NUDGE_LOG='$tmp/off.jsonl' python3 '$nh')\" ] && [ ! -e '$tmp/off.jsonl' ]"
 check "NUDGE-7 bad input never fails the prompt" bash -c "echo 'not json' | STUDIO_NUDGE_LOG='$tmp/bad.jsonl' python3 '$nh'"
 check "NUDGE-8 install-cloud.sh installs the nudge once, keeps other hooks" bash -c "h=\$(mktemp -d); for i in 1 2; do HOME=\$h bash '$root/scripts/install-cloud.sh' >/dev/null; done; test -f \$h/.claude/studio/repeat-nudge.py && python3 -c 'import json,sys;u=json.load(open(sys.argv[1]))[\"hooks\"][\"UserPromptSubmit\"];assert len(u)==1' \$h/.claude/settings.json"
+
+# check-ux-run.mjs: validates a ux-reviewer run log (UXRUN-1). Same fixture loop as STORY-PROD: valid-*.md exit 0 with a
+# quiet stderr; invalid-*.md exit exactly 1 and stderr names the broken rule (the "<!-- expect: word -->" line), one reason
+# per line. A log has exactly one uxrun block of `key: value` lines: date (real), product, tier (advisory|supervised|full),
+# model, tokens (int >= 0), cost_usd (number >= 0), flow: name | widths from phone,laptop | shots path (1+),
+# finding: UX-Rn (unique) | P0-P2 | rule id | shots path (0+), verdict (Ready|Needs changes|Blocker; Blocker needs a P0,
+# Ready allows none), rechecked (yes|no|n/a; n/a is invalid with findings), escalated (yes|no; yes needs escalation_reason).
+# No email, phone, claude.ai URL, trig_/env_/cmsg_/session_ id or API key anywhere. --json prints the parsed fields.
+ux="$root/tools/check-ux-run.mjs"; fu="$root/tests/fixtures/ux-run"
+need_ux="test -f '$ux' || { echo 'missing tools/check-ux-run.mjs'; exit 1; }"
+check "UXRUN-1 check-ux-run.mjs exists" test -f "$ux"
+for fx in "$fu"/valid-*.md; do
+  check "UXRUN-1 check-ux-run passes $(basename "$fx")" bash -c "$need_ux; node '$ux' '$fx' 2>'$tmp/uxerr'; rc=\$?; [ \$rc -eq 0 ] || { echo \"exit \$rc\"; cat '$tmp/uxerr'; exit 1; }; ! test -s '$tmp/uxerr'"
+done
+for fx in "$fu"/invalid-*.md; do
+  exp="$(sed -n 's/^<!-- expect: \(.*\) -->$/\1/p' "$fx")"
+  check "UXRUN-1 check-ux-run rejects $(basename "$fx" .md) (stderr names '$exp')" bash -c "$need_ux; node '$ux' '$fx' >/dev/null 2>'$tmp/uxerr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/uxerr' || { echo 'stderr does not name $exp:'; cat '$tmp/uxerr'; exit 1; }"
+done
+for leak in "trig_${sk_body}:trig_" "env_${sk_body}:env_" "cmsg_${sk_body}:cmsg_" "session_${sk_body}:session_" "sk-${sk_body}:key" "ghp_${sk_body}:key" "github_pat_${sk_body}:key"; do
+  val="${leak%:*}"; exp="${leak##*:}"; lf="$tmp/uxleak-${val%%[_-]*}.md"
+  sed "s/^product: .*/product: Example App ${val}/" "$fu/valid-advisory-findings.md" > "$lf"
+  check "UXRUN-1 check-ux-run rejects a ${val%%[_-]*} secret (stderr names '$exp')" bash -c "$need_ux; grep -q -- '$val' '$lf' || { echo 'fixture not built'; exit 1; }; node '$ux' '$lf' >/dev/null 2>'$tmp/uxerr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/uxerr' || { echo 'stderr does not name $exp:'; cat '$tmp/uxerr'; exit 1; }"
+done
+check "UXRUN-1 check-ux-run rejects a phone number and a claude.ai link" bash -c "$need_ux; for v in 'call 304-555-0142' 'see https://claude.ai/code/abc'; do { cat '$fu/valid-advisory-findings.md'; echo \"\$v\"; } > '$tmp/uxleak2.md'; node '$ux' '$tmp/uxleak2.md' >/dev/null 2>'$tmp/uxerr'; [ \$? -eq 1 ] || { echo \"not rejected: \$v\"; exit 1; }; done"
+check "UXRUN-1 check-ux-run gives one reason per line (two broken rules, two lines)" bash -c "$need_ux; node '$ux' '$fu/invalid-two-reasons.md' 2>'$tmp/uxerr'; [ \$? -eq 1 ] && [ \$(grep -c . '$tmp/uxerr') -ge 2 ] && grep -qi tier '$tmp/uxerr' && grep -qi cost_usd '$tmp/uxerr' || { cat '$tmp/uxerr'; exit 1; }"
+check "UXRUN-1 check-ux-run exits 2 on a usage error (no file, two files, unreadable file)" bash -c "$need_ux; node '$ux' 2>/dev/null; a=\$?; node '$ux' '$fu/valid-escalated.md' '$fu/valid-advisory-findings.md' 2>/dev/null; b=\$?; node '$ux' '$tmp/no-such-run.md' 2>/dev/null; c=\$?; echo \"exits: \$a \$b \$c\"; [ \$a -eq 2 ] && [ \$b -eq 2 ] && [ \$c -eq 2 ]"
+check "UXRUN-1 check-ux-run --json prints the parsed run" bash -c "$need_ux; node '$ux' --json '$fu/valid-advisory-findings.md' | python3 -c '
+import json,sys
+d=json.load(sys.stdin)
+assert d[\"date\"]==\"2026-11-20\" and d[\"tier\"]==\"advisory\" and d[\"tokens\"]==48210 and d[\"cost_usd\"]==0.42, d
+assert d[\"verdict\"]==\"Needs changes\" and d[\"rechecked\"]==\"yes\" and d[\"escalated\"]==\"no\", d
+assert len(d[\"flows\"])==1 and len(d[\"findings\"])==2, d
+assert d[\"findings\"][0][\"id\"]==\"UX-R1\" and d[\"findings\"][0][\"priority\"]==\"P1\" and d[\"findings\"][0][\"rule\"]==\"G4\", d
+assert d[\"flows\"][0][\"widths\"]==[\"phone\",\"laptop\"], d'"
 
 # Public repo: no claude.ai artifact or session links, no trigger or environment ids.
 check "no claude.ai links or trigger/environment ids" bash -c "! grep -rnE 'claude\.ai/(artifact|code)/|trig_[0-9A-Za-z]{10,}|env_[0-9A-Za-z]{10,}' --exclude-dir=.git --exclude=check.sh '$root'"
