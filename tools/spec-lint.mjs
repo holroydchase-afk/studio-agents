@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// spec-lint: flags the gaps staff-pm keeps missing in a spec (docs/product/SPEC-SPEC-LINT.md, rules SL-1..SL-9).
+// spec-lint: flags the gaps staff-pm keeps missing in a spec (docs/product/SPEC-SPEC-LINT.md, rules SL-1..SL-11).
 // check-spec says the ```spec block is well formed; spec-lint says the spec is not missing a pinned clock, an empty
 // case, a rollback, a phone height budget, a measured bar, both auth cases, a released-version check, the stale
 // artifacts in a done list, or a P0 for a privacy or unreleased-claim risk. Keywords and structure only: no model,
@@ -60,6 +60,12 @@ const K = {
   riskRank: /(?<![\w-])P[12](?![\w]|-\d)/,
   privacyRisk: words("privacy", "private", "personal", "personal data", "secret", "secrets", "token", "tokens", "password",
     "credential", "credentials", "leak", "leaks", "live data", "unreleased", "not released"),
+  newRule: words("red flag", "red-flag", "penalty", "penalties", "detector", "flag rule", "scoring rule", "auto-flag"),
+  feedback: words("mark", "marks", "wrong", "dismiss", "dismisses", "false positive", "false positives", "override", "overrides",
+    "feedback", "skip reason", "review the hits", "reviews the hits", "reject", "rejects", "rejected", "note", "reason", "reasons"),
+  samplesOnly: words("saved sample", "saved samples", "sample files", "fixtures", "samples"),
+  liveish: words("live", "adapter", "feed"),
+  liveRun: any(words("first live run", "live run", "real run", "real host"), /\bfirst\s+run\s+against\b/i, /\bon\s+a\s+(?:machine|laptop)\b/i, /\breal\s+(?:api|host|source|service)\b/i),
 };
 
 // One row per finding a rule can raise. mode "file": one finding at the first trigger line when the requirement is
@@ -87,6 +93,10 @@ export const RULES = [
     message: "this done definition names code or tests but no public artifact: list each one it makes stale (README, screenshots, docs, changelog, case study)" },
   { id: "SL-9", name: "risk-rank", mode: "line", where: ["prose"], when: [K.riskRank, K.privacyRisk], unless: null, needIn: "same",
     message: "a privacy, personal-data, secret, live-data or unreleased-claim risk is ranked P1 or P2: rank it P0" },
+  { id: "SL-10", name: "feedback-loop", mode: "file", where: ["prose", "criteria", "steps"], when: [K.newRule], unless: K.feedback, needIn: ["criteria"],
+    message: "the spec adds a rule, penalty, flag or detector but no criterion covers a feedback loop: add one for how the owner marks a hit wrong (with a reason) and how the hits are reviewed" },
+  { id: "SL-11", name: "samples-only", mode: "file", where: ["prose", "criteria", "steps"], when: [K.samplesOnly, K.liveish], unless: K.liveRun, needIn: "all",
+    message: "the spec leans on saved samples or fixtures for something live: add a named step or criterion for a first live run on a machine that can reach the real source, saying which kinds of data the samples lack" },
 ];
 export const RULE_IDS = [...new Set(RULES.map((r) => r.id))];
 const NAME = Object.fromEntries(RULES.map((r) => [r.id, r.name]));

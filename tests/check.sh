@@ -227,6 +227,7 @@ check "AGRUN-1 tool check-agent-run exists and is listed in the README" bash -c 
 check "AGRUN-2 check-agent-run tests" node --test "$root/tests/check-agent-run.test.mjs"
 check "SLINT-1 tool spec-lint exists and is listed in the README" bash -c "test -f '$root/tools/spec-lint.mjs' || { echo missing tools/spec-lint.mjs; exit 1; }; grep -q '\`spec-lint\`' '$root/README.md'"
 check "SLINT-2 spec-lint tests" node --test "$root/tests/spec-lint.test.mjs"
+check "SLINT-3 spec-lint SL-10 and SL-11 gap tests (QA-R1..R5)" node --test "$root/tests/spec-lint-sl10-11-gaps.test.mjs"
 check "GUARD-1 tool agent-guard exists and is listed in the README" bash -c "test -f '$root/tools/agent-guard.mjs' || { echo missing tools/agent-guard.mjs; exit 1; }; grep -q '\`agent-guard\`' '$root/README.md'"
 check "GUARD-2 agent-guard tests" node --test "$root/tests/agent-guard.test.mjs"
 check "AMEM-1 tool agent-memory exists and is listed in the README" bash -c "test -f '$root/tools/agent-memory.mjs' || { echo missing tools/agent-memory.mjs; exit 1; }; grep -q '\`agent-memory\`' '$root/README.md'"
