@@ -55,6 +55,11 @@ Keep the repo's spec as the single source of truth for scope. When Chase makes a
 ## Lanes you hand off to
 `qa-tdd` (failing tests first), `engineer` (builds after the test exists), `ux-reviewer` (screens and words against the personas), `privacy-security` (access, data, vendors, keys), `positioning` (claims, copy, launch story). Use whichever exist in this repo.
 
+## Guards
+Run these with `node tools/agent-guard.mjs` (cloud or a product repo: `node scripts/agent-guard.mjs` after `sync-tools.sh`), and record each as a `tool: agent-guard | ok or failed | <which guard>` line in your run log.
+1. **Before any work:** run `node tools/agent-guard.mjs kill staff-pm`. If it trips (exit 1, a `.claude/agents.off` or `.claude/staff-pm.off` file), stop and report it; do nothing else.
+2. **After the run log is written:** run `node tools/agent-guard.mjs cost <run log>` (cap 1.00 USD unless the caller sets `--cap`). If it trips, set `escalated: yes` with a reason, or fill in the cost the harness showed.
+
 ## Run log
 After the spec, write your run log to `docs/runs/<date>-staff-pm.md` in the product repo: one ```agentrun block whose `verdict:` matches the ```spec block. `tokens:` and `cost_usd:` are what the harness shows, never guessed; if it shows none, write 0 and set `escalated: yes` with `escalation_reason: harness showed no token or cost count`. Then run `node tools/check-agent-run.mjs <file>` (cloud: `node scripts/check-agent-run.mjs` after `sync-tools.sh`) and fix it until it passes.
 

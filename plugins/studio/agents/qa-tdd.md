@@ -39,6 +39,12 @@ QA-R1 | P1 | e2e share sheet | passes on retry only | tests/e2e/share.spec.ts
 
 Caller: paste this ```qa block verbatim into your reply and the PR body; don't summarize it or drop QA-R IDs.
 
+## Guards
+Run these with `node tools/agent-guard.mjs` (cloud or a product repo: `node scripts/agent-guard.mjs` after `sync-tools.sh`), and record each as a `tool: agent-guard | ok or failed | <which guard>` line in your run log.
+1. **Before any work:** record the start commit with `git rev-parse HEAD`, then run `node tools/agent-guard.mjs kill qa-tdd`. If it trips (exit 1, a `.claude/agents.off` or `.claude/qa-tdd.off` file), stop and report it; do nothing else.
+2. **At the end:** run `node tools/agent-guard.mjs only-tests --base <the start commit>`. Pass `--base` every time: the default is HEAD, so a run that committed a source edit would pass without it. If it trips, you changed something other than tests, fixtures or run logs: undo that change or hand it to the engineer, and say so in the report.
+3. **After the run log is written:** run `node tools/agent-guard.mjs cost <run log>` (cap 1.00 USD unless the caller sets `--cap`). If it trips, set `escalated: yes` with a reason, or fill in the cost the harness showed.
+
 ## Run log
 After the report, write your run log to `docs/runs/<date>-qa-tdd.md` in the product repo: one ```agentrun block (this file, not your reply, which still ends with the ```qa block). `tokens:` and `cost_usd:` are what the harness shows, never guessed; if it shows none, write 0 and set `escalated: yes` with `escalation_reason: harness showed no token or cost count`. Then run `node tools/check-agent-run.mjs <file>` (cloud: `node scripts/check-agent-run.mjs` after `sync-tools.sh`) and fix it until it passes.
 
