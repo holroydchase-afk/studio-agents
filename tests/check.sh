@@ -209,6 +209,7 @@ for f in "$root"/tools/*.mjs; do
 done
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
+check "UXREL-1..5 ux-flows reliability and permissions tests" node --test "$root/tests/ux-reliability.test.mjs"
 check "UXISSUE-1 tool ux-issues exists and is listed in the README" bash -c "test -f '$root/tools/ux-issues.mjs' || { echo missing tools/ux-issues.mjs; exit 1; }; grep -q '\`ux-issues\`' '$root/README.md'"
 check "ux-issues tests" node --test "$root/tests/ux-issues.test.mjs"
 check "UXRECHK-1 tool ux-recheck exists and is listed in the README" bash -c "test -f '$root/tools/ux-recheck.mjs' || { echo missing tools/ux-recheck.mjs; exit 1; }; grep -q '\`ux-recheck\`' '$root/README.md'"
