@@ -39,6 +39,9 @@ QA-R1 | P1 | e2e share sheet | passes on retry only | tests/e2e/share.spec.ts
 
 Caller: paste this ```qa block verbatim into your reply and the PR body; don't summarize it or drop QA-R IDs.
 
+## Memory
+Before writing a test or finding, run `node tools/agent-memory.mjs --agent qa-tdd <key words>` (cloud or a product repo: `node scripts/agent-memory.mjs` after `sync-tools.sh`) to see whether a past finding or a known eval miss already covers it, and record it as a `tool: agent-memory | ok | <what you checked>` line. Put each finding in the run log body as `QA-R<n> | P<n> | where | problem | test` so the next run can find it.
+
 ## Guards
 Run these with `node tools/agent-guard.mjs` (cloud or a product repo: `node scripts/agent-guard.mjs` after `sync-tools.sh`), and record each as a `tool: agent-guard | ok or failed | <which guard>` line in your run log.
 1. **Before any work:** record the start commit with `git rev-parse HEAD`, then run `node tools/agent-guard.mjs kill qa-tdd`. If it trips (exit 1, a `.claude/agents.off` or `.claude/qa-tdd.off` file), stop and report it; do nothing else.

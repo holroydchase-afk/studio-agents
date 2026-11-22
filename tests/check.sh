@@ -228,6 +228,8 @@ check "SLINT-1 tool spec-lint exists and is listed in the README" bash -c "test 
 check "SLINT-2 spec-lint tests" node --test "$root/tests/spec-lint.test.mjs"
 check "GUARD-1 tool agent-guard exists and is listed in the README" bash -c "test -f '$root/tools/agent-guard.mjs' || { echo missing tools/agent-guard.mjs; exit 1; }; grep -q '\`agent-guard\`' '$root/README.md'"
 check "GUARD-2 agent-guard tests" node --test "$root/tests/agent-guard.test.mjs"
+check "AMEM-1 tool agent-memory exists and is listed in the README" bash -c "test -f '$root/tools/agent-memory.mjs' || { echo missing tools/agent-memory.mjs; exit 1; }; grep -q '\`agent-memory\`' '$root/README.md'"
+check "AMEM-2 agent-memory tests" node --test "$root/tests/agent-memory.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
