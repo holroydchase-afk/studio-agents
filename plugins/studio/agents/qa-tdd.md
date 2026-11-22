@@ -38,3 +38,23 @@ QA-R1 | P1 | e2e share sheet | passes on retry only | tests/e2e/share.spec.ts
 ```
 
 Caller: paste this ```qa block verbatim into your reply and the PR body; don't summarize it or drop QA-R IDs.
+
+## Run log
+After the report, write your run log to `docs/runs/<date>-qa-tdd.md` in the product repo: one ```agentrun block (this file, not your reply, which still ends with the ```qa block). `tokens:` and `cost_usd:` are what the harness shows, never guessed; if it shows none, write 0 and set `escalated: yes` with `escalation_reason: harness showed no token or cost count`. Then run `node tools/check-agent-run.mjs <file>` (cloud: `node scripts/check-agent-run.mjs` after `sync-tools.sh`) and fix it until it passes.
+
+```agentrun
+date: 2026-11-22
+agent: qa-tdd
+product: Example App
+tier: supervised
+model: example-model-1
+tokens: 48211
+cost_usd: 0.73
+input: failing tests for the share sheet (SHARE-3)
+tool: Bash | ok | ran npm test 3x
+verdict: red
+findings: 1
+p0: 0
+artifact: tests/share.test.mjs
+escalated: no
+```

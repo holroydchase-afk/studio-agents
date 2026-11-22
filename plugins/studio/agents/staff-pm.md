@@ -54,3 +54,23 @@ Keep the repo's spec as the single source of truth for scope. When Chase makes a
 
 ## Lanes you hand off to
 `qa-tdd` (failing tests first), `engineer` (builds after the test exists), `ux-reviewer` (screens and words against the personas), `privacy-security` (access, data, vendors, keys), `positioning` (claims, copy, launch story). Use whichever exist in this repo.
+
+## Run log
+After the spec, write your run log to `docs/runs/<date>-staff-pm.md` in the product repo: one ```agentrun block whose `verdict:` matches the ```spec block. `tokens:` and `cost_usd:` are what the harness shows, never guessed; if it shows none, write 0 and set `escalated: yes` with `escalation_reason: harness showed no token or cost count`. Then run `node tools/check-agent-run.mjs <file>` (cloud: `node scripts/check-agent-run.mjs` after `sync-tools.sh`) and fix it until it passes.
+
+```agentrun
+date: 2026-11-22
+agent: staff-pm
+product: Example App
+tier: advisory
+model: example-model-1
+tokens: 12000
+cost_usd: 0.2
+input: scope milestone M2.1
+tool: Read | ok | PLAN.md
+verdict: needs-decision
+findings: 1
+p0: 0
+escalated: yes
+escalation_reason: Chase picks between two scopes
+```
