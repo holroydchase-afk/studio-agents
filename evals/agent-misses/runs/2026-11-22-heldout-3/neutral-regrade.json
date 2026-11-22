@@ -1,0 +1,127 @@
+{
+  "note": "Format-neutral re-grade of the saved qa-tdd reports (no new runs). Rubric: the report correctly identifies the real defect AND writes or concretely specifies a failing test that catches it; every format requirement (qa block, priority, IDs, run counts) ignored. Opus graders, fresh, blind to arm. Not read by eval-miss-score.",
+  "agent": "10 of 10",
+  "plain": "9 of 10",
+  "results": [
+    {
+      "case": "qa-tdd-miss-bullet-styles",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names the gap: star, plus and indented bullets silently dropped (P1). Wrote ENTRY-3/4/5 asserting those styles parse, ran them red, verdict red, left entry.mjs unfixed for the engineer."
+    },
+    {
+      "case": "qa-tdd-miss-bullet-styles",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Identifies dropped * and indented bullets (misses +), but never writes or runs a failing test; only suggests a future ENTRY-3 without stating its assertion. Also says merge may be fine."
+    },
+    {
+      "case": "qa-tdd-miss-dark-palette-never-applied",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Identifies css() never emitting a prefers-color-scheme: dark rule while THEME-2 only checks palette numbers; adds THEME-3 asserting css() has the dark media rule and dark colours, run red 3x; source left unfixed."
+    },
+    {
+      "case": "qa-tdd-miss-dark-palette-never-applied",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Names the real gap: css() never emits a dark rule, THEME-2 checks palette numbers not shipped CSS. Concretely specifies failing test asserting css() has prefers-color-scheme: dark using dark fg/bg. Did not fix source."
+    },
+    {
+      "case": "qa-tdd-miss-docs-folder-code",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names code under docs/ (docs/build.mjs) skipping the test gate as P1, writes failing tests SKIP-4/5 asserting it must not skip, shows red, leaves may-skip.mjs unfixed, verdict red."
+    },
+    {
+      "case": "qa-tdd-miss-docs-folder-code",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Names the docs/ folder code-skip gap at P1 (docs/build.mjs returns true) and concretely specifies failing test SKIP-4 asserting docs/build.mjs may not skip; no source fix, says do not merge."
+    },
+    {
+      "case": "qa-tdd-miss-palm-wide-layout",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Identifies resultAlign ignoring mode so palm is left-aligned at 900px+ (P1), writes LAYOUT-6 asserting palm at 1200 is center, ran red 3x; no source fix; verdict red, not ready."
+    },
+    {
+      "case": "qa-tdd-miss-palm-wide-layout",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Identifies resultAlign ignoring mode so palm is left-aligned at 900px+, untested palm wide; concretely specifies resultAlign(\"palm\",1200) must be \"center\", failing on current code; says not ready. Hedged as needing a call, but substance present."
+    },
+    {
+      "case": "qa-tdd-miss-reset-during-sync",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Identifies reset during in-flight sync resurrecting punch into sent (STORE-3); specifies gated-send test asserting sent empty after reset, ran red; source not fixed; verdict not ready."
+    },
+    {
+      "case": "qa-tdd-miss-reset-during-sync",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Names reset-during-in-flight-sync gap (sync pushes snapshot to sent after reset), writes race test with pending send then reset asserting zero punches, reports it failing red, does not fix store.mjs, says don't merge."
+    },
+    {
+      "case": "qa-tdd-miss-skip-reads-as-pass",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Identifies that verdict() counts only fail, so skipped security tests print PASS; wrote VERDICT-3 (one skip among passes must not be PASS) and ran it red 3x; did not fix source; verdict red."
+    },
+    {
+      "case": "qa-tdd-miss-skip-reads-as-pass",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Identifies that verdict counts only failures so skipped security tests print PASS; concretely specifies failing tests (all-skip and pass+skip must not print PASS); did not fix source; says do not merge."
+    },
+    {
+      "case": "qa-tdd-miss-today-vs-week-hours",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Identifies Math.round (Today) vs Math.ceil (Week) mismatch untested by round-value tests; writes failing tests asserting weekHours of one day equals todayHours (481 min, 0-720 sweep), ran red; source left unfixed."
+    },
+    {
+      "case": "qa-tdd-miss-today-vs-week-hours",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Identifies Math.round vs Math.ceil mismatch between Today and Week views, gives mismatching examples, and concretely specifies failing test weekHours([m]) === todayHours(m) for m 0..600; did not fix source, advised not merging."
+    },
+    {
+      "case": "qa-tdd-miss-undo-position",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Identifies undo pushing the card to the end instead of its original position. COL-3 removes 'a' and expects a,b,c back; it ran red (got b,c,a). Verdict is red, and column.mjs was left unchanged."
+    },
+    {
+      "case": "qa-tdd-miss-undo-position",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Identifies undo appending via push instead of restoring index, explains COL-1 hides it by removing last card; writes failing tests (COL-3 removes a from [a,b,c], expects a,b,c, got b,c,a), red, source unchanged, says don't merge."
+    },
+    {
+      "case": "qa-tdd-miss-unescape-order",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Identifies &amp; decoded first so &amp;lt; becomes < (double unescape); wrote UNESC-3 asserting &amp;lt; yields &lt;, ran red (got <); did not fix source; verdict red."
+    },
+    {
+      "case": "qa-tdd-miss-unescape-order",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Identifies &amp; decoded first causing double-unescape (&amp;lt;b&amp;gt; -> <b>), wrote UNESC-3 asserting &lt;b&gt; and ran it red, left source unfixed, said don't merge."
+    },
+    {
+      "case": "qa-tdd-miss-voice-default-lost",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Identifies pickVoice falling back to voices[0] instead of default:true voice; writes failing tests (no-gender and unmatched-gender personas expect flagged default) shown red; no source fix; not called ready."
+    },
+    {
+      "case": "qa-tdd-miss-voice-default-lost",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Identifies fallback to voices[0] instead of default:true voice, notes tests only cover matching personas, wrote VOICE-3/VOICE-4 tests asserting 'Sam' (default) that failed red, did not fix source, said do not merge."
+    }
+  ]
+}
