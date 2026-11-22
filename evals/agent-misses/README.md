@@ -13,18 +13,18 @@ Rules for entries: one line each, a link to the PR or commit, no personal data. 
 | Hearth | 6 | 8 | received |
 | Cohort (persona-twins repo) | 4 | 5 | received |
 | Product Studio (portfolio site, pm-tools, studio-agents) | 7 | 8 | received |
-| Energy Scanner | 0 | 0 | waiting |
+| Energy Scanner | 5 | 5 | received |
 | Charlie | 5 | 5 | received |
 | Crew Clock | 5 | 5 | received |
-| **Total** | **41** | **43 (+2)** | |
+| **Total** | **46** | **48 (+2)** | |
 
 ## Patterns so far
 
 QA-TDD
-- **date-clock**: test depends on today's date or timezone and the clock isn't pinned (CC-Q1, Q2, Q3; HE-Q3, Q4, CK-Q5). Biggest family, 6 of 41.
-- **real-device-gap**: passes in desktop Chrome or fresh browsers, breaks on iPhone Safari, returning visitors, CI fonts, narrow phones, caching (CC-Q4; HE-Q1, Q2, Q5; RR-Q5; CK-Q1, Q3, Q4).
+- **date-clock**: test depends on today's date or timezone and the clock isn't pinned (CC-Q1, Q2, Q3; HE-Q3, Q4, CK-Q5, ES-Q3). Biggest family, 6 of 46.
+- **real-device-gap**: passes in desktop Chrome or fresh browsers, breaks on iPhone Safari, returning visitors, CI fonts, narrow phones, caching (CC-Q4; HE-Q1, Q2, Q5; RR-Q5; CK-Q1, Q3, Q4; ES-Q1, Q2, Q4).
 - **flaky-or-wrong-timing**: races, load flakes, timing the tool instead of the app (RR-Q6, Q8; HE-Q6; CK-Q2).
-- **self-referential-or-skipped-tests**: tests check math against its own output, or a skip looks like a pass, or deps/files missing on a fresh copy (CH-Q1, Q3, Q4, Q5).
+- **self-referential-or-skipped-tests**: tests check math against its own output, or a skip looks like a pass, or deps/files missing on a fresh copy (CH-Q1, Q3, Q4, Q5; ES-Q5 test locked in the bug).
 - **guard-written-after-the-bug**: a check or guard added only after the same defect shipped, or checks too narrow (regex, case, quoting) (PS-Q1, Q2, Q3).
 - **tool-tests-missed-edge-cases**: studio tooling passed its own tests until a qa-tdd review found edges (PS-Q4, Q5, Q6, Q7).
 - **unhandled-input-edges**: zero/negative values, unknown ticker, double clicks (CH-Q1, Q2).
@@ -35,13 +35,15 @@ QA-TDD
 - **public-demo-shipped-with-defects** (RR-Q4).
 
 Staff PM
-- **missing-criteria**: spec lacks a case (failed load, Windows drive root, redirects, laptop view, phone first screen, rollback) (CC-S2, RR-S6, RR-S7, HE-S3, S4, S5, S6, CO-S4, CK-S4, S5, CH-S1, S2, S3, S4).
+- **missing-criteria**: spec lacks a case (failed load, Windows drive root, redirects, laptop view, phone first screen, rollback) (CC-S2, RR-S6, RR-S7, HE-S3, S4, S5, S6, CO-S4, CK-S4, S5, CH-S1, S2, S3, S4, ES-S3, S5).
 - **concurrent-work-collision**: spec overlaps in-flight or live work (CC-S1, RR-S5, CO-S5, CK-S1, S2, CH-S5).
 - **thrash-and-reversal**: shipped, then redone within days (RR-S2, S4, HE-S1, S7, S8, CO-S2, S3).
 - **wrong-identity-detail**: license named a login, not the person (CO-S1).
 - **ambiguous-wording-or-copy**: misread requirement or claim of what isn't true (CC-S4, S5; HE-S2).
 - **overlong-page-or-ux-budget** (CC-S3).
-- **built-then-cut**: feature or page built, then hidden or removed once its premise failed (PS-S1, S2, S6, S7; also CO-S2, S3).
+- **built-then-cut**: feature or page built, then hidden or removed once its premise failed (PS-S1, S2, S6, S7; ES-S2; also CO-S2, S3).
+- **wrong-problem-scoped**: spec solved the stated task, not the user's actual complaint (ES-S1).
+- **done-without-done-check**: marked done or live without the stated check, or without public copy/screenshots (ES-S4, S5; also CC-S5).
 - **undefined-rule** (rounding, risk sizing) (CK-S3, CH-S4).
 
 ## ccwatts
@@ -103,6 +105,24 @@ Staff PM
 - HE-S6 [missing-criteria] Redesign removed Groups, Me and Help with no redirects; old links went blank (tests caught it before deploy). [PR 115](https://github.com/holroydchase-afk/hearth/pull/115)
 - HE-S7 [thrash-and-reversal] Redesign swapped Atkinson for the phone font ([PR 114](https://github.com/holroydchase-afk/hearth/pull/114)), reversed six days later ([PR 146](https://github.com/holroydchase-afk/hearth/pull/146)).
 - HE-S8 [thrash-and-reversal] Warm tan paper shipped, replaced next day by three themes. [PR 122](https://github.com/holroydchase-afk/hearth/pull/122)
+
+## Energy Scanner
+
+Checked against commits, HANDOFF.md and `docs/reviews/`; ES-R IDs are its review findings.
+
+QA-TDD
+- ES-Q1 [real-device-gap] 320px header overflowed on CI only (QA-R3): CI's wider font pushed it 4px off screen. [#46](https://github.com/holroydchase-afk/energy-scanner/pull/46) replaced #45, [8b0fd73](https://github.com/holroydchase-afk/energy-scanner/commit/8b0fd73). Lesson: 320px layout tests need slack for font differences.
+- ES-Q2 [real-device-gap] ES-R46 layout fix left the palm reading left-aligned at 900px and wider (ES-R47, P1): rule not limited to photo mode, only photo layout tested at that width. [9b60a17](https://github.com/holroydchase-afk/energy-scanner/commit/9b60a17), fixed in [30a9c24](https://github.com/holroydchase-afk/energy-scanner/commit/30a9c24)
+- ES-Q3 [date-clock] Tonight's steps loaded once at startup, so an open tab kept last night's ticks (ES-R36, P0); night key used the UTC date so steps vanished at 10 PM Pacific (ES-R31). No test crossed a night or ran outside UTC. [ee42dd9](https://github.com/holroydchase-afk/energy-scanner/commit/ee42dd9), [f6f21e8](https://github.com/holroydchase-afk/energy-scanner/commit/f6f21e8), [#16](https://github.com/holroydchase-afk/energy-scanner/pull/16)
+- ES-Q4 [real-device-gap] Real iPhone photos looked broken (ES-R21, P0): mosaic tiles, jagged edges, washed-out glow, aura on a second person and a ceiling fan. Tests used only made-up images. [59f369e](https://github.com/holroydchase-afk/energy-scanner/commit/59f369e); iPhone rescan still pending.
+- ES-Q5 [self-referential-or-skipped-tests] End-to-end test asserted the low-contrast border on the empty check circle, so it passed a border failing 3:1 (TXT-R19, P1). Test fixed first in [777fcdf](https://github.com/holroydchase-afk/energy-scanner/commit/777fcdf), then [5fed521](https://github.com/holroydchase-afk/energy-scanner/commit/5fed521), [#49](https://github.com/holroydchase-afk/energy-scanner/pull/49)
+
+Staff PM
+- ES-S1 [wrong-problem-scoped] [#48](https://github.com/holroydchase-afk/energy-scanner/pull/48) scoped as a visual restyle, reviewer 7/10, Chase saw ~4/10 because the issue was too much guiding text; reworked in [#49](https://github.com/holroydchase-afk/energy-scanner/pull/49). Rescore in `docs/reviews/2026-11-22-less-text.md` (in that repo).
+- ES-S2 [built-then-cut] M2 built an in-browser camera ([7a11984](https://github.com/holroydchase-afk/energy-scanner/commit/7a11984)); it broke on iPhone and was replaced by the phone's own camera in [#15](https://github.com/holroydchase-afk/energy-scanner/pull/15). Spec never asked whether the native camera already did this.
+- ES-S3 [missing-criteria] Plan banned real photos but planned no replacement (ES-R1, P0), so no demo for recruiters. Fixed with an illustrated sample. [30b6cdd](https://github.com/holroydchase-afk/energy-scanner/commit/30b6cdd)
+- ES-S4 [done-without-done-check] Bedtime mode shipped in [#12](https://github.com/holroydchase-afk/energy-scanner/pull/12) without the README screenshot or case study in "done" (ES-R2, R3, P0); both told the v1 story. [6a08c1c](https://github.com/holroydchase-afk/energy-scanner/commit/6a08c1c)
+- ES-S5 [done-without-done-check] ES-M2.2's check was "the link loads on a phone", but it was marked done and live after a green deploy nobody loaded. [328cd48](https://github.com/holroydchase-afk/energy-scanner/commit/328cd48); Chase's 60-second phone check still open.
 
 ## Cohort (repo persona-twins, now Stakeholder Twins)
 
@@ -180,6 +200,4 @@ Staff PM
 - PS-S7 [built-then-cut] focus-coach shipped as an agent, moved out because it is a skill. [86528b7](https://github.com/holroydchase-afk/studio-agents/commit/86528b7)
 - PS-S8 [missing-criteria] pm-tools HANDOFF carried stale portfolio facts until a sweep. [9505f7b](https://github.com/holroydchase-afk/pm-tools/commit/9505f7b)
 
-## Still to collect
-
-Energy Scanner only. Append a section in the same shape and update the tally.
+All six products plus Product Studio's own repos and Cohort are in. For any new project, append a section in the same shape and update the tally.
