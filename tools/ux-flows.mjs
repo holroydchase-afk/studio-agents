@@ -41,6 +41,7 @@ export function validateFlows(c) {
     if (seen.has(n.toLowerCase())) errors.push(`flow name "${n}" is not unique`);
     seen.add(n.toLowerCase());
     if (f.path !== undefined && !(typeof f.path === "string" && f.path.startsWith("/"))) errors.push(`flow "${n}": path must start with /`);
+    if (f.settle_ms !== undefined && !(Number.isFinite(f.settle_ms) && f.settle_ms >= 0 && f.settle_ms <= 10000)) errors.push(`flow "${n}": settle_ms must be a number from 0 to 10000`);
     if (f.clicks !== undefined && !(Array.isArray(f.clicks) && f.clicks.every((s) => typeof s === "string"))) errors.push(`flow "${n}": clicks must be an array of selectors`);
   });
   return errors;
@@ -53,6 +54,7 @@ export function planFlows(c, outDir) {
     if (f.path) args.push("--path", f.path);
     for (const sel of f.clicks || []) args.push("--click", sel);
     if (f.wait) args.push("--wait", f.wait);
+    if (f.settle_ms !== undefined) args.push("--settle", String(f.settle_ms));
     return { name: f.name, out, args };
   });
 }

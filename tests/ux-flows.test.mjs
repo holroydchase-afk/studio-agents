@@ -103,3 +103,25 @@ test("UXFLOW-1 usage errors and unreadable files exit 2", () => {
   assert.equal(cli(join(here, "fixtures", "ux-flows", "missing.json"), "--dry-run").status, 2);
   assert.equal(cli(fx("malformed"), "--dry-run").status, 2);
 });
+
+test("UXFLOW-SETTLE a flow's settle_ms becomes --settle and must be a number from 0 to 10000", () => {
+  const c = { product: "P", target: "p.html", flows: [{ name: "Scan", clicks: ["#go"], settle_ms: 1500 }] };
+  assert.deepEqual(validateFlows(c), []);
+  const args = planFlows(c, "out")[0].args;
+  assert.equal(args[args.indexOf("--settle") + 1], "1500");
+  assert.match(validateFlows({ ...c, flows: [{ name: "Scan", settle_ms: 99999 }] }).join(), /settle_ms/);
+});
+
+test("UXFLOW-SETTLE edges: bounds, bad types, and no --settle unless set", () => {
+  const base = { product: "P", target: "p.html" };
+  const ok = (v) => validateFlows({ ...base, flows: [{ name: "A", settle_ms: v }] });
+  assert.deepEqual(ok(0), []);
+  assert.deepEqual(ok(10000), []);
+  for (const bad of [10001, -1, NaN, Infinity, "1500", null, true]) {
+    assert.match(ok(bad).join(), /settle_ms/, `settle_ms ${String(bad)}`);
+  }
+  const noSettle = planFlows({ ...base, flows: [{ name: "A" }] }, "out")[0].args;
+  assert.equal(noSettle.includes("--settle"), false);
+  const zero = planFlows({ ...base, flows: [{ name: "A", settle_ms: 0 }] }, "out")[0].args;
+  assert.equal(zero[zero.indexOf("--settle") + 1], "0");
+});

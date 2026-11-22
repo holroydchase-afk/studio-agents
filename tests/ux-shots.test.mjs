@@ -91,3 +91,18 @@ test("--no-network blocks and reports a page that calls home", { skip: !hasPlayw
   const clean = await run(parseArgs([fixture("ux-good.html"), "--no-network", "--out", out]));
   assert.deepEqual(clean.flatMap((r) => r.outsideRequests), []);
 });
+
+test("UXSHOT-SETTLE --settle waits after each click, and a flow's settle_ms is passed on", () => {
+  assert.equal(parseArgs(["page.html", "--settle", "1500"]).settle, 1500);
+  assert.equal(parseArgs(["page.html"]).settle, 150);
+  assert.throws(() => parseArgs(["page.html", "--settle", "-1"]), /settle/);
+});
+
+test("UXSHOT-SETTLE edges: bounds, non-numeric, NaN, missing value", () => {
+  assert.equal(parseArgs(["page.html", "--settle", "0"]).settle, 0);
+  assert.equal(parseArgs(["page.html", "--settle", "10000"]).settle, 10000);
+  for (const bad of ["10001", "abc", "NaN", "Infinity", "-0.5"]) {
+    assert.throws(() => parseArgs(["page.html", "--settle", bad]), /settle/, `--settle ${bad}`);
+  }
+  assert.throws(() => parseArgs(["page.html", "--settle"]));
+});
