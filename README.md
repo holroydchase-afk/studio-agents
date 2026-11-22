@@ -16,6 +16,7 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
 
 The checklist every agent is held to: [docs/agent-template.md](docs/agent-template.md).
+The process that raises any agent (real misses, splits, scores, rules, infrastructure) and where QA-TDD and Staff PM stand: [docs/agent-training-plan.md](docs/agent-training-plan.md).
 
 Which of these are real agents and which are skills or rules, with the proof each has: [docs/agent-audit.md](docs/agent-audit.md).
 
