@@ -213,6 +213,10 @@ check "UXISSUE-1 tool ux-issues exists and is listed in the README" bash -c "tes
 check "ux-issues tests" node --test "$root/tests/ux-issues.test.mjs"
 check "UXRECHK-1 tool ux-recheck exists and is listed in the README" bash -c "test -f '$root/tools/ux-recheck.mjs' || { echo missing tools/ux-recheck.mjs; exit 1; }; grep -q '\`ux-recheck\`' '$root/README.md'"
 check "ux-recheck tests" node --test "$root/tests/ux-recheck.test.mjs"
+check "UXSTATE-1 tool ux-state exists and is listed in the README" bash -c "test -f '$root/tools/ux-state.mjs' || { echo missing tools/ux-state.mjs; exit 1; }; grep -q '\`ux-state\`' '$root/README.md'"
+check "ux-state tests" node --test "$root/tests/ux-state.test.mjs"
+check "UXSEARCH-1 tool ux-search exists and is listed in the README" bash -c "test -f '$root/tools/ux-search.mjs' || { echo missing tools/ux-search.mjs; exit 1; }; grep -q '\`ux-search\`' '$root/README.md'"
+check "ux-search tests" node --test "$root/tests/ux-search.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
