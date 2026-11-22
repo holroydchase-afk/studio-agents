@@ -1,0 +1,1 @@
+{"product":"Example App","target":"","flows":[{"name":"Sign in","path":"/signin","clicks":["#go"],"wait":"#form"}]}
