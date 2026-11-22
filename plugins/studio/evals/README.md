@@ -79,7 +79,7 @@ Score it like ux-reviewer recall: overall (n of 9) and by priority.
 Read this carefully: **the plain session spotted the gap in every case too** and said "don't merge yet". It failed because it never wrote and ran a failing test for the gap, which the grader requires. So these cases measure test-first follow-through on a found gap, not detection. Next: harder cases where the gap isn't visible in 20 lines (a gap that only shows when two files interact, or a P0), and a P0 case, so detection itself separates the arms.
 
 ## qa-tdd miss cases
-Twenty `qa-tdd-miss-*` cases (nine in `qa-tdd-cases.mjs`, eleven fresh held-out ones in `qa-tdd-cases-batch2.mjs`) turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
+Thirty `qa-tdd-miss-*` cases (nine in `qa-tdd-cases.mjs`, eleven fresh held-out ones in `qa-tdd-cases-batch2.mjs`, ten unread held-out ones in `qa-tdd-cases-batch3.mjs`) turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
 
 Do not edit the generated folders by hand. Change the spec, then:
 ```bash
@@ -110,6 +110,16 @@ node tools/eval-miss-cases.mjs --verify   # proves each repro: shipped test gree
 | `qa-tdd-miss-percent-radius` | PS-Q5 | tool-tests-missed-edge-cases | P2 | heldout |
 | `qa-tdd-miss-stale-cache-name` | CK-Q1 | real-device-gap | P1 | heldout |
 | `qa-tdd-miss-rename-first-only` | CO-Q1 | rename-and-coverage-gaps | P2 | heldout |
+| `qa-tdd-miss-skip-reads-as-pass` | CH-Q3 | self-referential-or-skipped-tests | P1 | heldout |
+| `qa-tdd-miss-reset-during-sync` | CK-Q2 | flaky-or-wrong-timing | P1 | heldout |
+| `qa-tdd-miss-dark-palette-never-applied` | CO-Q3 | rename-and-coverage-gaps | P1 | heldout |
+| `qa-tdd-miss-voice-default-lost` | CO-Q2 | rename-and-coverage-gaps | P2 | heldout |
+| `qa-tdd-miss-unescape-order` | PS-Q3 | guard-written-after-the-bug | P1 | heldout |
+| `qa-tdd-miss-undo-position` | PS-Q4 | tool-tests-missed-edge-cases | P2 | heldout |
+| `qa-tdd-miss-bullet-styles` | PS-Q6 | tool-tests-missed-edge-cases | P2 | heldout |
+| `qa-tdd-miss-docs-folder-code` | PS-Q7 | tool-tests-missed-edge-cases | P1 | heldout |
+| `qa-tdd-miss-palm-wide-layout` | ES-Q2 | real-device-gap | P1 | heldout |
+| `qa-tdd-miss-today-vs-week-hours` | CK-Q3 | real-device-gap | P1 | heldout |
 
 Run and score (needs `ANTHROPIC_API_KEY`; not run yet, so there are no results):
 ```bash
@@ -120,7 +130,7 @@ Report recall overall (n of 9), by `split-*` tag (held-out is the number to trus
 Next: the pattern families that don't fit a 20-line repro (CC-Q4 and HE-Q5 real-device screenshots, CC-Q5 privacy leak found by review) need a browser or a second file and wait for a harder case format.
 
 ## staff-pm miss cases
-Twenty-four `staff-pm-miss-*` cases (eight in `staff-pm-cases.mjs`, sixteen fresh held-out ones in `staff-pm-cases-batch2.mjs`, the last four with a TDD mindset: the test input that would have caught a QA-TDD miss) turn real spec misses from `evals/agent-misses/README.md` into recall cases, built from `evals/agent-misses/staff-pm-cases.mjs` by the same tool as the qa-tdd ones (`node tools/eval-miss-cases.mjs`, checked by `tests/check.sh`). Each is one short spec ask plus the repo notes a PM would have, written without a hint at the miss (the tool rejects hint words). The `criteria` grader passes only if the spec or answer explicitly covers the missed criterion with something testable; generic criteria don't count. Tagged `staff-pm`, `miss`, priority, source, pattern and `split-dev` or `split-heldout`.
+Thirty-four `staff-pm-miss-*` cases (eight in `staff-pm-cases.mjs`, sixteen fresh held-out ones in `staff-pm-cases-batch2.mjs`, ten unread held-out ones in `staff-pm-cases-batch3.mjs`, the last four with a TDD mindset: the test input that would have caught a QA-TDD miss) turn real spec misses from `evals/agent-misses/README.md` into recall cases, built from `evals/agent-misses/staff-pm-cases.mjs` by the same tool as the qa-tdd ones (`node tools/eval-miss-cases.mjs`, checked by `tests/check.sh`). Each is one short spec ask plus the repo notes a PM would have, written without a hint at the miss (the tool rejects hint words). The `criteria` grader passes only if the spec or answer explicitly covers the missed criterion with something testable; generic criteria don't count. Tagged `staff-pm`, `miss`, priority, source, pattern and `split-dev` or `split-heldout`.
 
 | Case | Miss | Pattern | Priority | Split |
 |---|---|---|---|---|
@@ -148,6 +158,16 @@ Twenty-four `staff-pm-miss-*` cases (eight in `staff-pm-cases.mjs`, sixteen fres
 | `staff-pm-miss-tdd-status-as-saved` | RR-Q4 | public-demo-shipped-with-defects | P1 | heldout |
 | `staff-pm-miss-tdd-double-press` | CH-Q2 | unhandled-input-edges | P1 | heldout |
 | `staff-pm-miss-tdd-week-boundaries` | CC-Q2 | date-clock | P1 | heldout |
+| `staff-pm-miss-spec-over-inflight-rewrite` | CC-S1 | concurrent-work-collision | P1 | heldout |
+| `staff-pm-miss-contradicting-copy-rules` | CK-S2 | concurrent-work-collision | P2 | heldout |
+| `staff-pm-miss-new-pipeline-while-demo-defects-live` | CH-S5 | concurrent-work-collision | P1 | heldout |
+| `staff-pm-miss-restyle-or-less-text` | ES-S1 | wrong-problem-scoped | P1 | heldout |
+| `staff-pm-miss-license-holder-name` | CO-S1 | wrong-identity-detail | P1 | heldout |
+| `staff-pm-miss-camera-already-native` | ES-S2 | built-then-cut | P1 | heldout |
+| `staff-pm-miss-portrait-without-source-photo` | PS-S1 | built-then-cut | P2 | heldout |
+| `staff-pm-miss-deploy-target-needs-paid-api` | PS-S6 | built-then-cut | P1 | heldout |
+| `staff-pm-miss-autoselect-meaning` | HE-S2 | ambiguous-wording-or-copy | P2 | heldout |
+| `staff-pm-miss-share-screen-feels-like-a-form` | HE-S1 | thrash-and-reversal | P2 | heldout |
 
 Run and score (needs `ANTHROPIC_API_KEY`; not run yet, so there are no results):
 ```bash

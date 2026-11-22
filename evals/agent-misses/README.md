@@ -212,3 +212,9 @@ Scored by running the agent and a fresh grader as Claude Code subagents (no API 
 | 2026-11-22-dev-2 | dev, after tuning | 7 of 9 |
 | 2026-11-22-heldout-1 | held-out, scored once | 7 of 8 |
 | 2026-11-22-heldout-2 | fresh held-out (27 batch-2 cases + 4 cross-lane runs), scored once | with agent 23 of 27 (qa-tdd 11 of 11, staff-pm 12 of 16); cross-lane 2 of 4 |
+| 2026-11-22-heldout-3 | fresh held-out (20 batch-3 cases), scored once, Opus graders blind to arm | with agent 19 of 20 (qa-tdd 10 of 10, staff-pm 9 of 10); plain session 8 of 20 (qa-tdd 1 of 10, staff-pm 7 of 10); format-neutral re-grade of the qa-tdd reports: agent 10 of 10, plain 9 of 10 |
+
+### Batch 3 (unread held-out)
+
+Batch 3 adds 20 more cases (10 qa-tdd in `qa-tdd-cases-batch3.mjs`, 10 staff-pm in `staff-pm-cases-batch3.mjs`), all `heldout`, now 30 qa-tdd and 34 staff-pm case folders. Each uses a miss id no earlier cases file uses (qa-tdd: CH-Q3, CK-Q2, CO-Q3, CO-Q2, PS-Q3, PS-Q4, PS-Q6, PS-Q7, ES-Q2, CK-Q3; staff-pm: CC-S1, CK-S2, CH-S5, ES-S1, CO-S1, ES-S2, PS-S1, PS-S6, HE-S2, HE-S1) and favours patterns with few or no cases so far. They were scored once in run 2026-11-22-heldout-3 and are now spent: the next change needs a new held-out set.
+
