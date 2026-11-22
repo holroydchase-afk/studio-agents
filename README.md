@@ -13,7 +13,8 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `story-keeper` | The story log: decisions, lessons, pivots and wins as they happen, in every chat |
 | `architect` | One stack across products: reviews stack-crossing changes, reuse before build, architecture docs that match the code, weekly drift sweep |
 | `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
-| `focus-coach` | The "you are procrastinating" agent: checks the job-hunt tracker, calls out drift in one cheeky line, redirects to the next application |
+
+Which of these are real agents and which are skills or rules, with the proof each has: [docs/agent-audit.md](docs/agent-audit.md).
 
 Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`, `digest` (the morning digest on demand, in any project), `night-prep` (each evening: unblock list, foreseen blockers and tonight's goal for the 2:15am night shift), `onboard` (bring a new project into the studio per pm-tools `docs/ONBOARDING.md`; `onboard refresh` for an existing one), `recruiter-review` (two hiring-panel modes, engineer-on-panel and hiring-manager, chosen from a posting's reporting line and level; REC-R IDs), `review-rounds` (numbered review-then-fix rounds until nothing at P2 or above is left; from Energy Scanner's ES-R1 to R68).
 
