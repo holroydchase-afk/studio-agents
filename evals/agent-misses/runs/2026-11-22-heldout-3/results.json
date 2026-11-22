@@ -1,0 +1,290 @@
+{
+  "run": "2026-11-22-heldout-3",
+  "date": "2026-11-22",
+  "phase": "heldout",
+  "agent_model": "claude-sonnet-5-5 (general-purpose subagents given the current qa-tdd and staff-pm role prompts and tools in a throwaway sandbox)",
+  "grader_model": "opus, fresh context, saw only the criteria file and the saved report, blind to arm",
+  "change": "fresh held-out set: 20 batch-3 cases (10 qa-tdd, 10 staff-pm) never read before; run twice per case, once with the role prompt (agent arm) and once with the case prompt alone (plain arm) so lift can be measured; graders on Opus from this run on",
+  "results": [
+    {
+      "case": "qa-tdd-miss-bullet-styles",
+      "arm": "agent",
+      "pass": true,
+      "reason": "QA-R2 P1 names star, plus and indented bullets silently dropped; ENTRY-3/4/5 tests ran red (8 of 9 fail); entry.mjs not changed, fix left to engineer; verdict red, not called ready.",
+      "transcript": "transcripts/qa-tdd-miss-bullet-styles-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-bullet-styles",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Names asterisk and indented bullets dropped, but gives no P0-P2 rank, omits '+', and never wrote or ran a failing test (the parseEntry three-field case) red; only suggested future tests.",
+      "transcript": "transcripts/qa-tdd-miss-bullet-styles-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-dark-palette-never-applied",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names css() never emitting dark rule as QA-R1 P1, explains THEME-2 checks values only; THEME-3 asserts prefers-color-scheme dark rule with dark colors, red 3/3; theme.mjs left unfixed for engineer; verdict red.",
+      "transcript": "transcripts/qa-tdd-miss-dark-palette-never-applied-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-dark-palette-never-applied",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Names the gap at P1 (css() never emits a dark rule; THEME-2 checks only palette numbers) and leaves theme.mjs alone, but it only suggests THEME-3. It never wrote that test or ran it red.",
+      "transcript": "transcripts/qa-tdd-miss-dark-palette-never-applied-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-docs-folder-code",
+      "arm": "agent",
+      "pass": true,
+      "reason": "QA-R1 P1 names code under docs/ skipping qa; failing tests SKIP-4/5 (docs/build.mjs) shown red; may-skip.mjs not fixed, handed to engineer; verdict red, not called green.",
+      "transcript": "transcripts/qa-tdd-miss-docs-folder-code-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-docs-folder-code",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Names the docs/ code gap at P1 and does not fix the source, but only lists proposed tests (SKIP-4); no failing test for maySkipQa([\"docs/build-index.mjs\"]) was written and run red, and no red output is shown.",
+      "transcript": "transcripts/qa-tdd-miss-docs-folder-code-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-palm-wide-layout",
+      "arm": "agent",
+      "pass": true,
+      "reason": "QA-R1 P1 names mode ignored, palm left-aligned at 900px+, fix photo-only; notes tests cover photo only. LAYOUT-6 palm 1200 expects center, ran red 3x. Source untouched, verdict red, no merge.",
+      "transcript": "transcripts/qa-tdd-miss-palm-wide-layout-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-palm-wide-layout",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Names palm-mode wide-layout gap, but gives no P1-or-higher rank and only suggests a palm test; no failing test was written or run red.",
+      "transcript": "transcripts/qa-tdd-miss-palm-wide-layout-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-reset-during-sync",
+      "arm": "agent",
+      "pass": true,
+      "reason": "QA-R2 P1 names reset during in-flight sync pushing punch to sent; STORE-3 held send open, reset, finished, red with sent=1; store.mjs not fixed, handed to engineer; verdict red, not called ready.",
+      "transcript": "transcripts/qa-tdd-miss-reset-during-sync-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-reset-during-sync",
+      "arm": "plain",
+      "pass": true,
+      "reason": "RESET-R1 P1 names reset during in-flight sync re-pushing punches to sent; existing tests lack overlap; race.test.mjs written and run red (2 fail); store.mjs not fixed; says don't merge.",
+      "transcript": "transcripts/qa-tdd-miss-reset-during-sync-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-skip-reads-as-pass",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names skipped security tests printing PASS as QA-R1 P1; VERDICT-3/4 skip tests ran red 3x; verdict.mjs not fixed (left to engineer); verdict red, not ready to merge.",
+      "transcript": "transcripts/qa-tdd-miss-skip-reads-as-pass-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-skip-reads-as-pass",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Names the skip-reads-as-PASS gap and doesn't fix verdict.mjs, but gives no P0/P1 rank and writes no failing skip test run red; only suggests tests and probes inputs manually.",
+      "transcript": "transcripts/qa-tdd-miss-skip-reads-as-pass-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-today-vs-week-hours",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names Math.round vs Math.ceil Today/Week mismatch as QA-R1 P1; HOURS-3/HOURS-4 compare weekHours([n]) to todayHours(n), 0-720 includes 505, shown red; hours.mjs untouched; verdict red, not called ready.",
+      "transcript": "transcripts/qa-tdd-miss-today-vs-week-hours-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-today-vs-week-hours",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Names the round vs ceil mismatch and does not fix source, but gives no P0/P1 rank and only suggests a weekHours==todayHours test; no failing test was written or run red.",
+      "transcript": "transcripts/qa-tdd-miss-today-vs-week-hours-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-undo-position",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names undo-appends-to-end gap at P1, notes COL-1 removes last card, COL-3 removes \"a\" and runs red (got b,c,a), column.mjs untouched with fix handed to engineer, verdict red.",
+      "transcript": "transcripts/qa-tdd-miss-undo-position-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-undo-position",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Names the undo-position gap, has failing test COL-3 (remove a, undo, expect a,b,c) run red, and leaves column.mjs unfixed, but gives no P0-P2 priority rank, so 'ranked P2 or higher' is not explicit.",
+      "transcript": "transcripts/qa-tdd-miss-undo-position-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-unescape-order",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names &amp;-first double-unescape (&amp;lt; to < instead of &lt;) as P1 QA-R1; failing tests UNESC-3/4/6 ran red; unescape.mjs untouched, fix handed to engineer; verdict red, not green.",
+      "transcript": "transcripts/qa-tdd-miss-unescape-order-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-unescape-order",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Names the &amp;-first double-decode gap, writes a red failing test, and leaves the source unfixed, but never ranks it P1 or higher (no priority given). Test uses &amp;lt;b&amp;gt; rather than the specified script case.",
+      "transcript": "transcripts/qa-tdd-miss-unescape-order-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-voice-default-lost",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names fallback to voices[0] instead of default:true voice as QA-R1 P1; notes tests only cover matching personas; VOICE-3/4 red output shown for no/unmatched gender; voice.mjs untouched, fix sent to engineer; verdict red.",
+      "transcript": "transcripts/qa-tdd-miss-voice-default-lost-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-voice-default-lost",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Names the voices[0]-not-default gap, writes failing tests VOICE-3/VOICE-4 that ran red, does not fix source, blocks merge. But the gap is never ranked P0/P1/P2 explicitly; no severity ranking is present.",
+      "transcript": "transcripts/qa-tdd-miss-voice-default-lost-plain.md"
+    },
+    {
+      "case": "staff-pm-miss-autoselect-meaning",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Lists three readings incl. preselecting last-used groups, recommends A with reason and flags for Chase; testable bet: 0 of 20 posts to a group not seen ticked, backed by AUTOSEL-2/4/5. No P-ranking present.",
+      "transcript": "transcripts/staff-pm-miss-autoselect-meaning-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-autoselect-meaning",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Lists three readings including pre-checking last-used groups, picks option 1 with reasons and flags it to Chase; AUTO-4 and AUTO-6 are testable criteria that the post audience equals on-screen checks. No ranking to check.",
+      "transcript": "transcripts/staff-pm-miss-autoselect-meaning-plain.md"
+    },
+    {
+      "case": "staff-pm-miss-camera-already-native",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Cuts the in-page camera because the iPhone file picker already offers Take Photo. Keeps native capture and adds testable CAM-1, a real-iPhone check, before any custom camera is built. Assigns no P-ranks, so the ranking rule doesn't apply.",
+      "transcript": "transcripts/staff-pm-miss-camera-already-native-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-camera-already-native",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Asks whether the native file-picker Take Photo already meets the need, makes the native capture the first step, and adds a testable iPhone Safari acceptance check before any custom camera. No ranking given, so the P1 rule does not apply.",
+      "transcript": "transcripts/staff-pm-miss-camera-already-native-plain.md"
+    },
+    {
+      "case": "staff-pm-miss-contradicting-copy-rules",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Quotes Spec A vs B contradiction, flags it for Chase with B recommended and loser marked replaced (recorded as decision), and TODAY-1 gives one testable open-shift criterion ('6.2 h working', never 'so far'). No P-ranking used.",
+      "transcript": "transcripts/staff-pm-miss-contradicting-copy-rules-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-contradicting-copy-rules",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Flags the A/B contradiction, recommends B and asks the owner to choose, records it in HANDOFF Decisions to review and marks the loser superseded, and gives one testable criterion: '3h 10m \u00b7 still on the clock' plus a test that fails on 'so far'.",
+      "transcript": "transcripts/staff-pm-miss-contradicting-copy-rules-plain.md"
+    },
+    {
+      "case": "staff-pm-miss-deploy-target-needs-paid-api",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Checks flat plan/no paid API first, cuts GitHub Actions for needing paid API key, verdict runs inside plan with extra cost stated ($0 dollars, plan usage measured), testable SCHED-1/SCHED-2 criteria guard it.",
+      "transcript": "transcripts/staff-pm-miss-deploy-target-needs-paid-api-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-deploy-target-needs-paid-api",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Checks flat-plan/no-paid-API constraint first, explicitly rejects GitHub Actions and VM/serverless as metered, recommends scheduled cloud sessions inside the plan stating $0 extra cash plus plan-usage cost. Nothing ranked, so no P-level needed.",
+      "transcript": "transcripts/staff-pm-miss-deploy-target-needs-paid-api-plain.md"
+    },
+    {
+      "case": "staff-pm-miss-license-holder-name",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Asks owner to confirm full name as on portfolio, refuses GitHub handle; LIC-1 checks copyright line equals confirmed name, LIC-2 checks it differs from login. No P-ranking used, so rank rule not violated.",
+      "transcript": "transcripts/staff-pm-miss-license-holder-name-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-license-holder-name",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Names real name Chase Holroyd from site footer, not GitHub handle, and asks owner to confirm; but gives no testable acceptance criterion checking the license line against it, and no spec or ranking.",
+      "transcript": "transcripts/staff-pm-miss-license-holder-name-plain.md"
+    },
+    {
+      "case": "staff-pm-miss-new-pipeline-while-demo-defects-live",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Names two open P1 demo card defects, sequences M1.1 fix first with testable done (failing test, green 3x, republish), clear not-yet verdict with reason, and explicitly cuts starting M2 before P1s land.",
+      "transcript": "transcripts/staff-pm-miss-new-pipeline-while-demo-defects-live-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-new-pipeline-while-demo-defects-live",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Notices two open P1 demo defects, gives clear no-go on the pipeline, sequences P1s first with failing tests and 3x suites, keeps P1 ranking, and builds nothing until P1 PRs merge, so no parallel work.",
+      "transcript": "transcripts/staff-pm-miss-new-pipeline-while-demo-defects-live-plain.md"
+    },
+    {
+      "case": "staff-pm-miss-portrait-without-source-photo",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Blocked verdict; M1.1 requires Chase to supply a 3200px+ original before the build, done when in repo; fallback keeps current small portrait instead of upscaling; listed as top risk; no P ranking used.",
+      "transcript": "transcripts/staff-pm-miss-portrait-without-source-photo-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-portrait-without-source-photo",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Present: source photo blocker before build with testable size (>=3200px, 1600px minimum), owned by Chase; fallback to keep portrait at small file's real width. No ranking used, so P2 rule not applicable.",
+      "transcript": "transcripts/staff-pm-miss-portrait-without-source-photo-plain.md"
+    },
+    {
+      "case": "staff-pm-miss-restyle-or-less-text",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Reads complaint as focus/too much competing text, explicitly rejects restyle, and sets testable budget: HOME-1 guiding text above upload is one line of at most 12 words, plus collapse criteria. No P-ranking present to check.",
+      "transcript": "transcripts/staff-pm-miss-restyle-or-less-text-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-restyle-or-less-text",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Reads complaint as density/too many competing things; scopes cutting guiding text to one sentence with testable element budget (one title, one line, one button); explicitly rejects restyle; ranked first priority.",
+      "transcript": "transcripts/staff-pm-miss-restyle-or-less-text-plain.md"
+    },
+    {
+      "case": "staff-pm-miss-share-screen-feels-like-a-form",
+      "arm": "agent",
+      "pass": false,
+      "reason": "Has field limit (PHOTO-1), one main action (PHOTO-3), some plain wording. Missing a scored review of the built screen against postcard criteria before done; ux-reviewer check is persona/DS based, not scored.",
+      "transcript": "transcripts/staff-pm-miss-share-screen-feels-like-a-form-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-share-screen-feels-like-a-form",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Has one clear Send action and plain verb labels, but no limit on visible fields/controls before first action and no scored review of the built screen against postcard criteria before done; no ranking.",
+      "transcript": "transcripts/staff-pm-miss-share-screen-feels-like-a-form-plain.md"
+    },
+    {
+      "case": "staff-pm-miss-spec-over-inflight-rewrite",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Identifies in-flight layout/chart rewrite PR of same page, sequences UI behind its merge (M1.2 wait gate), testable FLT-5/FLT-6 criteria against rewritten/merged layout; no P-ranking used, so no ranking violation.",
+      "transcript": "transcripts/staff-pm-miss-spec-over-inflight-rewrite-agent.md"
+    },
+    {
+      "case": "staff-pm-miss-spec-over-inflight-rewrite",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Sequences behind the rewrite PR (described, not named by number or title), but has no testable criterion that the filter is specced against the post-rewrite page; only a risk note to re-check data shape.",
+      "transcript": "transcripts/staff-pm-miss-spec-over-inflight-rewrite-plain.md"
+    }
+  ]
+}

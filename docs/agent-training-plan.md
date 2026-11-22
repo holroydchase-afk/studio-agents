@@ -10,7 +10,7 @@ Related: [agent-template.md](agent-template.md) (the eight things every agent mu
 - **The grader never sees how the agent got there.** A fresh grader reads only the case's `criteria.md` and the saved report, and answers PASS or FAIL with one specific reason.
 - **Held-out means unread.** A held-out case is never read while tuning and is scored once per change. After a change, a held-out set is spent, so the next change needs a new one.
 - **Rules come from misses, not hunches.** A rule is added only for a pattern a missed case showed. The case stays forever as a regression case.
-- **Cost stays small.** Run one lane at a time, sonnet for agents and graders unless a case needs more, and say what a round cost.
+- **Cost stays small.** Run one lane at a time, sonnet for agents; fresh graders run on Opus from run heldout-3 on (Chase, Nov 22), earlier runs (dev-1 to heldout-2) were graded by sonnet, so say so when comparing; and say what a round cost.
 
 ## The bar (Chase, Nov 22)
 Every studio agent is held to what a hiring manager at Anthropic would call a real agent, not a prompt file. Chase treats the current agents as staff level, and over-claiming on the portfolio has already cost him an opportunity, so the bar has two halves.
@@ -99,7 +99,7 @@ Build order for QA-TDD and Staff PM, each its own small PR, test first, merged o
 | 6 Good-work set | Done (after shots of improved products) | **Not yet** | **Not yet** |
 | 7 Noise check | Done | **Not yet** | **Not yet** |
 | 8 Rules from misses | Done (7 to 9, then 11 of 12) | Done once (P0 rule, qa block, boundary list, think like the staff PM) | Done once (public-copy done items, test-first spec) |
-| 9 Held-out scored once | Done | Done: 3 of 4, then 11 of 11 on a fresh set | Done: 4 of 4, then 12 of 16 on a fresh set |
+| 9 Held-out scored once | Done | Done: 3 of 4, then 11 of 11, then 10 of 10 (plain session 1 of 10) on fresh sets | Done: 4 of 4, then 12 of 16, then 9 of 10 (plain session 7 of 10) on fresh sets |
 | 10 Compare (plain, cross-lane) | Plain done | Cross-lane started; plain **not yet** | Cross-lane 2 of 4; plain **not yet** |
 | 11 Pilot on a real product | Done (#76, portfolio demos) | **Not yet** | **Not yet** |
 | 12 Promote or hold | Advisory | Advisory | Advisory |
@@ -146,3 +146,4 @@ Add a dated line whenever the process changes or a milestone moves. Say what cha
 - 2026-11-22: Build order 5 done: `agent-guard` (kill switch, cost cap, qa-tdd only-test-files), 41 tests, Guards step in qa-tdd.md and staff-pm.md. Not claimed as working in production until a real run uses all three. Next: generic state and search, scorecard, fresh held-out set with the tools on.
 - 2026-11-22: Build order 7 done: `agent-scorecard` (15 tests, SCORE-1..15) reads `evals/agent-misses/runs/*/results.json` and valid `docs/runs/*.md` logs, one section per agent, cross rows attributed by `by`. Lift counts only for a heldout run whose plain and agent arms cover the same case names; none does yet, so lift and cost both print not measured. Local report only; publishing to the Studio scoreboard is a site change that needs a preview for Chase first.
 - 2026-11-22: `stamp-run` (26 tests, STAMP-1..13): the caller, not the agent, stamps a run log with tokens measured from the subagent transcript (deduplicated sums), the commit and an optional test count; `check-agent-run` validates the `stamp_*` lines. Run log row: tokens measured by stamp-run from subagent transcripts, run by the caller. Cost needs a price file with a source and date; none exists, so cost stays not measured. Committed logs are not stamped yet.
+- 2026-11-22: Held-out set 3 scored with a plain-session arm and Opus graders (blind to arm): 20 fresh batch-3 cases, 2 runs each. qa-tdd agent 10 of 10 vs plain 1 of 10; staff-pm agent 9 of 10 vs plain 7 of 10; overall 19 of 20 vs 8 of 20. Limits: 20 cases, one run each, cases written by us (CO-Q2, PS-Q6, PS-Q7 repros are inferences from thin README lines), reports saved by the agent itself, held-out set now spent. Staff-pm lift (2 cases) is within noise; qa-tdd lift is large because the criteria reward a required ```qa block and priority that a plain session never writes, so part of it is format, not skill. Staff-pm miss: share-screen-feels-like-a-form (both arms). Next: Q5 per-priority lift is a number now; a new held-out set is needed for the next change.
