@@ -13,9 +13,11 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { checkUxRun } from "./check-ux-run.mjs";
+import { similarity } from "./ux-search.mjs";
 
 const USAGE = "usage: ux-issues.mjs <run.md> [--existing issues.json] [--max N] [--allow-advisory]";
 const MAX_TITLE = 120;
+const DUP_SIMILARITY = 0.6;
 
 export function renderBody(f, run) {
   const lines = [
@@ -49,6 +51,8 @@ export function planIssues(run, opts = {}) {
   for (const f of run.findings || []) {
     if (!(f.priority in rank)) { out.skipped.push({ id: f.id, reason: `${f.priority} findings stay in the review, not the issue list` }); continue; }
     if (open.some((t) => t.includes(`[${f.id}]`))) { out.skipped.push({ id: f.id, reason: "duplicate: an open issue already has this id" }); continue; }
+    const near = f.problem && open.find((t) => similarity(f.problem, t.replace(/^\s*\[[^\]]*\]\s*/, "")) >= DUP_SIMILARITY);
+    if (near) { out.skipped.push({ id: f.id, reason: `possible duplicate of: ${near}` }); continue; }
     candidates.push(f);
   }
   candidates.sort((a, b) => rank[a.priority] - rank[b.priority]);
