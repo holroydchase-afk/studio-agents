@@ -204,10 +204,11 @@ All six products plus Product Studio's own repos and Cohort are in. For any new 
 
 ## Scored runs
 
-Scored by running the agent and a fresh grader as Claude Code subagents (no API key). Each run folder under `runs/` holds `results.json`, the generated `results.md` and the saved reports. Agent arm only; no plain-session arm yet.
+Scored by running the agent and a fresh grader as Claude Code subagents (no API key). Each run folder under `runs/` holds `results.json`, the generated `results.md` and the saved reports. Agent arm plus a small cross-lane arm (the other agent on the same case); no plain-session arm yet.
 
 | Run | Phase | Result |
 |---|---|---|
 | 2026-11-22-dev-1 | dev, baseline | 3 of 9 |
 | 2026-11-22-dev-2 | dev, after tuning | 7 of 9 |
 | 2026-11-22-heldout-1 | held-out, scored once | 7 of 8 |
+| 2026-11-22-heldout-2 | fresh held-out (27 batch-2 cases + 4 cross-lane runs), scored once | with agent 23 of 27 (qa-tdd 11 of 11, staff-pm 12 of 16); cross-lane 2 of 4 |

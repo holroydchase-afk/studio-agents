@@ -106,3 +106,39 @@ test("MISS-S12 QA-R6 malformed results.json gives a one-line error, not a stack 
 test("MISS-S13 QA-R7 --check-all fails when the runs directory is missing", () => {
   assert.equal(cli(["--check-all"], path.join(os.tmpdir(), "ems-does-not-exist-" + process.pid)).status, 1);
 });
+test("MISS-S14 a cross-lane arm is accepted and labelled", () => {
+  const rows = [ok(), ok({ arm: "cross", by: "staff-pm", transcript: "u.md" })];
+  assert.deepEqual(problems(run(rows), dirWith(["t.md", "u.md"]), specs), []);
+  assert.match(render(run(rows), specs), /Other agent \(cross-lane\)/);
+});
+
+// ---- Cross-arm tests added by qa-tdd (Nov 22). S15-S16 are coverage; S17-S20 are red until the engineer fixes the tool. ----
+const pm = new Map([...specs, ["staff-pm-miss-c", { id: "c", agent: "staff-pm", miss: "XX-S1", pattern: "q", priority: "P0", split: "dev" }]]);
+const cells = (line) => line.split("|").slice(1, -1).length;
+test("MISS-S15 a cross result scored twice for one case is rejected, and cross does not collide with agent", () => {
+  assert.ok(problems(run([ok({ arm: "cross" }), ok({ arm: "cross" })]), dirWith(), specs).some((e) => /cross: scored twice/.test(e)));
+  assert.deepEqual(problems(run([ok(), ok({ arm: "cross", by: "staff-pm", transcript: "u.md" })]), dirWith(["t.md", "u.md"]), specs), []);
+});
+test("MISS-S16 mixed agent/cross/plain arms render aligned columns in a fixed order with n/a for empty slices", () => {
+  const md = render(run([ok(), ok({ arm: "plain", pass: false }), ok({ case: "staff-pm-miss-c", arm: "cross" })]), pm);
+  assert.match(md, /\| \| With agent \| Other agent \(cross-lane\) \| Plain session \|/);
+  for (const line of md.split("## Cases")[0].split("\n").filter((l) => l.startsWith("|"))) assert.equal(cells(line), 4, `misaligned row: ${line}`);
+  assert.match(md, /\| qa-tdd \| 1 of 1 \| n\/a \| 0 of 1 \|/);
+  assert.match(md, /\| staff-pm \| n\/a \| 1 of 1 \| n\/a \|/);
+  assert.match(md, /\| P0 \| n\/a \| 1 of 1 \| n\/a \|/);
+});
+test("MISS-S17 QA-R1 a cross result with no agent result for the same case is rejected (nothing to compare it to)", () => {
+  assert.ok(problems(run([ok({ case: "staff-pm-miss-c", arm: "cross" })]), dirWith(), pm).some((e) => /cross/.test(e)), "orphan cross result accepted");
+});
+test("MISS-S18 QA-R2 a cross result names which agent ran it, and that agent is not the case's own", () => {
+  const d = dirWith(["t.md", "u.md"]);
+  const base = ok({ case: "staff-pm-miss-c" });
+  assert.ok(problems(run([base, ok({ case: "staff-pm-miss-c", arm: "cross", transcript: "u.md" })]), d, pm).some((e) => /cross/.test(e)), "cross result with no `by` agent accepted");
+  assert.ok(problems(run([base, ok({ case: "staff-pm-miss-c", arm: "cross", by: "staff-pm", transcript: "u.md" })]), d, pm).some((e) => /cross/.test(e)), "cross result run by the case's own agent accepted");
+});
+test("MISS-S19 QA-R3 two arms of one case cannot share one transcript (one report graded twice)", () => {
+  assert.ok(problems(run([ok(), ok({ arm: "cross" })]), dirWith(), specs).some((e) => /transcript/.test(e)), "shared transcript accepted");
+});
+test("MISS-S20 QA-R4 the results.json format in the tool header lists the cross arm", () => {
+  assert.match(fs.readFileSync(TOOL, "utf8").split("\n").slice(0, 12).join("\n"), /"arm": "agent"\|"plain"\|"cross"|"cross"/);
+});

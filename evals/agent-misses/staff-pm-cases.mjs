@@ -5,7 +5,9 @@
 // Cases are invented-name rebuilds of the situation, not checkouts. `split`: dev may guide tuning staff-pm.md;
 // held-out cases are scored once per change and never read while tuning.
 
-export const PM_CASES = [
+import { PM_BATCH2 } from "./staff-pm-cases-batch2.mjs";
+
+const PM_BASE = [
   {
     id: "rounding-rule", miss: "CK-S3", pattern: "undefined-rule", priority: "P1", split: "dev", src: "ck",
     ask: "Write the spec for the Week screen: hours for each day, plus a week total.",
@@ -55,3 +57,5 @@ export const PM_CASES = [
     mustCover: "a no-go (or go with the named condition) because the plan's own done check, loading the link on a phone, has no evidence in what was provided, listing it as not met or unverified rather than rounding up from the green deploy, and who does the check",
   },
 ];
+
+export const PM_CASES = [...PM_BASE, ...PM_BATCH2];
