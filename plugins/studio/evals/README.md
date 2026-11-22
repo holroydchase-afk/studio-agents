@@ -127,7 +127,11 @@ The 14 recall cases above are mostly saturated, so they cannot show a climb from
 
 **Baseline (with ux-reviewer, 1 run, $1.85):** 8 of 11 (73%). Misses: `keyboard-covers-comment` (P0: on-screen keyboard covers a pinned field, only desktop screenshots exist), `nav-reads-like-website` (six text links, no bottom tab bar), `heavy-dated-controls` (toolbar row, giant filled button, heavy selected blob). The same cases passed 10 of 11 when the prompts hinted at the issue, so hints must stay out. The three misses are the gaps for the next rule changes: real-device behaviour, app-versus-website navigation, and iPhone-native taste.
 
-Not done: 4 cases that use the real "before" screenshots (evals/ux-baseline in PR #70) need `--scaffold` so the screenshot can be copied into the eval sandbox, which is blocked here without Chase's go.
+**After Layer D (rules D1 to D4 added to ux-reviewer.md, 12 cases incl. a dark-mode case, 1 run, $2.20):** 11 of 12 (92%). `keyboard-covers-comment` and `heavy-dated-controls` now pass; `nav-reads-like-website` still fails (1 of 3 judge votes). Caution: these rules were written from the same misses, so this is an in-sample score. The held-out check is the real before-screenshot cases and the new labelled shots. The dark-mode case passed 3 of 3 before any dark-mode rule, so the UX Design Institute research (D4) is kept as a guard, not credited with a gain.
+
+Real-screenshot cases (4, `ux-reviewer-fresh-real-*`, from the Nov 19 before shots in PR #70) use a `case.yaml` with `context.scaffold_script: setup.sh`, which copies `screen.png` into the run; run them with `--scaffold`. First run 1 of 4: the agent scored them 4 to 5 out of 10 and found big problems, but the pass rules were stricter than the issue (to loosen).
+
+Superseded note: 4 cases that use the real "before" screenshots (evals/ux-baseline in PR #70) need `--scaffold` so the screenshot can be copied into the eval sandbox, which is blocked here without Chase's go.
 
 ## Recall results (2026-10-30, 1 run per arm, default model, $3.20)
 | Slice | With ux-reviewer | Plain session |

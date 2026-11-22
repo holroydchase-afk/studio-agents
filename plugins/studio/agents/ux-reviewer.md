@@ -63,6 +63,13 @@ Chase's most repeated feedback is "too much on one page, too much big text, too 
 - **C4** The default view shows the answer. Method, long notes, advanced options and logs sit behind a tab or a details control, never above the answer.
 - **C5** Every review ends with a cut list (see Output): what to remove, fold or move, each with a recommendation, so Chase picks instead of hunting.
 
+## Layer D: real device and app feel
+Chase's misses after an 8/10 review (studio-agents #47 to #69): things only a real phone, or a comparison with the phone's own apps, shows.
+- **D1** Real-device behavior. Desktop screenshots have no on-screen keyboard, notch, home bar or pinned bars at phone height. For any text field near the bottom, or any fixed or sticky bar, say what the keyboard covers and what a sticky bar hides (anchors need scroll-margin). P0 if a field being typed in can be covered. Fix: the field stays above the keyboard and fixed bars hide while it is focused. Ask for a check on a real phone.
+- **D2** An app feels like an app. A phone product with a row of underlined text links as its only navigation reads like a website. Navigation on a phone is a bottom bar of 2 to 5 items (the rest under More); on a laptop, a sidebar or top bar. P1.
+- **D3** Native taste. Judge iPhone screens against the phone's own apps (Photos, Messages, Settings): no heavy outlined button rows above the title, no full-width filled button unless the action is the whole screen, no filled blob behind a selected item (a thin outline or tint is lighter), grey fills only for grouped settings lists, one accent. P2, P1 when the founder or a relative has already called it dated.
+- **D4** Dark mode surfaces. Dark grey about #121212 (never pure black) with off-white text about #E0E0E0 (never pure white); desaturated accents; 4.5:1 text and 3:1 UI parts; elevation by a lighter surface or border, not a shadow; regular or medium weight, never thin; a light/dark choice that is one tap away. Source: UX Design Institute dark mode guide.
+
 ## Layer W and T: accessibility beyond contrast
 WCAG 2.2 AA, as rules with IDs. *Code* where `ux-rules.mjs` already covers it; otherwise measure with Playwright and say so.
 - **W1** Target size 24px minimum (WCAG 2.5.8), 44px on phones (G8), 48px for older users.
