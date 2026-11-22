@@ -131,6 +131,10 @@ The 14 recall cases above are mostly saturated, so they cannot show a climb from
 
 Real-screenshot cases (4, `ux-reviewer-fresh-real-*`, from the Nov 19 before shots in PR #70) use a `case.yaml` with `context.scaffold_script: setup.sh`, which copies `screen.png` into the run; run them with `--scaffold`. First run 1 of 4: the agent scored them 4 to 5 out of 10 and found big problems, but the pass rules were stricter than the issue (to loosen).
 
+**Real before-screenshot set (24 cases, `ux-reviewer-fresh-real-*`, run with `--scaffold`, 1 run each, about $3.50 a run).** 12 cases are issues Chase confirmed as P0/P1 (4 early, 8 more from the independent label pass) and 12 are P2 issues from the same independent pass (tag `by-agent`). Tall pages are pre-cut into 1,100px sections because the viewer shrinks a 4,000px page to about 170px wide. Results with Layer D (D1 to D6) and the cut-tall-screenshots rule: **13 of 24 (54%)**; the same set scored 14 of 24 on an earlier run, so expect plus or minus 2 from run noise. First score on screens the rules were not tuned for: 3 of 8 (38%) for the Chase-confirmed new ones, before D5 and D6.
+Still missed most runs: ccwatts page issues (share block before data, own-logs chore, mixed units), a title that contradicts its heading (Today over "Yesterday"), cut-off wording on a modal button, and the Hearth Share start. The agent usually finds other real problems on those screens instead, so the next step is precision as well as recall: a fixed list per screen to score false alarms against.
+A run can also fail from the plan's usage limit ("5-hour limit"), which shows as an error, not a miss: check `error` before reading a score.
+
 Superseded note: 4 cases that use the real "before" screenshots (evals/ux-baseline in PR #70) need `--scaffold` so the screenshot can be copied into the eval sandbox, which is blocked here without Chase's go.
 
 ## Recall results (2026-10-30, 1 run per arm, default model, $3.20)
