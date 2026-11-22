@@ -49,9 +49,21 @@ PY
 # sync.sh: copies every agent and its preloaded skills, keeps project-only agents and skills, rejects unknown names.
 repo="$tmp/repo"; mkdir -p "$repo/.claude/agents" "$repo/.claude/skills/project-skill"; echo local > "$repo/.claude/agents/project-only.md"; echo mine > "$repo/.claude/skills/project-skill/SKILL.md"
 check "sync.sh copies all agents" bash "$root/scripts/sync.sh" "$repo"
-check "sync.sh: every product agent present and identical" diff -r -x project-only.md -x orchestrator.md -x focus-coach.md "$root/plugins/studio/agents" "$repo/.claude/agents"
-check "sync.sh skips studio-only agents by default" test ! -e "$repo/.claude/agents/orchestrator.md" -a ! -e "$repo/.claude/agents/focus-coach.md"
+check "sync.sh: every product agent present and identical" diff -r -x project-only.md -x orchestrator.md "$root/plugins/studio/agents" "$repo/.claude/agents"
+check "sync.sh skips studio-only agents by default" test ! -e "$repo/.claude/agents/orchestrator.md"
 check "sync.sh copies a studio-only agent when named" bash -c "bash '$root/scripts/sync.sh' '$repo' orchestrator >/dev/null && test -f '$repo/.claude/agents/orchestrator.md' && rm '$repo/.claude/agents/orchestrator.md'"
+
+# AGENTSORT-1..3: focus-coach is a nudge, not an agent; the focus-check skill holds the behavior. Agent audit doc lists every agent.
+check "AGENTSORT-1 focus-coach agent file is gone" test ! -e "$root/plugins/studio/agents/focus-coach.md"
+check "AGENTSORT-1 focus-check SKILL.md exists and has Override and Applied" bash -c "f='$root/plugins/studio/skills/focus-check/SKILL.md'; test -f \$f && grep -qi 'override' \$f && grep -qi 'applied' \$f"
+check "AGENTSORT-2 sync.sh with no names still skips orchestrator" bash -c "r=\$(mktemp -d); mkdir -p \$r/.claude/agents; bash '$root/scripts/sync.sh' \$r >/dev/null && test ! -e \$r/.claude/agents/orchestrator.md && test -f \$r/.claude/agents/staff-pm.md"
+check "AGENTSORT-2 sync.sh source no longer mentions focus-coach" bash -c "! grep -q 'focus-coach' '$root/scripts/sync.sh'"
+check "AGENTSORT-2 README agent table has no focus-coach row, Skills paragraph still lists focus-check" bash -c "! awk '/^\\|/{on=1} on&&!/^\\|/{exit} on' '$root/README.md' | grep -q 'focus-coach' && grep -q '^Skills.*\`focus-check\`' '$root/README.md'"
+check "AGENTSORT-2 CLAUDE.md table has no focus-coach row" bash -c "! grep -q '^| .*\`focus-coach\`' '$root/CLAUDE.md'"
+aa="$root/docs/agent-audit.md"
+check "AGENTSORT-3 docs/agent-audit.md exists" test -f "$aa"
+check "AGENTSORT-3 agent-audit.md has a table row for every agent file, focus-coach and release-captain" bash -c "test -f '$aa' || { echo 'missing docs/agent-audit.md'; exit 1; }; for a in \$(cd '$root/plugins/studio/agents' && ls *.md | sed 's/\\.md\$//') focus-coach release-captain; do grep -q \"^|.*\$a\" '$aa' || { echo \"no row for \$a\"; exit 1; }; done"
+check "AGENTSORT-3 README links to docs/agent-audit.md" grep -q 'docs/agent-audit.md' "$root/README.md"
 check "sync.sh notes a synced agent missing from the repo's CLAUDE.md table (QA-R1)" bash -c "echo '| x | \`staff-pm\` |' > '$repo/CLAUDE.md'; bash '$root/scripts/sync.sh' '$repo' staff-pm story-keeper | grep -q 'add the story-keeper row' && ! bash '$root/scripts/sync.sh' '$repo' staff-pm | grep -q note; rc=\$?; rm '$repo/CLAUDE.md'; exit \$rc"
 check "story-keeper: never creates docs/STORY.md, replies No entry on routine turns, reads CLAUDE.md hard rules" bash -c "f='$root/plugins/studio/agents/story-keeper.md'; grep -q 'Never create the file' \$f && grep -q 'No entry' \$f && grep -q 'CLAUDE.md\` hard rules' \$f"
 check "sync.sh copies the studio design rules with ux-reviewer" diff "$root/docs/design-rules.md" "$repo/.claude/design-rules.md"
@@ -362,7 +374,7 @@ check "CLOUD-6 log hook: neither project dir nor cwd is a repo, writes nothing a
 ch="$tmp/cloudhome"; mkdir -p "$ch/.claude"
 printf '{"model":"opus","hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"echo keep-me"}]}]}}' > "$ch/.claude/settings.json"
 check "CLOUD-1 install-cloud.sh runs and exits 0" bash -c "HOME='$ch' bash '$root/scripts/install-cloud.sh'"
-check "CLOUD-1 install-cloud.sh copies every agent (incl. orchestrator, focus-coach) to \$HOME/.claude/agents" bash -c "for f in '$root'/plugins/studio/agents/*.md; do cmp \"\$f\" '$ch/.claude/agents/'\$(basename \$f) || exit 1; done; test -f '$ch/.claude/agents/orchestrator.md' -a -f '$ch/.claude/agents/focus-coach.md'"
+check "CLOUD-1 install-cloud.sh copies every agent (incl. orchestrator) to \$HOME/.claude/agents" bash -c "for f in '$root'/plugins/studio/agents/*.md; do cmp \"\$f\" '$ch/.claude/agents/'\$(basename \$f) || exit 1; done; test -f '$ch/.claude/agents/orchestrator.md'"
 check "CLOUD-2 install-cloud.sh copies log-agent-run.sh to \$HOME/.claude/studio" cmp "$root/templates/scripts/log-agent-run.sh" "$ch/.claude/studio/log-agent-run.sh"
 { echo stale > "$ch/.claude/agents/qa-tdd.md"; } 2>/dev/null
 check "CLOUD-1 install-cloud.sh re-run overwrites a stale agent with the latest and exits 0" bash -c "HOME='$ch' bash '$root/scripts/install-cloud.sh' && cmp '$root/plugins/studio/agents/qa-tdd.md' '$ch/.claude/agents/qa-tdd.md'"
