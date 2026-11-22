@@ -58,6 +58,17 @@ check "sync.sh copies the studio design rules with ux-reviewer" diff "$root/docs
 check "design rules: every rule ux-rules.mjs checks (G and V) is defined in ux-reviewer.md" bash -c "for g in \$(grep -oE 'add\\(\"[GV][0-9]+' '$root/tools/ux-rules.mjs' | grep -oE '[GV][0-9]+' | sort -u); do grep -q \"\\*\\*\$g\\*\\*\" '$root/plugins/studio/agents/ux-reviewer.md' || { echo \"\$g missing\"; exit 1; }; done"
 check "ux-rules.mjs tests pass (browser cases skip without Playwright)" node --test "$root/tests/ux-rules.test.mjs"
 
+# UXR-2 (Nov 22, Chase: "how do I improve the UX agent"): focus and density, design system first, before/after, WCAG 2.2, persona tap path.
+uxr="$root/plugins/studio/agents/ux-reviewer.md"; uxs="$root/plugins/studio/skills/ux-review/SKILL.md"
+for r in C1 C2 C3 C4 C5 W1 W2 W3 W4 W5 W6 T1 DS1; do
+  check "UXR-2 ux-reviewer.md defines rule $r" grep -q "\*\*$r\*\*" "$uxr"
+done
+check "UXR-2 ux-reviewer.md has a cut list in Output" bash -c "awk '/^## /{on=(\$0 ~ /^## Output/)} on' '$uxr' | grep -qi 'cut list'"
+check "UXR-2 ux-reviewer.md reads the design system (docs/design, STUDIO-CORE, tokens.json) first" bash -c "grep -q 'STUDIO-CORE' '$uxr' && grep -q 'tokens.json' '$uxr'"
+check "UXR-2 ux-reviewer.md requires before and after shot pairs" grep -qi "before and after" "$uxr"
+check "UXR-2 ux-reviewer.md walks the persona as numbered taps and stops at the first stuck step" bash -c "grep -qi 'numbered taps' '$uxr' && grep -qi 'first step where' '$uxr'"
+check "UXR-2 ux-review SKILL.md carries the new rules (C1, W1, T1, DS1, cut list)" bash -c "for k in C1 W1 T1 DS1 'cut list'; do grep -q \"\$k\" '$uxs' || { echo \"missing \$k\"; exit 1; }; done"
+
 # check-findings.mjs: validates the ```findings block at the end of a ux-reviewer review (UXR-PROD).
 # Fixtures: valid-*.md pass with exit 0 and a quiet stderr; invalid-*.md exit exactly 1, and stderr names the
 # broken rule (the "<!-- expect: word -->" line), one reason per line. Every check first needs the tool to exist,
