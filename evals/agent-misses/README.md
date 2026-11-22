@@ -10,18 +10,18 @@ Rules for entries: one line each, a link to the PR or commit, no personal data. 
 |---|---|---|---|
 | ccwatts | 5 | 5 | received |
 | Role Radar | 9 | 7 (+2 no link) | received |
-| Hearth | 6 | 8 | received |
+| Hearth | 7 | 8 | received |
 | Cohort (persona-twins repo) | 4 | 5 | received |
 | Product Studio (portfolio site, pm-tools, studio-agents) | 7 | 8 | received |
 | Energy Scanner | 5 | 5 | received |
 | Charlie | 5 | 5 | received |
 | Crew Clock | 5 | 5 | received |
-| **Total** | **46** | **48 (+2)** | |
+| **Total** | **47** | **48 (+2)** | |
 
 ## Patterns so far
 
 QA-TDD
-- **date-clock**: test depends on today's date or timezone and the clock isn't pinned (CC-Q1, Q2, Q3; HE-Q3, Q4, CK-Q5, ES-Q3). Biggest family, 6 of 46.
+- **date-clock**: test depends on today's date or timezone and the clock isn't pinned (CC-Q1, Q2, Q3; HE-Q3, Q4, CK-Q5, ES-Q3). Biggest family, 6 of 47.
 - **real-device-gap**: passes in desktop Chrome or fresh browsers, breaks on iPhone Safari, returning visitors, CI fonts, narrow phones, caching (CC-Q4; HE-Q1, Q2, Q5; RR-Q5; CK-Q1, Q3, Q4; ES-Q1, Q2, Q4).
 - **flaky-or-wrong-timing**: races, load flakes, timing the tool instead of the app (RR-Q6, Q8; HE-Q6; CK-Q2).
 - **self-referential-or-skipped-tests**: tests check math against its own output, or a skip looks like a pass, or deps/files missing on a fresh copy (CH-Q1, Q3, Q4, Q5; ES-Q5 test locked in the bug).
@@ -30,7 +30,7 @@ QA-TDD
 - **unhandled-input-edges**: zero/negative values, unknown ticker, double clicks (CH-Q1, Q2).
 - **ci-environment-drift**: runner or image changed (RR-Q7), red main left unfixed (RR-Q9, HE-Q3).
 - **matching-and-sorting-edges**: substring match, text-sorted dates, null input (RR-Q1, Q2, Q3).
-- **privacy-leak-not-tested**: found by review, not tests (CC-Q5).
+- **privacy-leak-not-tested**: found by review, not tests (CC-Q5, HE-Q7).
 - **rename-and-coverage-gaps**: rename left a stale mention, feature with no tests, vacuous test that passes with its rule missing, promised findings left open (CO-Q1..Q4).
 - **public-demo-shipped-with-defects** (RR-Q4).
 
@@ -94,7 +94,7 @@ QA-TDD
 - HE-Q4 [date-clock] RD-44 demo test drifted with today's date, red on main. [PR 138](https://github.com/holroydchase-afk/hearth/pull/138)
 - HE-Q5 [real-device-gap] iPhone glass tab bar covered labels; only Chase's phone caught it. [PR 103](https://github.com/holroydchase-afk/hearth/pull/103)
 - HE-Q6 [flaky-or-wrong-timing] Jest test flakes under load (T27), still open. [PR 140](https://github.com/holroydchase-afk/hearth/pull/140)
-- Lesson only (history rewritten, case not linkable): real-names leak, [fad2714](https://github.com/holroydchase-afk/hearth/commit/fad2714).
+- HE-Q7 [privacy-leak-not-tested] Real family names, and stories that identify people, sat in docs, tests and commit messages of a public repo; found by a pre-hosting scan, not by any test or check, then removed by a history rewrite (the original commits can't be linked). The rule was held by review only; a hashed-name check was left as a tracker item. Lesson recorded in [fad2714](https://github.com/holroydchase-afk/hearth/commit/fad2714) (docs/eng/LESSONS.md, Oct 29 entry). Eval case: `qa-tdd-miss-name-denylist-case`.
 
 Staff PM
 - HE-S1 [thrash-and-reversal] First Share screen read like a form (2/10), redone as the postcard. [PR 129](https://github.com/holroydchase-afk/hearth/pull/129)
