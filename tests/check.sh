@@ -218,6 +218,7 @@ check "UXSTATE-1 tool ux-state exists and is listed in the README" bash -c "test
 check "ux-state tests" node --test "$root/tests/ux-state.test.mjs"
 check "UXSEARCH-1 tool ux-search exists and is listed in the README" bash -c "test -f '$root/tools/ux-search.mjs' || { echo missing tools/ux-search.mjs; exit 1; }; grep -q '\`ux-search\`' '$root/README.md'"
 check "ux-search tests" node --test "$root/tests/ux-search.test.mjs"
+check "UXLOG-1..5 ux-reviewer run log on the shared agentrun format plus uxrun (fixture passes both checkers; prompt text)" node --test "$root/tests/ux-shared-log.test.mjs"
 check "CHKSPEC-1 tool check-spec exists and is listed in the README" bash -c "test -f '$root/tools/check-spec.mjs' || { echo missing tools/check-spec.mjs; exit 1; }; grep -q '\`check-spec\`' '$root/README.md'"
 check "CHKSPEC-2 check-spec tests" node --test "$root/tests/check-spec.test.mjs"
 check "QARUN3-1 tool qa-run3 exists and is listed in the README" bash -c "test -f '$root/tools/qa-run3.mjs' || { echo missing tools/qa-run3.mjs; exit 1; }; grep -q '\`qa-run3\`' '$root/README.md'"
