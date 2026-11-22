@@ -7,6 +7,7 @@
 // never read while tuning (the same rule as the UX evals).
 
 import { QA_BATCH2 } from "./qa-tdd-cases-batch2.mjs";
+import { QA_BATCH3 } from "./qa-tdd-cases-batch3.mjs";
 
 const QA_BASE = [
   {
@@ -318,4 +319,4 @@ test("GAP capitalised and shouted names are flagged too", () => {
   },
 ];
 
-export const QA_CASES = [...QA_BASE, ...QA_BATCH2];
+export const QA_CASES = [...QA_BASE, ...QA_BATCH2, ...QA_BATCH3];

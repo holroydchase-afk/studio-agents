@@ -6,6 +6,7 @@
 // held-out cases are scored once per change and never read while tuning.
 
 import { PM_BATCH2 } from "./staff-pm-cases-batch2.mjs";
+import { PM_BATCH3 } from "./staff-pm-cases-batch3.mjs";
 
 const PM_BASE = [
   {
@@ -58,4 +59,4 @@ const PM_BASE = [
   },
 ];
 
-export const PM_CASES = [...PM_BASE, ...PM_BATCH2];
+export const PM_CASES = [...PM_BASE, ...PM_BATCH2, ...PM_BATCH3];
