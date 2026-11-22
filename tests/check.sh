@@ -209,6 +209,8 @@ for f in "$root"/tools/*.mjs; do
 done
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
+check "UXISSUE-1 tool ux-issues exists and is listed in the README" bash -c "test -f '$root/tools/ux-issues.mjs' || { echo missing tools/ux-issues.mjs; exit 1; }; grep -q '\`ux-issues\`' '$root/README.md'"
+check "ux-issues tests" node --test "$root/tests/ux-issues.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"

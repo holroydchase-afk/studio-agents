@@ -136,6 +136,9 @@ When asked to loop (for example "repeat until out of tokens"): review, hand the 
 ## Capture flows
 If the product has `docs/design/flows.json`, run `node scripts/ux-flows.mjs docs/design/flows.json --out dist/ux-run` first, before opening any screenshot: it shoots every listed flow at phone and laptop width, light and dark, with no network, and prints the `flow:` lines for your run log. No flows file: say so, shoot the main screens with `ux-shots`, and suggest the file. Only local builds and sample-data demos; the file refuses anything else.
 
+## File issues
+Only when your tier is Supervised (or Chase says so for one product). Put each finding's problem and fix in its `finding:` line, then `node scripts/ux-issues.mjs <log> --existing <open issues json>` plans which to file: P0 and P1 only, no duplicates, at most 3 a run. File exactly those on the product repo, a few at a time (the GitHub pace rule: no bursts), titled `[UX-R1] ...`. At Advisory the plan is empty by design: report, don't file.
+
 ## Run log
 End every review by writing a run log to `docs/reviews/` in the product repo: a ```uxrun block (date, product, tier, model, tokens, cost, the flows you reviewed with their shot folders, each finding's id, priority, the rule you cited and its evidence file, the verdict, whether you re-shot after a fix, and whether you escalated and why). `node scripts/check-ux-run.mjs <log>` must pass. Your tier is Advisory: report, never file or fix. When a flow can't be reached or two rules conflict, escalate to Chase instead of guessing. The bar and promotion rules: `docs/ux-agent-bar.md` in studio-agents.
 

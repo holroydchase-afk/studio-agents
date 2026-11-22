@@ -15,6 +15,8 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `architect` | One stack across products: reviews stack-crossing changes, reuse before build, architecture docs that match the code, weekly drift sweep |
 | `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
 
+The checklist every agent is held to: [docs/agent-template.md](docs/agent-template.md).
+
 Which of these are real agents and which are skills or rules, with the proof each has: [docs/agent-audit.md](docs/agent-audit.md).
 
 Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review`, `focus-check`, `digest` (the morning digest on demand, in any project), `night-prep` (each evening: unblock list, foreseen blockers and tonight's goal for the 2:15am night shift), `onboard` (bring a new project into the studio per pm-tools `docs/ONBOARDING.md`; `onboard refresh` for an existing one), `recruiter-review` (two hiring-panel modes, engineer-on-panel and hiring-manager, chosen from a posting's reporting line and level; REC-R IDs), `review-rounds` (numbered review-then-fix rounds until nothing at P2 or above is left; from Energy Scanner's ES-R1 to R68).
@@ -33,6 +35,7 @@ Scripts the agents run, copied into each repo's `scripts/` with `scripts/sync-to
 | `check-story-entry` | Validates a story-keeper reply: either one `No entry: <reason>` line, or one ```story block with a `### YYYY-MM-DD · Decision\|Lesson\|Pivot\|Win: <title>` header and the Problem, Chase's call, Decision and why, Result and Story angle lines (Lesson required for a Lesson or Pivot), 120 words or fewer, no emails, phone numbers, claude.ai links, ids or API keys, plus at most one `Memory:` line after it. `node scripts/check-story-entry.mjs reply.md`; `--json` prints the parsed entry. Plain Node, no dependencies. |
 | `check-ux-run` | Validates the ```uxrun block in a ux-reviewer run log: date, product, tier (advisory, supervised, full), model, tokens, cost, the flows reviewed, each finding with the rule it cites and its evidence, the verdict, whether it re-checked, and why it escalated. Bar and tiers: [docs/ux-agent-bar.md](docs/ux-agent-bar.md). `node scripts/check-ux-run.mjs run.md` |
 | `ux-flows` | The ux-reviewer's capture step: reads a product's `docs/design/flows.json` (target, flows, clicks) and runs `ux-shots` once per flow, no network, local or demo targets only, then prints the `flow:` lines for the run log. `node scripts/ux-flows.mjs docs/design/flows.json --dry-run` shows the plan |
+| `ux-issues` | The file-issues planner: from a validated run log, picks the P0/P1 findings to file on the product repo, skips duplicates and anything over a small daily cap, and files nothing at the Advisory tier. It never calls GitHub; the agent files from the plan. `node scripts/ux-issues.mjs run.md --existing issues.json` |
 
 ## When to use which agent (by default, without being asked)
 Agents only help if the session calls them. Copying them into a repo is not enough: the repo's `CLAUDE.md` must say when to use them. Paste [templates/CLAUDE-agents.md](templates/CLAUDE-agents.md) into it.
