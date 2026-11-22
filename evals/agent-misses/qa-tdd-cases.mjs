@@ -6,7 +6,9 @@
 // `split`: dev cases may be used while tuning qa-tdd.md; held-out cases are scored once per change and
 // never read while tuning (the same rule as the UX evals).
 
-export const QA_CASES = [
+import { QA_BATCH2 } from "./qa-tdd-cases-batch2.mjs";
+
+const QA_BASE = [
   {
     id: "weekday-clock", miss: "CC-Q1", pattern: "date-clock", priority: "P1", split: "dev", src: "cc",
     ask: "Our pace page shows how many days are left in the week (Monday to Sunday).",
@@ -315,3 +317,5 @@ test("GAP capitalised and shouted names are flagged too", () => {
     gapTest: "`leaks(\"Thanks, QUILL and Quill's pie\", [sha256(\"quill\")])` must return 2 matches",
   },
 ];
+
+export const QA_CASES = [...QA_BASE, ...QA_BATCH2];
