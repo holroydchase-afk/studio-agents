@@ -54,7 +54,7 @@ The loop above needs plumbing. UX has most of it already, so the rule is: **gene
 
 | Piece | UX reviewer has | QA-TDD has | Staff PM has | Shared build (reuse) |
 |---|---|---|---|---|
-| **Tools that act** (a script the agent calls, not prose) | Have: `ux-shots`, `ux-rules`, `ux-flows`, `ux-issues`, `ux-recheck` | Partial: Bash only. No tool runs a suite 3x and reports flaky | Missing | `qa-run3` (suite 3x, per-run counts, flaky flag, JSON) and `spec-lint` (checks a spec against the rules) |
+| **Tools that act** (a script the agent calls, not prose) | Have: `ux-shots`, `ux-rules`, `ux-flows`, `ux-issues`, `ux-recheck` | Have (Nov 22): `qa-run3` runs a suite 3x, flags flaky, kills a hung run, never echoes output, prints the qa suite line | Partial: `check-spec` validates; `spec-lint` not built | `qa-run3` (suite 3x, per-run counts, flaky flag, JSON) and `spec-lint` (checks a spec against the rules) |
 | **Output contract with a validator** | Have: ```findings (`check-findings`) | Have: ```qa (`check-qa-report`) | Have (Nov 22): ```spec block, `check-spec`, 59 tests; not yet scored on a held-out set | Done for staff-pm: verdict, bet, steps, criteria with inputs and expected results, cuts, risks, decisions, handoffs |
 | **Run log** (who, when, model, tokens, cost, verdict) | Have: ```uxrun (`check-ux-run`) | Missing: the qa block has no identity, tokens or cost | Missing | One ```agentrun shape (`check-agent-run`) that qa-tdd and staff-pm write; ```uxrun stays and maps onto it |
 | **Memory between runs** | Have: `ux-state` (open, fixed, back) | Missing: every run starts blank | Missing | Parameterize `ux-state` by agent and id prefix (QA-R, PM-R) rather than copying it |
@@ -140,3 +140,4 @@ Add a dated line whenever the process changes or a milestone moves. Say what cha
 - 2026-11-22: Added the infrastructure table (Chase: "are we building all the infrastructure? ... we have already built it for UX"). Rule: generalize the UX pieces and plug qa-tdd and staff-pm in; build order and milestones Q7 and S8 added.
 - 2026-11-22: Added "The bar" (real agent, claim only what logs and scores show) and the subagent section (Chase: strong tooling for each, staff level, no overclaiming; subagent teams later if they beat the single agent).
 - 2026-11-22: Build order 1 done: `check-spec` and the ```spec block for staff-pm (qa-tdd wrote 59 red tests first, engineer built it). Known gap: step IDs must look like M1.1; a product prefix such as CCW-M1.1 is rejected. Next: `qa-run3`.
+- 2026-11-22: Build order 2 (qa-run3) done: 19 tests written red by qa-tdd, built by the engineer, wired into qa-tdd.md. Next: `spec-lint`, then the shared run log.
