@@ -428,6 +428,11 @@ ch3="$tmp/cloudhome3"; mkdir -p "$ch3/.claude"
 printf '{"hooks":{"PreToolUse":[{"matcher":"Agent","hooks":[{"type":"command","command":"bash \\"$HOME/.claude/studio/log-agent-run.sh\\""}]}]}}' > "$ch3/.claude/settings.json"
 check "CLOUD-11 (QA-R4) existing matcher \"Agent\" log hook is replaced: exactly one PreToolUse entry runs log-agent-run.sh" bash -c "HOME='$ch3' bash '$root/scripts/install-cloud.sh' && python3 -c 'import json,sys;pre=json.load(open(sys.argv[1]))[\"hooks\"][\"PreToolUse\"];n=sum(1 for e in pre if any(\".claude/studio/log-agent-run.sh\" in h.get(\"command\",\"\") for h in e.get(\"hooks\",[])));assert n==1, f\"want 1 entry referencing log-agent-run.sh, got {n}: {pre}\"' '$ch3/.claude/settings.json'"
 
+# MISS-1/2: the qa-tdd miss cases are generated from evals/agent-misses/qa-tdd-cases.mjs; a stale folder or a repro without its gap fails.
+check "MISS-1 qa-tdd miss case folders match their spec (no stale or orphaned files)" bash -c "cd '$root' && node tools/eval-miss-cases.mjs --check"
+check "MISS-2 each qa-tdd miss repro holds: shipped test green, gap test red" bash -c "cd '$root' && node tools/eval-miss-cases.mjs --verify"
+check "MISS-3 eval-miss-cases tool regression tests (QA-R1..R6)" bash -c "cd '$root' && node --test tests/eval-miss-cases.test.mjs"
+
 # Agent evals: every case dispatches a real studio agent and has a scoring grader.
 for d in "$root"/plugins/studio/evals/*/; do
   c="$(basename "$d")"; [ "$c" = results ] && continue
