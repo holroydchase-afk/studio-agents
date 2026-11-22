@@ -120,6 +120,15 @@ claude plugin eval . --trust-plugin --no-publish --tag recall --case 'ux-reviewe
 ```
 Recall is the share of cases whose `criteria` grader passed. Report it three ways: overall (n of 14), by priority (group by the `p0`/`p1`/`p2` tag; P0 recall is the number that matters most, and a P0 miss is a bug in the agent), and for `by-human` cases on their own: those are issues a person had to find, so a pass there is the agent catching what it missed the first time. The with-plugin arm is the score; the baseline arm shows how much of it a plain session gets anyway. With 1 run per case a single result is noisy; rerun a miss before calling it a regression.
 
+## Fresh human-miss cases (UX 7 to 9, 2026-11-22)
+The 14 recall cases above are mostly saturated, so they cannot show a climb from 7 to 9. Eleven `ux-reviewer-fresh-*` cases come from 23 "UX eval miss" issues (studio-agents #47 to #69) filed by every product: things a review passed at 8/10 that Chase or a relative found later. They are rebuilt small screens with neutral prompts (no hint like "be harsh") and one known issue each. Tags: `ux-reviewer`, `fresh`, priority, source, `by-human`. Run: `claude plugin eval . --trust-plugin --no-publish --case 'ux-reviewer-fresh-*'`.
+
+**What 7 and 9 mean (proposal):** 7 = fresh-set recall around 70%, P0 misses possible. 9 = at least 90% on the fresh set with every P0 caught, plus no review that scores a screen 8 or higher when a human later rated it 5 or lower.
+
+**Baseline (with ux-reviewer, 1 run, $1.85):** 8 of 11 (73%). Misses: `keyboard-covers-comment` (P0: on-screen keyboard covers a pinned field, only desktop screenshots exist), `nav-reads-like-website` (six text links, no bottom tab bar), `heavy-dated-controls` (toolbar row, giant filled button, heavy selected blob). The same cases passed 10 of 11 when the prompts hinted at the issue, so hints must stay out. The three misses are the gaps for the next rule changes: real-device behaviour, app-versus-website navigation, and iPhone-native taste.
+
+Not done: 4 cases that use the real "before" screenshots (evals/ux-baseline in PR #70) need `--scaffold` so the screenshot can be copied into the eval sandbox, which is blocked here without Chase's go.
+
 ## Recall results (2026-10-30, 1 run per arm, default model, $3.20)
 | Slice | With ux-reviewer | Plain session |
 |---|---|---|
