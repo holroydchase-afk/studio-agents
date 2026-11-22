@@ -215,6 +215,8 @@ Scored by running the agent and a fresh grader as Claude Code subagents (no API 
 | 2026-11-22-heldout-3 | fresh held-out (20 batch-3 cases), scored once, Opus graders blind to arm | with agent 19 of 20 (qa-tdd 10 of 10, staff-pm 9 of 10); plain session 8 of 20 (qa-tdd 1 of 10, staff-pm 7 of 10); format-neutral re-grade of the qa-tdd reports: agent 10 of 10, plain 9 of 10 |
 | 2026-11-22-batch5-dev | dev, 4 dossier staff-pm cases (fixture repo, two traps each), before tuning | agent 1 of 4; plain 0 of 4 (Opus graders blind to arm) |
 | 2026-11-22-batch5-heldout | held-out, 6 staff-pm cases (4 dossier plus the 2 triage cases), scored once after tuning | agent 5 of 6; plain 3 of 6. Agent only passed 2 (console page, phone font); tied 3; both missed dream-roles. 6 cases, one run, author knew the traps; demo-criteria case weak (both arms read a real repo outside the sandbox) |
+| 2026-11-22-batch6-dev | dev, 4 staff-pm cases built from real past misses (mined from product repos, not written by me) | agent 3 of 4; plain 1 of 4. Read while tuning |
+| 2026-11-22-batch6-heldout | held-out, 5 real-miss cases, scored once after one tuning change | agent 0 of 5; plain 0 of 5. No lift shown. 5 cases, one run, graded by Opus blind to arm; sandbox repos were thin (several runs said so) |
 
 ### Batch 3 (unread held-out)
 

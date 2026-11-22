@@ -1,0 +1,80 @@
+{
+ "run": "2026-11-22-batch6-heldout",
+ "date": "2026-11-22",
+ "phase": "heldout",
+ "agent_model": "claude-sonnet-5-5 (agent arm: general-purpose subagent told to read and follow the current plugins/studio/agents/staff-pm.md, throwaway sandbox repo with all studio tools; plain arm: only the ask)",
+ "grader_model": "opus, fresh context, saw only the criteria file and the saved report, blind to arm (arm labels shuffled per case)",
+ "change": "batch 6 held-out: 5 cases built from real past misses mined from the product repos (not written by the case author), scored once after one tuning change from the dev lessons only (staff-pm.md rule 4: merged, deployed and checked are three states with a record place for each).",
+ "results": [
+  {
+   "case": "staff-pm-miss-hearth-readme-icon-rule-drift",
+   "arm": "agent",
+   "pass": false,
+   "reason": "TABBAR-6 greps the docs for the old rule, but the README is changed in a later step (after a phone check), not in the same PR as the other docs.",
+   "transcript": "transcripts/hearth-readme-icon-rule-drift-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-readme-icon-rule-drift",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Names all three docs and says fix in the same PR, but no done check or grep for leftover statements of the old rule.",
+   "transcript": "transcripts/hearth-readme-icon-rule-drift-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-charlie-public-before-the-go",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Go recorded as a written go in the thread and visibility is flipped by hand, but no step checks actual visibility against the recorded go before the first Pages run.",
+   "transcript": "transcripts/charlie-public-before-the-go-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-charlie-public-before-the-go",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Says nothing runs before the go but not where it is recorded, and no check of actual visibility against the go.",
+   "transcript": "transcripts/charlie-public-before-the-go-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-ccwatts-sample-merged-into-history",
+   "arm": "agent",
+   "pass": false,
+   "reason": "History is written on every run; only a tests-only opt-out. Never says a sample or --path run leaves the real history untouched; HIST-12 only asserts commands exit 0.",
+   "transcript": "transcripts/ccwatts-sample-merged-into-history-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-ccwatts-sample-merged-into-history",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Writes history on every run; no rule that a sample or explicit-path run must not touch real history and no test that the history file is unchanged.",
+   "transcript": "transcripts/ccwatts-sample-merged-into-history-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-crew-clock-consent-and-retention",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Consent record and foreman case covered, but retention gives periods only for location and photos, none for chat data, and the gap is not ranked P0.",
+   "transcript": "transcripts/crew-clock-consent-and-retention-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-crew-clock-consent-and-retention",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Consent gate and removal test (RET-1), gaps ranked P0, but no retention period for chat data (chat is cut as not needed).",
+   "transcript": "transcripts/crew-clock-consent-and-retention-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-sdk-vs-ios15-constraint",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Defers the SDK pin until the phone survey; never says Expo Go runs only the newest SDK, so no conflict with iOS 15 support, and the call is not put to the owner at once.",
+   "transcript": "transcripts/hearth-sdk-vs-ios15-constraint-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-hearth-sdk-vs-ios15-constraint",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Mentions Expo Go only in passing; no iOS 15 versus newest-SDK conflict and the SDK decision waits for the survey.",
+   "transcript": "transcripts/hearth-sdk-vs-ios15-constraint-plain.md"
+  }
+ ]
+}

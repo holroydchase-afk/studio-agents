@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: staff-pm-miss-hearth-migrations-no-deploy-record
+context:
+  scaffold_script: setup.sh
