@@ -7,6 +7,7 @@
 
 import { PM_BATCH2 } from "./staff-pm-cases-batch2.mjs";
 import { PM_BATCH3 } from "./staff-pm-cases-batch3.mjs";
+import { PM_BATCH4 } from "./staff-pm-cases-batch4.mjs";
 
 const PM_BASE = [
   {
@@ -59,4 +60,4 @@ const PM_BASE = [
   },
 ];
 
-export const PM_CASES = [...PM_BASE, ...PM_BATCH2, ...PM_BATCH3];
+export const PM_CASES = [...PM_BASE, ...PM_BATCH2, ...PM_BATCH3, ...PM_BATCH4];
