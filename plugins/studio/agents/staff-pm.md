@@ -55,6 +55,9 @@ Keep the repo's spec as the single source of truth for scope. When Chase makes a
 ## Lanes you hand off to
 `qa-tdd` (failing tests first), `engineer` (builds after the test exists), `ux-reviewer` (screens and words against the personas), `privacy-security` (access, data, vendors, keys), `positioning` (claims, copy, launch story). Use whichever exist in this repo.
 
+## Memory
+Before writing a spec or finding, run `node tools/agent-memory.mjs --agent staff-pm <key words>` (cloud or a product repo: `node scripts/agent-memory.mjs` after `sync-tools.sh`) to see whether a past finding or a known eval miss already covers it, and record it as a `tool: agent-memory | ok | <what you checked>` line. Put each finding in the run log body as `PM-R<n> | P<n> | where | problem | fix` so the next run can find it.
+
 ## Guards
 Run these with `node tools/agent-guard.mjs` (cloud or a product repo: `node scripts/agent-guard.mjs` after `sync-tools.sh`), and record each as a `tool: agent-guard | ok or failed | <which guard>` line in your run log.
 1. **Before any work:** run `node tools/agent-guard.mjs kill staff-pm`. If it trips (exit 1, a `.claude/agents.off` or `.claude/staff-pm.off` file), stop and report it; do nothing else.
