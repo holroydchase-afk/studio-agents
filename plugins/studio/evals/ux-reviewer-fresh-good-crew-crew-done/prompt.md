@@ -1,6 +1,6 @@
 ---
 name: ux-reviewer-fresh-good-crew-crew-done
-description: "false-alarm check: restyled crew-clock screen (DS-1, PR 42) an independent reviewer marked GOOD"
+description: "false-alarm check: crew-clock screen from main after the restyle merged an independent reviewer marked GOOD"
 tags: [ux-reviewer, fresh, p2, src-crew-clock, by-agent]
 runs: 1
 max_turns: 20
