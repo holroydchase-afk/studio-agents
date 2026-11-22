@@ -12,6 +12,23 @@ Related: [agent-template.md](agent-template.md) (the eight things every agent mu
 - **Rules come from misses, not hunches.** A rule is added only for a pattern a missed case showed. The case stays forever as a regression case.
 - **Cost stays small.** Run one lane at a time, sonnet for agents and graders unless a case needs more, and say what a round cost.
 
+## The bar (Chase, Nov 22)
+Every studio agent is held to what a hiring manager at Anthropic would call a real agent, not a prompt file. Chase treats the current agents as staff level, and over-claiming on the portfolio has already cost him an opportunity, so the bar has two halves.
+
+**1. It has to be real.** A tool loop (the agent calls scripts that act and read results), a validated output contract, a run log, memory between runs, guardrails and a score on real cases against a plain-session baseline. Strong tooling for each agent comes before polish. The infrastructure table below is the checklist.
+
+**2. We only claim what the repo can show.** A public claim about an agent (README, portfolio, LinkedIn) must point to a run log, a score or a case folder in this repo. Before any claim goes public:
+- Say what the agent does in the words of the score ("11 of 11 on 11 fresh cases, 12 of 16 on staff-pm"), never "expert" or "autonomous".
+- State the arm: with agent, plain session, cross-lane. A with-agent number with no plain baseline is labeled as such.
+- State the limits: a small case set, subagent graders instead of `claude plugin eval`, advisory tier only.
+- A capability marked Missing in the infrastructure table is not claimed, even as "coming soon".
+- The `positioning` agent checks every agent claim against this plan's status table, and a claim the table cannot back is cut.
+
+## Subagents: where they help
+Use a subagent only where a separate context makes the result better, not to look busy.
+- **Now:** a fresh grader per batch of cases (it must not see how the agent worked); parallel runs of one agent across independent cases; a qa-tdd review of the tooling code itself.
+- **Later, when the single agents are stable:** a staff-pm team (a spec writer plus a fresh skeptical reviewer that tries to break the criteria), a qa-tdd team (a test writer plus a mutation-style reviewer that tries to make the suite pass wrongly), and an orchestrator that dispatches them. A team earns its place only if it beats the single agent on the same held-out cases; until then we do not claim one.
+
 ## The loop (every agent, in this order)
 
 | # | Step | What it produces | Done when |
@@ -121,3 +138,4 @@ Add a dated line whenever the process changes or a milestone moves. Say what cha
 
 - 2026-11-22: Plan written. Generalized from the UX loop; added steps 2 (Chase confirms), 6 (good-work set) and 7 (noise) as explicit gates for QA-TDD and Staff PM, which so far have only had steps 1, 3 to 5, 8 to 10 (partly). Held-out set 2 scored: qa-tdd 11 of 11, staff-pm 12 of 16, cross-lane 2 of 4.
 - 2026-11-22: Added the infrastructure table (Chase: "are we building all the infrastructure? ... we have already built it for UX"). Rule: generalize the UX pieces and plug qa-tdd and staff-pm in; build order and milestones Q7 and S8 added.
+- 2026-11-22: Added "The bar" (real agent, claim only what logs and scores show) and the subagent section (Chase: strong tooling for each, staff level, no overclaiming; subagent teams later if they beat the single agent).
