@@ -475,6 +475,40 @@ check "NUDGE-6 the log holds no prompt text, is 0600, and STUDIO_REPEAT_NUDGE=of
 check "NUDGE-7 bad input never fails the prompt" bash -c "echo 'not json' | STUDIO_NUDGE_LOG='$tmp/bad.jsonl' python3 '$nh'"
 check "NUDGE-8 install-cloud.sh installs the nudge once, keeps other hooks" bash -c "h=\$(mktemp -d); for i in 1 2; do HOME=\$h bash '$root/scripts/install-cloud.sh' >/dev/null; done; test -f \$h/.claude/studio/repeat-nudge.py && python3 -c 'import json,sys;u=json.load(open(sys.argv[1]))[\"hooks\"][\"UserPromptSubmit\"];assert len(u)==1' \$h/.claude/settings.json"
 
+# check-ux-run.mjs: validates a ux-reviewer run log (UXRUN-1). Same fixture loop as STORY-PROD: valid-*.md exit 0 with a
+# quiet stderr; invalid-*.md exit exactly 1 and stderr names the broken rule (the "<!-- expect: word -->" line), one reason
+# per line. A log has exactly one uxrun block of `key: value` lines: date (real), product, tier (advisory|supervised|full),
+# model, tokens (int >= 0), cost_usd (number >= 0), flow: name | widths from phone,laptop | shots path (1+),
+# finding: UX-Rn (unique) | P0-P2 | rule id | shots path (0+), verdict (Ready|Needs changes|Blocker; Blocker needs a P0,
+# Ready allows none), rechecked (yes|no|n/a; n/a is invalid with findings), escalated (yes|no; yes needs escalation_reason).
+# No email, phone, claude.ai URL, trig_/env_/cmsg_/session_ id or API key anywhere. --json prints the parsed fields.
+ux="$root/tools/check-ux-run.mjs"; fu="$root/tests/fixtures/ux-run"
+need_ux="test -f '$ux' || { echo 'missing tools/check-ux-run.mjs'; exit 1; }"
+check "UXRUN-1 check-ux-run.mjs exists" test -f "$ux"
+for fx in "$fu"/valid-*.md; do
+  check "UXRUN-1 check-ux-run passes $(basename "$fx")" bash -c "$need_ux; node '$ux' '$fx' 2>'$tmp/uxerr'; rc=\$?; [ \$rc -eq 0 ] || { echo \"exit \$rc\"; cat '$tmp/uxerr'; exit 1; }; ! test -s '$tmp/uxerr'"
+done
+for fx in "$fu"/invalid-*.md; do
+  exp="$(sed -n 's/^<!-- expect: \(.*\) -->$/\1/p' "$fx")"
+  check "UXRUN-1 check-ux-run rejects $(basename "$fx" .md) (stderr names '$exp')" bash -c "$need_ux; node '$ux' '$fx' >/dev/null 2>'$tmp/uxerr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/uxerr' || { echo 'stderr does not name $exp:'; cat '$tmp/uxerr'; exit 1; }"
+done
+for leak in "trig_${sk_body}:trig_" "env_${sk_body}:env_" "cmsg_${sk_body}:cmsg_" "session_${sk_body}:session_" "sk-${sk_body}:key" "ghp_${sk_body}:key" "github_pat_${sk_body}:key"; do
+  val="${leak%:*}"; exp="${leak##*:}"; lf="$tmp/uxleak-${val%%[_-]*}.md"
+  sed "s/^product: .*/product: Example App ${val}/" "$fu/valid-advisory-findings.md" > "$lf"
+  check "UXRUN-1 check-ux-run rejects a ${val%%[_-]*} secret (stderr names '$exp')" bash -c "$need_ux; grep -q -- '$val' '$lf' || { echo 'fixture not built'; exit 1; }; node '$ux' '$lf' >/dev/null 2>'$tmp/uxerr'; rc=\$?; [ \$rc -eq 1 ] || { echo \"exit \$rc, want 1\"; exit 1; }; grep -qi -- '$exp' '$tmp/uxerr' || { echo 'stderr does not name $exp:'; cat '$tmp/uxerr'; exit 1; }"
+done
+check "UXRUN-1 check-ux-run rejects a phone number and a claude.ai link" bash -c "$need_ux; for v in 'call 304-555-0142' 'see https://claude.ai/code/abc'; do { cat '$fu/valid-advisory-findings.md'; echo \"\$v\"; } > '$tmp/uxleak2.md'; node '$ux' '$tmp/uxleak2.md' >/dev/null 2>'$tmp/uxerr'; [ \$? -eq 1 ] || { echo \"not rejected: \$v\"; exit 1; }; done"
+check "UXRUN-1 check-ux-run gives one reason per line (two broken rules, two lines)" bash -c "$need_ux; node '$ux' '$fu/invalid-two-reasons.md' 2>'$tmp/uxerr'; [ \$? -eq 1 ] && [ \$(grep -c . '$tmp/uxerr') -ge 2 ] && grep -qi tier '$tmp/uxerr' && grep -qi cost_usd '$tmp/uxerr' || { cat '$tmp/uxerr'; exit 1; }"
+check "UXRUN-1 check-ux-run exits 2 on a usage error (no file, two files, unreadable file)" bash -c "$need_ux; node '$ux' 2>/dev/null; a=\$?; node '$ux' '$fu/valid-escalated.md' '$fu/valid-advisory-findings.md' 2>/dev/null; b=\$?; node '$ux' '$tmp/no-such-run.md' 2>/dev/null; c=\$?; echo \"exits: \$a \$b \$c\"; [ \$a -eq 2 ] && [ \$b -eq 2 ] && [ \$c -eq 2 ]"
+check "UXRUN-1 check-ux-run --json prints the parsed run" bash -c "$need_ux; node '$ux' --json '$fu/valid-advisory-findings.md' | python3 -c '
+import json,sys
+d=json.load(sys.stdin)
+assert d[\"date\"]==\"2026-11-20\" and d[\"tier\"]==\"advisory\" and d[\"tokens\"]==48210 and d[\"cost_usd\"]==0.42, d
+assert d[\"verdict\"]==\"Needs changes\" and d[\"rechecked\"]==\"yes\" and d[\"escalated\"]==\"no\", d
+assert len(d[\"flows\"])==1 and len(d[\"findings\"])==2, d
+assert d[\"findings\"][0][\"id\"]==\"UX-R1\" and d[\"findings\"][0][\"priority\"]==\"P1\" and d[\"findings\"][0][\"rule\"]==\"G4\", d
+assert d[\"flows\"][0][\"widths\"]==[\"phone\",\"laptop\"], d'"
+
 # Public repo: no claude.ai artifact or session links, no trigger or environment ids.
 check "no claude.ai links or trigger/environment ids" bash -c "! grep -rnE 'claude\.ai/(artifact|code)/|trig_[0-9A-Za-z]{10,}|env_[0-9A-Za-z]{10,}' --exclude-dir=.git --exclude=check.sh '$root'"
 

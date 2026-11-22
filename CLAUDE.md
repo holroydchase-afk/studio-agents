@@ -23,6 +23,7 @@ The main session is Chase's **chief of staff**: it doesn't do specialist work it
 | Any screen, word or CLI output a user sees; before anything goes public (showcase review mode) | `ux-reviewer` |
 | Personal data, sign-in, secrets, telemetry, vendors; before a public demo, deploy or repo going public | `privacy-security` |
 | A new dependency, vendor, paid service, schema change or CI/deploy workflow; picking a new project's stack | `architect` |
+| Before any publish or release (npm, plugin, store, deploy tag); after a version bump | `release-captain` |
 | README, landing or portfolio copy; a name or tagline; after a milestone, the "why I built it" story | `positioning` |
 | End of any turn where Chase made a call, a plan changed or a lesson was learned (runs in the background) | `story-keeper` |
 | Studio only: the morning digest, a cross-project coordination pass, keeping HANDOFF.md files honest | `orchestrator` |

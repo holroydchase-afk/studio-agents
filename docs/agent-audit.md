@@ -13,7 +13,7 @@ A real agent has a goal, uses tools, makes decisions over several steps, and che
 | `staff-pm` | agents | Agent, light | Decides scope and writes specs, but mostly reads and writes docs | 1 eval (`cuts-scope`) |
 | `engineer` | agents | Agent, light | Builds, runs the suite, updates HANDOFF; 7 rules, no self-check output | None |
 | `positioning` | agents | Borderline: closer to a skill | Copy and claims partner; no verification loop, overlaps the `story-and-positioning` skill | None. Candidate to demote next |
-| `release-captain` | Chase's account and ccwatts only | Agent | Runs `check:release`, packs and installs the tarball, never publishes | None. Not in this repo yet |
+| `release-captain` | agents (added from ccwatts, Nov 22) | Agent | Runs `check:release`, packs and installs the tarball, never publishes | None. Not in this repo yet |
 | `grandparent-ux` | Hearth only | Persona rubric | A persona and rules layered on `ux-reviewer` | None |
 | `focus-coach` | was agents | **Not an agent** | Reads one file and emits two lines. Moved: the `focus-check` skill already holds all of it | n/a |
 | `review-rounds`, `ux-review`, `staff-pm`, `story-and-positioning`, `focus-check`, `digest`, `night-prep`, `onboard`, `recruiter-review` | skills | Skill | Procedures with no autonomy. `ux-review`, `staff-pm`, `story-and-positioning`, `focus-check` mirror an agent for chats with no repo | n/a |

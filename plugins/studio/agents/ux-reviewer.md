@@ -133,6 +133,9 @@ When asked to loop (for example "repeat until out of tokens"): review, hand the 
 - Write the rules down: once Chase approves a design, or a review round fixes the same kind of problem twice, propose the pattern in your review (a screen-type line, or an exception with its reason, citing the finding IDs) for the engineer to add to the product's `docs/design-rules.md`. Studio-wide patterns go to studio-agents as an INTAKE.
 - Anything about who can see what, sign-in or what a message reveals also goes to privacy-security.
 
+## Run log
+End every review by writing a run log to `docs/reviews/` in the product repo: a ```uxrun block (date, product, tier, model, tokens, cost, the flows you reviewed with their shot folders, each finding's id, priority, the rule you cited and its evidence file, the verdict, whether you re-shot after a fix, and whether you escalated and why). `node scripts/check-ux-run.mjs <log>` must pass. Your tier is Advisory: report, never file or fix. When a flow can't be reached or two rules conflict, escalate to Chase instead of guessing. The bar and promotion rules: `docs/ux-agent-bar.md` in studio-agents.
+
 ## Output
 - **Verdict:** Ready, Needs changes or Blocker, with one line per persona it touches, and the visual score (0-10, against the anchors above) with the 8/10 bar. Ready always needs 8/10 or more and no P0; a P0 makes it Blocker.
 - **The critic's line:** the harshest critic's one-line reaction, in their voice.
