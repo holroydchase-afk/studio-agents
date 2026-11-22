@@ -13,16 +13,18 @@ Rules for entries: one line each, a link to the PR or commit, no personal data. 
 | Hearth | 6 | 8 | received |
 | Cohort (persona-twins repo) | 4 | 5 | received |
 | Energy Scanner | 0 | 0 | waiting |
-| Charlie | 0 | 0 | waiting |
-| Crew Clock | 0 | 0 | waiting |
-| **Total** | **24** | **25 (+2)** | |
+| Charlie | 5 | 5 | received |
+| Crew Clock | 5 | 5 | received |
+| **Total** | **34** | **35 (+2)** | |
 
 ## Patterns so far
 
 QA-TDD
-- **date-clock**: test depends on today's date or timezone and the clock isn't pinned (CC-Q1, Q2, Q3; HE-Q3, Q4). Biggest family, 5 of 24.
-- **real-device-gap**: passes in desktop Chrome or fresh browsers, breaks on iPhone Safari, returning visitors, CI fonts (CC-Q4; HE-Q1, Q2, Q5; RR-Q5).
-- **flaky-or-wrong-timing**: races, load flakes, timing the tool instead of the app (RR-Q6, Q8; HE-Q6).
+- **date-clock**: test depends on today's date or timezone and the clock isn't pinned (CC-Q1, Q2, Q3; HE-Q3, Q4, CK-Q5). Biggest family, 6 of 34 (CK-Q5 too).
+- **real-device-gap**: passes in desktop Chrome or fresh browsers, breaks on iPhone Safari, returning visitors, CI fonts, narrow phones, caching (CC-Q4; HE-Q1, Q2, Q5; RR-Q5; CK-Q1, Q3, Q4).
+- **flaky-or-wrong-timing**: races, load flakes, timing the tool instead of the app (RR-Q6, Q8; HE-Q6; CK-Q2).
+- **self-referential-or-skipped-tests**: tests check math against its own output, or a skip looks like a pass, or deps/files missing on a fresh copy (CH-Q1, Q3, Q4, Q5).
+- **unhandled-input-edges**: zero/negative values, unknown ticker, double clicks (CH-Q1, Q2).
 - **ci-environment-drift**: runner or image changed (RR-Q7), red main left unfixed (RR-Q9, HE-Q3).
 - **matching-and-sorting-edges**: substring match, text-sorted dates, null input (RR-Q1, Q2, Q3).
 - **privacy-leak-not-tested**: found by review, not tests (CC-Q5).
@@ -30,12 +32,13 @@ QA-TDD
 - **public-demo-shipped-with-defects** (RR-Q4).
 
 Staff PM
-- **missing-criteria**: spec lacks a case (failed load, Windows drive root, redirects, laptop view, phone first screen, rollback) (CC-S2, RR-S6, RR-S7, HE-S3, S4, S5, S6, CO-S4).
-- **concurrent-work-collision**: spec overlaps in-flight or live work (CC-S1, RR-S5, CO-S5).
+- **missing-criteria**: spec lacks a case (failed load, Windows drive root, redirects, laptop view, phone first screen, rollback) (CC-S2, RR-S6, RR-S7, HE-S3, S4, S5, S6, CO-S4, CK-S4, S5, CH-S1, S2, S3, S4).
+- **concurrent-work-collision**: spec overlaps in-flight or live work (CC-S1, RR-S5, CO-S5, CK-S1, S2, CH-S5).
 - **thrash-and-reversal**: shipped, then redone within days (RR-S2, S4, HE-S1, S7, S8, CO-S2, S3).
 - **wrong-identity-detail**: license named a login, not the person (CO-S1).
 - **ambiguous-wording-or-copy**: misread requirement or claim of what isn't true (CC-S4, S5; HE-S2).
 - **overlong-page-or-ux-budget** (CC-S3).
+- **undefined-rule** (rounding, risk sizing) (CK-S3, CH-S4).
 
 ## ccwatts
 
@@ -114,6 +117,42 @@ Staff PM
 - CO-S4 [missing-criteria] Design spec missed the portfolio link and intro needed to go public; one extra PR. [PR 9](https://github.com/holroydchase-afk/persona-twins/pull/9)
 - CO-S5 [concurrent-work-collision] Rename and restyle built at the same time and collided; HANDOFF and design spec still out of date. [4cd28fe](https://github.com/holroydchase-afk/persona-twins/commit/4cd28fe), [PR 7](https://github.com/holroydchase-afk/persona-twins/pull/7)
 
+## Crew Clock
+
+From git log, merged PRs, HANDOFF and the post-mortem in PR 44. Read-only research; studio agents not run.
+
+QA-TDD
+- CK-Q1 [real-device-gap] Phones kept an old demo build for about 34 hours after a deploy; no test deployed twice and CI served with caching off. [#22](https://github.com/holroydchase-afk/crew-clock/pull/22), [1122130](https://github.com/holroydchase-afk/crew-clock/commit/1122130)
+- CK-Q2 [flaky-or-wrong-timing] "Reset sample data" could keep an unsent punch (race); red main after #22 blocked its deploy. [#23](https://github.com/holroydchase-afk/crew-clock/pull/23), [c2677bf](https://github.com/holroydchase-afk/crew-clock/commit/c2677bf)
+- CK-Q3 [real-device-gap] Four bugs only a manual live check found: phone message box below the screen, hours 8.4 on Today vs 8.5 on Week. [#32](https://github.com/holroydchase-afk/crew-clock/pull/32), [809d30c](https://github.com/holroydchase-afk/crew-clock/commit/809d30c)
+- CK-Q4 [real-device-gap] Week table overflowed at 360px on a Saturday; main red (UX-R29). [#37](https://github.com/holroydchase-afk/crew-clock/pull/37), [3ecdd95](https://github.com/holroydchase-afk/crew-clock/commit/3ecdd95)
+- CK-Q5 [date-clock] Smoke test passed only in daytime (before 9 AM the sample day becomes yesterday); same PR fixed the "Which teammate?" list race (UX-4 flake). [#31](https://github.com/holroydchase-afk/crew-clock/pull/31), [e954124](https://github.com/holroydchase-afk/crew-clock/commit/e954124)
+
+Staff PM
+- CK-S1 [concurrent-work-collision] Two threads fixed the same four live-demo bugs in parallel; reconciled by a merge. [#32](https://github.com/holroydchase-afk/crew-clock/pull/32), [#34](https://github.com/holroydchase-afk/crew-clock/pull/34), [61b2c9d](https://github.com/holroydchase-afk/crew-clock/commit/61b2c9d)
+- CK-S2 [concurrent-work-collision] Two specs contradicted (LIVE-2 "so far" vs UX-R46b no "so far"), settled after both merged. [37a5243](https://github.com/holroydchase-afk/crew-clock/commit/37a5243)
+- CK-S3 [undefined-rule] No single rounding rule for hours; Week total 16.1 vs days summing to 16.0; reworked twice. [#29](https://github.com/holroydchase-afk/crew-clock/pull/29), [7f654eb](https://github.com/holroydchase-afk/crew-clock/commit/7f654eb), [#32](https://github.com/holroydchase-afk/crew-clock/pull/32)
+- CK-S4 [missing-criteria] Demo-separation spec never enforced "crew app runs only Supabase"; `js/api.js` lines 31 to 37 still route to the Sheets backend when `backendUrl` is set (checked on main Nov 21, still open). [#44](https://github.com/holroydchase-afk/crew-clock/pull/44)
+- CK-S5 [missing-criteria] Geofence shipped without a fairness bar or weak-GPS case; later eval: passes 77% of people at 1.5x radius in a hollow; rule unchanged, under Decisions to review. Still open. [#41](https://github.com/holroydchase-afk/crew-clock/pull/41)
+
+## Charlie
+
+The causes in CH-S3 and the figure in CH-S4 come from the Nov 17 review and were not re-checked.
+
+QA-TDD
+- CH-Q1 [self-referential-or-skipped-tests] Risk math crashed on zero or negative price, strike or IV; tests checked the math against its own output. [#24](https://github.com/holroydchase-afk/charlie/pull/24)
+- CH-Q2 [unhandled-input-edges] Unknown ticker crashed the screener, double clicks made duplicate trades, a $0 close counted as a loss, Delete kept trades. [#17](https://github.com/holroydchase-afk/charlie/pull/17)
+- CH-Q3 [self-referential-or-skipped-tests] A security browser test was skipped in CI and the skip looked like a pass. [#29](https://github.com/holroydchase-afk/charlie/pull/29)
+- CH-Q4 [self-referential-or-skipped-tests] pypdf 7 broke the PDF-bomb guard because the version had no upper bound. [#47](https://github.com/holroydchase-afk/charlie/pull/47)
+- CH-Q5 [self-referential-or-skipped-tests] Market data package never committed; tests passed locally, every import failed on a fresh copy. [028492e](https://github.com/holroydchase-afk/charlie/commit/028492e)
+
+Staff PM
+- CH-S1 [missing-criteria] Live Cboe adapter planned against saved samples only; first live run lost puts, one blocked symbol took all live data offline, prices never refreshed. [02203e0](https://github.com/holroydchase-afk/charlie/commit/02203e0)
+- CH-S2 [missing-criteria] No spec for mixing live and demo data; live prices beside demo fundamentals under a "Delayed data" label. [#17](https://github.com/holroydchase-afk/charlie/pull/17)
+- CH-S3 [missing-criteria] Stale-date fix relied on a Monday rebuild with no check it ran; skipped twice, demo showed Nov 2 on Nov 17. [#27](https://github.com/holroydchase-afk/charlie/pull/27)
+- CH-S4 [undefined-rule] Risk sizing undefined for cash-tying trades; a Conservative idea showed a $12,135 max loss. From the MVP, still open. [c08a0e4](https://github.com/holroydchase-afk/charlie/commit/c08a0e4)
+- CH-S5 [concurrent-work-collision] Hunch pipeline planned while two P1 demo bugs were live; Chase paused it. [#48](https://github.com/holroydchase-afk/charlie/pull/48)
+
 ## Still to collect
 
-Energy Scanner, Charlie, Crew Clock. Append a section in the same shape and update the tally.
+Energy Scanner only. Append a section in the same shape and update the tally.
