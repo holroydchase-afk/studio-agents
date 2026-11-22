@@ -35,7 +35,9 @@ jobs:
             exit 1
           fi
           # qa-tdd runs as the failing-tests step on every code PR; "skipped" is only for docs-only or config-only changes.
-          if [ -n "$code" ] && printf '%s' "$line" | grep -qiE 'qa-tdd skipped' && ! printf '%s' "$line" | grep -qiE 'qa-tdd skipped:[^;]*(docs|config) only'; then
+          # Every "qa-tdd skipped" clause must be exactly "qa-tdd skipped: docs only" or "config only" (nothing around it).
+          bad=$(printf '%s' "$line" | grep -oiE 'qa-tdd skipped[^;.]*' | grep -viE '^qa-tdd skipped: *(docs|config) only *$' || true)
+          if [ -n "$code" ] && [ -n "$bad" ]; then
             echo "::error::qa-tdd cannot be skipped on a code PR. Run it (in a cloud thread: bash scripts/agent-prompt.sh qa-tdd \"<task>\" as general-purpose, which logs itself), or write 'qa-tdd skipped: docs only' / 'config only' if that is true."
             exit 1
           fi

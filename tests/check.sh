@@ -337,6 +337,8 @@ check "AGT-4 check-agent-runs accepts a via-general-purpose entry for a named ag
 check "AGT-5 the standard and template say: agents come from studio-agents, 'agent' means look there first, recommend a new one, never write your own, qa-tdd runs without being told" bash -c "for f in docs/studio-standard.md templates/CLAUDE-agents.md; do for k in 'Agents come from studio-agents' 'says \"agent\"' 'recommend' 'never write your own' 'agent-prompt.sh' 'without being told'; do grep -q \"\$k\" '$root/'\$f || { echo \"\$f missing: \$k\"; exit 1; }; done; done"
 echo x > "$ag/cfg.json"; acommit cfg
 check "AGT-6 agents-check fails a code PR that says 'qa-tdd skipped' for a reason other than docs or config only" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: no run log'; arun 'Agents: qa-tdd skipped: docs only'"
+check "AGT-7 agents-check fails a code PR that dodges with 'qa-tdd skipped: not docs only' or 'no config only'" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: not docs only' && ! arun 'Agents: qa-tdd skipped: this is no config only change'"
+check "AGT-8 agents-check fails a code PR whose first 'qa-tdd skipped' has a bad reason even if a later one says docs only" bash -c "$(declare -f arun); abase=$abase ag='$ag' astep='$astep'; ! arun 'Agents: qa-tdd skipped: no time; qa-tdd skipped: docs only'"
 
 # Cloud sessions start in the parent of several repos (CLAUDE_PROJECT_DIR is not a git repo), so the log hook
 # falls back to the hook input's "cwd", and install-cloud.sh installs agents and the hook at user level ($HOME).
