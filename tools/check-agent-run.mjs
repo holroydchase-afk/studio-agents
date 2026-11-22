@@ -15,6 +15,10 @@
 //   artifact: <repo-relative path>       (optional; no leading slash, no .. segment)
 //   escalated: yes | no                  (yes needs `escalation_reason: <text>`; no forbids it)
 //   retries: <integer>                   (optional)
+//   stamped: yes                         (optional, written by tools/stamp-run.mjs; then these are needed:)
+//     stamp_input / stamp_output / stamp_cache_creation / stamp_cache_read: <integer>; tokens must equal their sum
+//     stamp_sha: <40 hex>; one of stamp_cost: not measured | stamp_prices: <source> <YYYY-MM-DD>
+//     stamp_test: <command> | <pass>/<fail> or <command> | unparsed   (optional)
 //
 // Cross rules: a qa-tdd green needs p0: 0; any verdict "blocked" needs escalated: yes.
 // No email, phone, claude.ai URL, trig_/env_/cmsg_/session_ id or API key anywhere in the file; errors never
@@ -35,7 +39,10 @@ export const VERDICTS = {
 };
 const USAGE = "usage: check-agent-run.mjs <run.md> [--json]";
 const REQUIRED = ["date", "agent", "product", "tier", "model", "tokens", "cost_usd", "input", "verdict", "findings", "p0", "escalated"];
-const OPTIONAL = ["artifact", "escalation_reason", "retries"];
+// stamp_* lines are written by tools/stamp-run.mjs (run by the caller, not the agent): see the STAMP block below.
+export const STAMP_COUNTS = ["stamp_input", "stamp_output", "stamp_cache_creation", "stamp_cache_read"];
+const STAMP_KEYS = ["stamped", ...STAMP_COUNTS, "stamp_sha", "stamp_test", "stamp_prices", "stamp_cost"];
+const OPTIONAL = ["artifact", "escalation_reason", "retries", ...STAMP_KEYS];
 const KEYS = [...REQUIRED, ...OPTIONAL, "tool"];
 const INT = /^\d+$/;
 const NUM = /^\d+(\.\d+)?$/;
@@ -101,6 +108,30 @@ export function checkAgentRun(text) {
   if (kv.escalated === "yes" && !("escalation_reason" in kv)) found.push("escalated yes needs an escalation_reason: line saying why");
   if (kv.escalated === "no" && "escalation_reason" in kv) found.push("escalation_reason: given but escalated is no: drop it or say yes");
   if (kv.retries && !INT.test(kv.retries)) found.push(`retries "${kv.retries}" must be a non-negative integer`);
+
+  const stampKeys = STAMP_KEYS.filter((k) => k in kv);
+  if ("stamped" in kv && kv.stamped !== "yes") found.push(`stamped "${kv.stamped}" must be yes (or leave the line out)`);
+  if (kv.stamped !== "yes" && stampKeys.some((k) => k !== "stamped")) found.push("stamp_ lines need stamped: yes");
+  if (kv.stamped === "yes") {
+    for (const k of STAMP_COUNTS) {
+      if (!(k in kv)) found.push(`stamped yes needs a ${k}: line`);
+      else if (kv[k] && !INT.test(kv[k])) found.push(`${k} "${kv[k]}" must be a non-negative integer`);
+    }
+    if (!("stamp_sha" in kv)) found.push("stamped yes needs a stamp_sha: line");
+    else if (kv.stamp_sha && !/^[0-9a-f]{40}$/.test(kv.stamp_sha)) found.push(`stamp_sha "${kv.stamp_sha}" must be 40 lowercase hex characters`);
+    if (STAMP_COUNTS.every((k) => INT.test(kv[k] || "")) && INT.test(kv.tokens || "")) {
+      const sum = STAMP_COUNTS.reduce((a, k) => a + Number(kv[k]), 0);
+      if (Number(kv.tokens) !== sum) found.push(`tokens (${kv.tokens}) must equal the sum of the four stamp_ counts (${sum})`);
+    }
+    if ("stamp_cost" in kv && kv.stamp_cost && kv.stamp_cost !== "not measured") found.push(`stamp_cost "${kv.stamp_cost}" must be: not measured`);
+    if ("stamp_cost" in kv && "stamp_prices" in kv) found.push("stamp_cost and stamp_prices together: a run is priced or not measured, not both");
+    if (!("stamp_cost" in kv) && !("stamp_prices" in kv)) found.push("stamped yes needs stamp_cost: not measured or a stamp_prices: line");
+    if (kv.stamp_prices) {
+      const m = /^\S+ (\d{4}-\d{2}-\d{2})$/.exec(kv.stamp_prices);
+      if (!m || !realDate(m[1])) found.push(`stamp_prices "${kv.stamp_prices}" must be <source> <YYYY-MM-DD>`);
+    }
+    if (kv.stamp_test && !/^.+ \| (\d+\/\d+|unparsed)$/.test(kv.stamp_test)) found.push(`stamp_test "${kv.stamp_test}" must be <command> | <pass>/<fail> or <command> | unparsed`);
+  }
 
   const outTools = [];
   for (const t of tools) {
