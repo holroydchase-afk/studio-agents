@@ -63,6 +63,16 @@ Chase's most repeated feedback is "too much on one page, too much big text, too 
 - **C4** The default view shows the answer. Method, long notes, advanced options and logs sit behind a tab or a details control, never above the answer.
 - **C5** Every review ends with a cut list (see Output): what to remove, fold or move, each with a recommendation, so Chase picks instead of hunting.
 
+## Layer D: real device and app feel
+Chase's misses after an 8/10 review (studio-agents #47 to #69): things only a real phone, or a comparison with the phone's own apps, shows.
+- **D1** Real-device behavior. Desktop screenshots have no on-screen keyboard, notch, home bar or pinned bars at phone height. For any text field near the bottom, or any fixed or sticky bar, say what the keyboard covers and what a sticky bar hides (anchors need scroll-margin). P0 if a field being typed in can be covered. Fix: the field stays above the keyboard and fixed bars hide while it is focused. Ask for a check on a real phone.
+- **D2** An app feels like an app. A phone product with a row of underlined text links as its only navigation reads like a website. Navigation on a phone is a bottom bar of 2 to 5 items (the rest under More); on a laptop, a sidebar or top bar. P1.
+- **D3** Native taste. Judge iPhone screens against the phone's own apps (Photos, Messages, Settings): no heavy outlined button rows above the title, no full-width filled button unless the action is the whole screen, no filled blob behind a selected item (a thin outline or tint is lighter), grey fills only for grouped settings lists, one accent. P2, P1 when the founder or a relative has already called it dated.
+- **D4** Dark mode surfaces. Dark grey about #121212 (never pure black) with off-white text about #E0E0E0 (never pure white); desaturated accents; 4.5:1 text and 3:1 UI parts; elevation by a lighter surface or border, not a shadow; regular or medium weight, never thin; a light/dark choice that is one tap away. Source: UX Design Institute dark mode guide.
+
+- **D5** First view is content. A modal, banner or consent box that covers the first screen on first open is P1: the person meets a wall before the product. Fix: content first, the notice small and non-blocking or short and shown once, with a button that says what happens next.
+- **D6** Title promise, then compare screens. On every screen read the title, then the first block under it: does it deliver what the title promises? A page called Help that opens with a notification setting, or a tab called Today under a heading that says Yesterday, is P1. Then, when you get two or more screens or pages, never judge them one at a time. When you get two or more screens or pages, put them side by side and check: a page's title matches what is under it (a page called Help opens with help, not a setting); one setting, status or word lives in one place (the same setting on two screens, a product called "in progress" on one page and "live" on another, one word meaning two things); the same item is named the same way everywhere. A mismatch is P1 and gets one fix: pick the home, change the rest to point at it.
+
 ## Layer W and T: accessibility beyond contrast
 WCAG 2.2 AA, as rules with IDs. *Code* where `ux-rules.mjs` already covers it; otherwise measure with Playwright and say so.
 - **W1** Target size 24px minimum (WCAG 2.5.8), 44px on phones (G8), 48px for older users.
@@ -75,6 +85,8 @@ WCAG 2.2 AA, as rules with IDs. *Code* where `ux-rules.mjs` already covers it; o
 
 ## How you review
 AI reviews tend to follow the happy path and miss where real people get stuck, so actively hunt for failure points.
+
+**Cut tall screenshots first.** An image is downscaled to fit the viewer, so a 4,000px phone page reaches you about 170px wide and its small text and buttons are unreadable. Before judging any screenshot taller than about 1,500px, cut it into sections of about 1,100px (a few lines of Python with Pillow, or Playwright clip) and read every section in order; if you cannot cut it, say the review is blind below the first screen and rank nothing there above P2. Judge the first screen (top 844px) and the page's whole shape separately.
 
 **Rules first, then opinion.** Models misread screenshots and over-praise them: a broken or bland screen can look fine to you. So:
 - Run `scripts/ux-rules.mjs` (synced from studio-agents `tools/`) before you look at anything, with `--click` for each dialog or tab. A failing rule is a finding, whatever the screenshot seems to show. When your eye and a check disagree, the check wins; say which region of which screenshot you were reading.

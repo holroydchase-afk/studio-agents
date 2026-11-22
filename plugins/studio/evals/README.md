@@ -197,6 +197,23 @@ claude plugin eval . --trust-plugin --no-publish --tag recall --case 'ux-reviewe
 ```
 Recall is the share of cases whose `criteria` grader passed. Report it three ways: overall (n of 14), by priority (group by the `p0`/`p1`/`p2` tag; P0 recall is the number that matters most, and a P0 miss is a bug in the agent), and for `by-human` cases on their own: those are issues a person had to find, so a pass there is the agent catching what it missed the first time. The with-plugin arm is the score; the baseline arm shows how much of it a plain session gets anyway. With 1 run per case a single result is noisy; rerun a miss before calling it a regression.
 
+## Fresh human-miss cases (UX 7 to 9, 2026-11-22)
+The 14 recall cases above are mostly saturated, so they cannot show a climb from 7 to 9. Eleven `ux-reviewer-fresh-*` cases come from 23 "UX eval miss" issues (studio-agents #47 to #69) filed by every product: things a review passed at 8/10 that Chase or a relative found later. They are rebuilt small screens with neutral prompts (no hint like "be harsh") and one known issue each. Tags: `ux-reviewer`, `fresh`, priority, source, `by-human`. Run: `claude plugin eval . --trust-plugin --no-publish --case 'ux-reviewer-fresh-*'`.
+
+**What 7 and 9 mean (proposal):** 7 = fresh-set recall around 70%, P0 misses possible. 9 = at least 90% on the fresh set with every P0 caught, plus no review that scores a screen 8 or higher when a human later rated it 5 or lower.
+
+**Baseline (with ux-reviewer, 1 run, $1.85):** 8 of 11 (73%). Misses: `keyboard-covers-comment` (P0: on-screen keyboard covers a pinned field, only desktop screenshots exist), `nav-reads-like-website` (six text links, no bottom tab bar), `heavy-dated-controls` (toolbar row, giant filled button, heavy selected blob). The same cases passed 10 of 11 when the prompts hinted at the issue, so hints must stay out. The three misses are the gaps for the next rule changes: real-device behaviour, app-versus-website navigation, and iPhone-native taste.
+
+**After Layer D (rules D1 to D4 added to ux-reviewer.md, 12 cases incl. a dark-mode case, 1 run, $2.20):** 11 of 12 (92%). `keyboard-covers-comment` and `heavy-dated-controls` now pass; `nav-reads-like-website` still fails (1 of 3 judge votes). Caution: these rules were written from the same misses, so this is an in-sample score. The held-out check is the real before-screenshot cases and the new labelled shots. The dark-mode case passed 3 of 3 before any dark-mode rule, so the UX Design Institute research (D4) is kept as a guard, not credited with a gain.
+
+Real-screenshot cases (4, `ux-reviewer-fresh-real-*`, from the Nov 19 before shots in PR #70) use a `case.yaml` with `context.scaffold_script: setup.sh`, which copies `screen.png` into the run; run them with `--scaffold`. First run 1 of 4: the agent scored them 4 to 5 out of 10 and found big problems, but the pass rules were stricter than the issue (to loosen).
+
+**Real before-screenshot set (24 cases, `ux-reviewer-fresh-real-*`, run with `--scaffold`, 1 run each, about $3.50 a run).** 12 cases are issues Chase confirmed as P0/P1 (4 early, 8 more from the independent label pass) and 12 are P2 issues from the same independent pass (tag `by-agent`). Tall pages are pre-cut into 1,100px sections because the viewer shrinks a 4,000px page to about 170px wide. Results with Layer D (D1 to D6) and the cut-tall-screenshots rule: **13 of 24 (54%)**; the same set scored 14 of 24 on an earlier run, so expect plus or minus 2 from run noise. First score on screens the rules were not tuned for: 3 of 8 (38%) for the Chase-confirmed new ones, before D5 and D6.
+Still missed most runs: ccwatts page issues (share block before data, own-logs chore, mixed units), a title that contradicts its heading (Today over "Yesterday"), cut-off wording on a modal button, and the Hearth Share start. The agent usually finds other real problems on those screens instead, so the next step is precision as well as recall: a fixed list per screen to score false alarms against.
+A run can also fail from the plan's usage limit ("5-hour limit"), which shows as an error, not a miss: check `error` before reading a score.
+
+Superseded note: 4 cases that use the real "before" screenshots (evals/ux-baseline in PR #70) need `--scaffold` so the screenshot can be copied into the eval sandbox, which is blocked here without Chase's go.
+
 ## Recall results (2026-10-30, 1 run per arm, default model, $3.20)
 | Slice | With ux-reviewer | Plain session |
 |---|---|---|
