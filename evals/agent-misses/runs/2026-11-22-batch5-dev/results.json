@@ -1,0 +1,66 @@
+{
+ "run": "2026-11-22-batch5-dev",
+ "date": "2026-11-22",
+ "phase": "dev",
+ "agent_model": "claude-sonnet-5-5 (agent arm: the studio staff-pm agent type with the staff-pm.md loaded at session start, studio tools copied into a throwaway sandbox repo; plain arm: general-purpose subagent given only the ask)",
+ "grader_model": "opus, fresh context, saw only the criteria file and the saved report, blind to arm (arm labels shuffled per case)",
+ "change": "batch 5 dossier cases (4 dev, fixture repo and two traps each): first run, baseline before tuning staff-pm.md and spec-lint. Agent and plain arm, Opus graders blind to arm.",
+ "results": [
+  {
+   "case": "staff-pm-miss-live-feed-one-symbol-blocks-all",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Per-symbol isolation present (FEED-1 with 40 symbols) and the saved-samples caveat named, but never says to check puts as well as calls in the first live run.",
+   "transcript": "transcripts/live-feed-one-symbol-blocks-all-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-live-feed-one-symbol-blocks-all",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Per-symbol isolation present; no named first-live-run done gate, no three-samples caveat, no puts check.",
+   "transcript": "transcripts/live-feed-one-symbol-blocks-all-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-make-repo-public-links",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Stale-text list met (HANDOFF, facts doc, card); the done definition checks links logged out but not the card's intro line after the switch.",
+   "transcript": "transcripts/make-repo-public-links-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-make-repo-public-links",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Stale-text list mostly met; no done definition and nothing checks the card's intro line after the switch.",
+   "transcript": "transcripts/make-repo-public-links-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-red-flag-rule-scoring-clash",
+   "arm": "agent",
+   "pass": false,
+   "reason": "Penalty order, worked example and stale '+10' wording found; no way to mark a hit wrong or add a skip reason (skip reasons deferred, one-time labelled sample only).",
+   "transcript": "transcripts/red-flag-rule-scoring-clash-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-red-flag-rule-scoring-clash",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Penalty order, worked examples and stale wording found; badge only, no way to mark a hit wrong or give a reason.",
+   "transcript": "transcripts/red-flag-rule-scoring-clash-plain.md"
+  },
+  {
+   "case": "staff-pm-miss-product-plan-no-dates",
+   "arm": "agent",
+   "pass": true,
+   "reason": "UB-2 checks the page text for dates, UB-1 status 'scoped', UB-3 maps every sentence to a register row.",
+   "transcript": "transcripts/product-plan-no-dates-agent.md"
+  },
+  {
+   "case": "staff-pm-miss-product-plan-no-dates",
+   "arm": "plain",
+   "pass": false,
+   "reason": "Says no dates and 'Scoped' but gives no testable criteria: no date scan and no register-match criterion.",
+   "transcript": "transcripts/product-plan-no-dates-plain.md"
+  }
+ ]
+}
