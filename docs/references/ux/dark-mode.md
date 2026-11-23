@@ -26,14 +26,14 @@ A picture with a white background glows against a dark surface: dim it slightly 
 - status: search-summary
 - source: https://m2.material.io/design/color/dark-theme
 - tags: dark, surface, background, pure black, contrast, 121212
-Material's dark theme recommends a dark grey base surface (about #121212) rather than pure black, and white body text on it reaching at least 15.8:1. Pure black with pure white text causes glare and halation and removes room to show elevation. Use a dark grey surface and off-white text (about 87% white). Status: from a search summary of the older Material 2 spec; confirm against the current Material 3 page.
+Material's dark theme recommends a dark grey base surface (about #121212) rather than pure black, and white body text on it reaching at least 15.8:1. Pure black with pure white text causes glare and halation and removes room to show elevation. Use a dark grey surface and off-white text (about 87% white). Status: the pure-black and 15.8:1 claims come from a search summary of the older Material 2 spec; the Material 3 source is silent on pure black (see DARK-5 for its tones).
 
 ## DARK-5 Show elevation with lighter surfaces, not shadows
 - strength: hard
-- status: search-summary
-- source: https://m2.material.io/design/color/dark-theme
-- tags: dark, elevation, shadow, surface, card
-Shadows are nearly invisible on dark surfaces, so higher layers (cards, dialogs, menus) get a lighter surface, a semi-transparent white overlay in Material 2 or tone-based surface colors in Material 3. Two layers at the same shade is a flaw; a shadow-only card in dark mode is P1.
+- status: fetched
+- source: https://github.com/material-components/material-components-android/blob/master/docs/theming/Color.md
+- tags: dark, elevation, shadow, surface, card, tone
+Material 3 builds dark layers from a stack of surface roles (lowest, low, default, high, highest), each lighter than the last, instead of shadows or the old tinted overlay. Baseline tones on a 0 to 100 scale: page 6, containers 4, 10, 12, 17 and 22. Shadows are nearly invisible on dark, so a card or dialog at the page's shade, or with only a shadow, is P1. Read from the Material Components Android docs on GitHub; the m3.material.io pages were empty shells (see docs/design-references/sources/material3-dark-theme.md).
 
 ## DARK-6 Desaturate accent colors on dark
 - strength: guide
