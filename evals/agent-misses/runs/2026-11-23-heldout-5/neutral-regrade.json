@@ -1,0 +1,53 @@
+{
+  "note": "Format-neutral re-grade, same Opus grader call as the written criteria. Rubric: identifies the real defect or flake cause AND writes or concretely specifies a failing or repeat-run test that catches it; format ignored.",
+  "results": [
+    {
+      "case": "qa-tdd-miss-focus-after-draw-race",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Fixed 10ms sleep races 25ms draw; 10x repeat caught it."
+    },
+    {
+      "case": "qa-tdd-miss-focus-after-draw-race",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Fixed 10ms vs 25ms draw; 40-run repeat caught red."
+    },
+    {
+      "case": "qa-tdd-miss-timing-budget-under-load",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Finds 60ms spin; 10x repeat run failed twice."
+    },
+    {
+      "case": "qa-tdd-miss-timing-budget-under-load",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Finds 10% busy path; 40 repeat runs show it."
+    },
+    {
+      "case": "qa-tdd-miss-results-in-finish-order",
+      "arm": "agent",
+      "pass": true,
+      "reason": "out.push finish order; LOAD-3 fails every run."
+    },
+    {
+      "case": "qa-tdd-miss-results-in-finish-order",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Finds finish-order push; LOAD-3 red."
+    },
+    {
+      "case": "qa-tdd-miss-shared-temp-file-parallel",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Shared temp path; per-process path test fails."
+    },
+    {
+      "case": "qa-tdd-miss-shared-temp-file-parallel",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Shared temp path across parallel processes; repeats showed failures."
+    }
+  ]
+}

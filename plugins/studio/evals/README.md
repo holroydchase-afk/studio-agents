@@ -79,7 +79,7 @@ Score it like ux-reviewer recall: overall (n of 9) and by priority.
 Read this carefully: **the plain session spotted the gap in every case too** and said "don't merge yet". It failed because it never wrote and ran a failing test for the gap, which the grader requires. So these cases measure test-first follow-through on a found gap, not detection. Next: harder cases where the gap isn't visible in 20 lines (a gap that only shows when two files interact, or a P0), and a P0 case, so detection itself separates the arms.
 
 ## qa-tdd miss cases
-Thirty-six `qa-tdd-miss-*` cases (nine in `qa-tdd-cases.mjs`, eleven fresh held-out ones in `qa-tdd-cases-batch2.mjs`, ten unread held-out ones in `qa-tdd-cases-batch3.mjs`, six tool-dependent held-out ones with extra fixture files in `qa-tdd-cases-batch4.mjs`) turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
+Forty `qa-tdd-miss-*` cases (nine in `qa-tdd-cases.mjs`, eleven fresh held-out ones in `qa-tdd-cases-batch2.mjs`, ten unread held-out ones in `qa-tdd-cases-batch3.mjs`, six tool-dependent held-out ones with extra fixture files in `qa-tdd-cases-batch4.mjs`, four flaky 1-in-N held-out ones in `qa-tdd-cases-batch5.mjs`) turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
 
 Do not edit the generated folders by hand. Change the spec, then:
 ```bash
@@ -126,6 +126,10 @@ node tools/eval-miss-cases.mjs --verify   # proves each repro: shipped test gree
 | `qa-tdd-miss-ignored-dir-imported` | CH-Q5 | self-referential-or-skipped-tests | P1 | heldout |
 | `qa-tdd-miss-runner-list-form` | RR-Q7 | ci-environment-drift | P1 | heldout |
 | `qa-tdd-miss-merge-gate-red-main` | RR-Q9 | ci-environment-drift | P1 | heldout |
+| `qa-tdd-miss-focus-after-draw-race` | RR-Q8 | flaky-or-wrong-timing | P1 | heldout |
+| `qa-tdd-miss-timing-budget-under-load` | RR-Q6 | flaky-or-wrong-timing | P1 | heldout |
+| `qa-tdd-miss-results-in-finish-order` | CK-Q5 | flaky-or-wrong-timing | P1 | heldout |
+| `qa-tdd-miss-shared-temp-file-parallel` | HE-Q6 | flaky-or-wrong-timing | P1 | heldout |
 
 Run and score (needs `ANTHROPIC_API_KEY`; not run yet, so there are no results):
 ```bash
