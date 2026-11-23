@@ -240,6 +240,7 @@ check "SCORE-1 tool agent-scorecard exists and is listed in the README" bash -c 
 check "SCORE-2 agent-scorecard tests" node --test "$root/tests/agent-scorecard.test.mjs"
 check "STAMP-1 tool stamp-run exists and is listed in the README" bash -c "test -f '$root/tools/stamp-run.mjs' || { echo missing tools/stamp-run.mjs; exit 1; }; grep -q '\`stamp-run\`' '$root/README.md'"
 check "STAMP-2 stamp-run tests" node --test "$root/tests/stamp-run.test.mjs"
+check "FBK-1..12 feedback-guard tests" node --test "$root/tests/feedback-guard.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
