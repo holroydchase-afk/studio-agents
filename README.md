@@ -15,6 +15,8 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `architect` | One stack across products: reviews stack-crossing changes, reuse before build, architecture docs that match the code, weekly drift sweep |
 | `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
 
+**Building an agent in a product repo? Start with [docs/agent-harness.md](docs/agent-harness.md): what harness pieces exist (run log, real token counts, kill switch, cost cap, evals, blind grader), how to sync them, and what is missing.  Agent infrastructure is built here and shared; don't rebuild it in a product repo.**
+
 The checklist every agent is held to: [docs/agent-template.md](docs/agent-template.md).
 The process that raises any agent (real misses, splits, scores, rules, infrastructure) and where QA-TDD and Staff PM stand: [docs/agent-training-plan.md](docs/agent-training-plan.md).
 
