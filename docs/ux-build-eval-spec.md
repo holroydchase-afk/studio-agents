@@ -8,18 +8,18 @@ Status: spec only. No arm has been run. Test IDs are `UXB-n`, type `auto` or `ma
 
 ## 1. Arms
 - **UXB-1 (auto).** Given one build prompt, when each arm runs, then both receive the identical prompt text and both use model Sonnet. The harness refuses to run if the two prompt hashes differ or either model is not Sonnet.
-- **UXB-2 (auto).** Given an arm's output, when it is collected, then it is one self-contained HTML file (no external URL in `src`, `href` or `@import`; fonts are system or inlined) and the run fails as "not a score" otherwise.
+- **UXB-2 (auto).** Given an arm's output, when it is collected, then it is one self-contained HTML file (no `http:` or `https:` or protocol-relative URL in any `src`, `srcset`, `href`, `<link>`, `@import` or CSS `url()`; `data:` URIs and `href="#..."` are allowed; fonts are system or inlined) and otherwise the run gets status `error` ("not a score") and is excluded.
 - **UXB-3 (auto).** Given a valid HTML file, when Playwright renders it, then it writes `390x844` and `1280x800` full-page PNGs, with no edit by a person or the harness between arm output and screenshot. A page that throws a console error is rendered anyway and the error count is logged.
 - Plain arm: a general-purpose Claude with no role file. UX arm: the installed `ux-reviewer` instructions plus its tools, told to build rather than review.
 
 ## 2. Prompt set
 - **UXB-4 (auto).** Given `evals/ux-build/prompts.json`, then it holds at least 8 prompts covering app home, list, settings, form, landing, dashboard, empty state and dialog (one each at minimum), each with `id`, `type`, `split` and `text`.
 - **UXB-5 (auto).** Given the split, then exactly 3 prompts are `heldout` and the rest `dev`. Held-out prompts are scored once per agent change; the harness records a change id and refuses a second held-out run for the same id.
-- **UXB-6 (auto).** Given any prompt, then it states the product, the user and the job in plain words and contains none of: CLEAN, whitespace, grid, palette, contrast, hierarchy, "clean", "polished", "modern", "pixel perfect", font names.
+- **UXB-6 (auto).** Given any prompt, then it states the product, the user and the job in plain words and contains none of these whole words, matched case-insensitively (not inside longer words): CLEAN, whitespace, grid, palette, contrast, hierarchy, polished, modern, "pixel perfect", and any font family named in the build reference. The list lives in one test fixture.
 - Prompts use Chase's product types (Hearth home, Role Radar list, Crew Clock settings, ccwatts and Charlie dashboards). Real content only, no lorem ipsum.
 
 ## 3. Blind grader
-- **UXB-7 (auto).** Given an arm pair for one prompt, when graded, then the grader sees only the four screenshots (two per arm), arm order is shuffled per prompt, labels are `A` and `B`, and the mapping is stored apart from what the grader receives.
+- **UXB-7 (auto).** Given an arm pair for one prompt, when graded, then the grader's input is exactly the four screenshots (two per arm) plus the one-line job from the grader section (nothing else), arm order is shuffled per prompt, labels are `A` and `B`, and the mapping is stored apart from what the grader receives.
 - **UXB-8 (auto).** Given a grading, then the output scores CLEAN-1 to CLEAN-5 (pass or fail each, from `docs/references/ux/clean-ui.md`) and a 0-10 polish score per arm, and the record names the grader model. Grader is Opus, a different model from the Sonnet arms.
 - **UXB-9 (manual).** Chase spot-checks 3 pairs per run against his own eye. If he prefers the grader's loser on 2 of 3, the grader is wrong and no claim is made from that run.
 - The grader gets no prompt text beyond the one-line job, no role files, no arm names.
@@ -32,7 +32,7 @@ Status: spec only. No arm has been run. Test IDs are `UXB-n`, type `auto` or `ma
 - **UXB-16 (manual, then auto).** Given the agent file, then it states the job, done test, stop rule and round limit in its first lines, and a run log records each round (render path, scores, what it changed). This is a build change to ux-reviewer.md and waits for the baseline from step 3 below.
 
 ## 4. Rounds to good (stand-in, not Chase)
-- **UXB-10 (auto).** Given an arm's first build that scores below 8 or has any CLEAN failure, when feedback rounds run, then an Opus stand-in writes feedback from `/mnt/project-files/ux/review-2026-11-22/answer-key-chase-2026-11-22.md` (taste and flagged items only, no new findings), the arm rebuilds, and the loop stops at 4 rounds.
+- **UXB-10 (auto).** Given an arm's first build that scores below 8 or has any CLEAN failure, when feedback rounds run, then an Opus stand-in writes feedback from `/mnt/project-files/ux/review-2026-11-22/answer-key-chase-2026-11-22.md` (a copy of the key lives in the test fixtures so CI can read it; the check is structural: each feedback line cites a key item id or quotes key text, and a line citing none fails), the arm rebuilds, and the loop stops at 4 rounds.
 - **UXB-11 (auto).** Given each round, then it logs the grader polish score and CLEAN results; "rounds to good" is the first round with polish at least 8 and no CLEAN failure, or `not reached` after 4.
 - State plainly in every report: the stand-in is an Opus model applying Chase's written key. It is not Chase and not his taste live. Real rounds with Chase (UXB-9 style) are the only evidence about him.
 
