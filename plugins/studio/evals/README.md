@@ -79,7 +79,7 @@ Score it like ux-reviewer recall: overall (n of 9) and by priority.
 Read this carefully: **the plain session spotted the gap in every case too** and said "don't merge yet". It failed because it never wrote and ran a failing test for the gap, which the grader requires. So these cases measure test-first follow-through on a found gap, not detection. Next: harder cases where the gap isn't visible in 20 lines (a gap that only shows when two files interact, or a P0), and a P0 case, so detection itself separates the arms.
 
 ## qa-tdd miss cases
-Thirty `qa-tdd-miss-*` cases (nine in `qa-tdd-cases.mjs`, eleven fresh held-out ones in `qa-tdd-cases-batch2.mjs`, ten unread held-out ones in `qa-tdd-cases-batch3.mjs`) turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
+Forty `qa-tdd-miss-*` cases (nine in `qa-tdd-cases.mjs`, eleven fresh held-out ones in `qa-tdd-cases-batch2.mjs`, ten unread held-out ones in `qa-tdd-cases-batch3.mjs`, six tool-dependent held-out ones with extra fixture files in `qa-tdd-cases-batch4.mjs`, four flaky 1-in-N held-out ones in `qa-tdd-cases-batch5.mjs`) turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
 
 Do not edit the generated folders by hand. Change the spec, then:
 ```bash
@@ -120,6 +120,16 @@ node tools/eval-miss-cases.mjs --verify   # proves each repro: shipped test gree
 | `qa-tdd-miss-docs-folder-code` | PS-Q7 | tool-tests-missed-edge-cases | P1 | heldout |
 | `qa-tdd-miss-palm-wide-layout` | ES-Q2 | real-device-gap | P1 | heldout |
 | `qa-tdd-miss-today-vs-week-hours` | CK-Q3 | real-device-gap | P1 | heldout |
+| `qa-tdd-miss-docs-only-skip-rename` | CC-Q6 | tool-tests-missed-edge-cases | P1 | heldout |
+| `qa-tdd-miss-greeting-check-external-css` | PS-Q1 | guard-written-after-the-bug | P1 | heldout |
+| `qa-tdd-miss-loose-pin-no-upper-bound` | CH-Q4 | self-referential-or-skipped-tests | P1 | heldout |
+| `qa-tdd-miss-ignored-dir-imported` | CH-Q5 | self-referential-or-skipped-tests | P1 | heldout |
+| `qa-tdd-miss-runner-list-form` | RR-Q7 | ci-environment-drift | P1 | heldout |
+| `qa-tdd-miss-merge-gate-red-main` | RR-Q9 | ci-environment-drift | P1 | heldout |
+| `qa-tdd-miss-focus-after-draw-race` | RR-Q8 | flaky-or-wrong-timing | P1 | heldout |
+| `qa-tdd-miss-timing-budget-under-load` | RR-Q6 | flaky-or-wrong-timing | P1 | heldout |
+| `qa-tdd-miss-results-in-finish-order` | CK-Q5 | flaky-or-wrong-timing | P1 | heldout |
+| `qa-tdd-miss-shared-temp-file-parallel` | HE-Q6 | flaky-or-wrong-timing | P1 | heldout |
 
 Run and score (needs `ANTHROPIC_API_KEY`; not run yet, so there are no results):
 ```bash
@@ -289,5 +299,6 @@ Read the delta with care: the prompts name the agent, so part of a baseline miss
 
 Run 1 found a real gap: the main session paraphrased story-keeper's reply, which dropped the `Memory:` line and the `No entry` wording. The agent's description now tells the main session to relay the reply verbatim (QA-R6), and run 2 relays both. In run 2 every file and regex grader passes with the agent, and both entries pass `tools/check-story-entry.mjs`; no personal data reached the file or the reply. The two remaining misses are the LLM judge only (3 of 3 votes fail). Its criteria also ask the reply to narrate where the entry went ("after the 2026-10-14 entry", "for the Atlas Story only"), which the replies don't say in those words. That looks like an over-strict judge rather than an agent miss, but the judge gives no reasons, so it's unconfirmed. Cost: $0.46 and $0.45.
 
+**Answer-key correction (Chase, Nov 22).** The "GOOD" label on the restyled Hearth, ccwatts and Crew Clock screens was wrong: Chase says they are better, not flawless. The 16 cases are renamed `ux-reviewer-fresh-improved-*` and the grader no longer counts a real, visible P1 as a false alarm. A flag is a false alarm only when it is about something the screenshot does not show, contradicts a rule stated in the prompt (icon-only tab bar with Easy view off, the labeled demo bar), asks which variant when the rule says, ranks a by-eye estimate above P2, or calls the screen flawless. Earlier "0 of 16 / 1 of 16 false alarms" numbers used the old pass rule and are not comparable. Run on UXPREC-1..8 under the old pass rule: 8 of 16 passed (was 1 of 16), but that rule is retired. Chase is reviewing each flag yes or no, and his answers become the per-case answer key. UXPREC-6..8 added: a labeled demo bar is chrome, a rule that answers a question is not a question, Ready is allowed only when no P0 or P1 survives.
 **After-restyle set (Nov 22, 10 cases, `ux-reviewer-fresh-after-*`, run with `--scaffold`).** Real screenshots of current main after the restyles, labeled by an independent reviewer, routed through `tools/triage-report.mjs` (reports RPT-1 to RPT-10 in `evals/reports/inbox.jsonl`). Each case is one P1 issue (Role Radar 3, Hearth 5, ccwatts 2); tags `after-shot`, `by-agent`, `split-dev` or `split-heldout`. Dev cases may be used while tuning; held-out cases are scored once per change. Not yet run, so no score is claimed. The Role Radar Criteria P0 (RPT-3) is in after the UX thread confirmed it by eye in the merged demo. Left out on purpose: the P2 sets (RPT-11, RPT-12), which stay in the inbox.
 

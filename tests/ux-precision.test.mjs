@@ -1,4 +1,4 @@
-// UXPREC-1..5: the ux-reviewer's "Scope and severity" paragraph carries a precision rule so it stops over-flagging
+// UXPREC-1..8: the ux-reviewer's "Scope and severity" paragraph carries a precision rule so it stops over-flagging
 // (0 of 16 clean screens passed). Assertions read only that paragraph, with loose case-insensitive regexes.
 // Run: node --test tests/ux-precision.test.mjs
 import { test } from "node:test";
@@ -53,4 +53,24 @@ test("UXPREC-5 a screen with no P0 or P1 scores 8 or more", () => {
   const p = paragraph();
   assert.match(p, /no P0 (or|and|nor) P1[^.]{0,80}(score|rate)\w*[^.]{0,40}\b(8|eight)\b|(score|rate)\w*[^.]{0,40}\b(8|eight)\b[^.]{0,80}no P0 (or|and|nor) P1/i, "no P0/P1 scores 8");
   assert.match(p, /\b(8|eight)\b[^.]{0,20}(or (more|higher|above)|\+)|at least (8|eight)/i, "8 or more");
+});
+
+test("UXPREC-6 a labeled demo or sample bar is chrome, out of scope unless it covers the content", () => {
+  const p = paragraph();
+  assert.match(p, /demo (chrome|bar)|sample bar/i, "names the demo bar");
+  assert.match(p, /(out of scope|not product UI|do not rate)/i, "says it is out of scope");
+  assert.match(p, /unless it (covers|pushes)/i, "exception when it covers content");
+});
+
+test("UXPREC-7 when a product rule says who sees which variant, do not ask the user which", () => {
+  const p = paragraph();
+  assert.match(p, /DEC-66/, "cites the Hearth viewer/parent rule");
+  assert.match(p, /do not ask/i, "says do not ask");
+});
+
+test("UXPREC-8 Ready is allowed when no P0 or P1 survives; P2s do not hold it back, a real P1 is never softened", () => {
+  const p = paragraph();
+  assert.match(p, /Ready is allowed/i, "Ready is allowed");
+  assert.match(p, /do not hold Ready back for P2/i, "P2s do not block Ready");
+  assert.match(p, /never softened/i, "a real P1 is not softened");
 });
