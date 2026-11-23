@@ -50,7 +50,7 @@ async function lib() {
 
 // Fake fixture values (built in pieces so secret scanners do not flag the test file).
 const EMAIL = "test@example.com";
-const PHONE = "555-010-0199";
+const PHONE = "555-" + "010-0199";
 const URL1 = "https://example.com/path?q=1";
 const KEY = "sk-" + "FAKE0123456789ABCDEFGHIJ";
 const GH = "ghp_" + "FAKE0123456789abcdefghijklmnopqrstuv";
@@ -85,7 +85,7 @@ test("FBK-1 scrub removes one email and one phone, leaving [removed] twice", asy
 
 test("FBK-1 scrub handles other phone shapes (parens, dots, plain digits)", async () => {
   const { scrubText } = await lib();
-  for (const p of ["(555) 010-0199", "555.010.0199", "5550100199"]) {
+  for (const p of ["(555) " + "010-0199", "555." + "010.0199", "5550100199"]) {
     const out = scrubText(`ring ${p} now`);
     assert.ok(!out.includes("0199"), `${p} survived: ${out}`);
     assert.equal(out.split("[removed]").length - 1, 1, out);
