@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: 'Hard rules checked:[^\n]*DARK-1[^\n]*DARK-4[^\n]*DARK-5'
+pattern: 'Hard rules checked:(?=[^\n]*\bDARK-1\b)(?=[^\n]*\bDARK-4\b)(?=[^\n]*\bDARK-5\b)'
 weight: 3
 ---

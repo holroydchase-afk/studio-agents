@@ -8,7 +8,7 @@
 3. `ux-reviewer.md`: a Research step (fetch, summarize in own words, one source per file, add `pending` entry, never copy text) and the rule "every finding cites a reference ID when one applies; every hard rule is listed under Hard rules checked".
 4. Evals that fail when a hard rule is skipped.
 
-**Out of scope.** Product UI fixes (INTAKE blocks go to each product's project). Medium article content (blocked, see HANDOFF).
+**Out of scope.** Product UI fixes (INTAKE blocks go to each product's project). Fetching Medium automatically (it returns 403; the article text came from Chase's paste).
 
 **Acceptance criteria (tests in `tests/ux-refs.test.mjs`).**
 - UXREF-1 every entry parses (ID, strength, status, source URL) and IDs are unique.

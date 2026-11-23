@@ -111,3 +111,14 @@ test("UXREF-14 QA-R5 topic case and other-family ids are not mishandled", () => 
   const other = cli("cite", review(`UX-R1 DS-1 G7 WCAG-2 ${hardDark[0].id}\n`));
   assert.equal(other.status, 0, other.stderr);
 });
+
+test("UXREF-15 the clean-UI article is five hard fetched entries and the cite check enforces them", () => {
+  const clean = refs.filter((r) => r.topic === "clean");
+  assert.deepEqual(clean.map((r) => r.id), ["CLEAN-1", "CLEAN-2", "CLEAN-3", "CLEAN-4", "CLEAN-5"]);
+  assert.ok(clean.every((r) => r.strength === "hard" && r.status === "fetched"));
+  const miss = cli("cite", "--topics", "clean", review("Hard rules checked: CLEAN-1 pass, CLEAN-2 pass\n"));
+  assert.equal(miss.status, 1);
+  for (const id of ["CLEAN-3", "CLEAN-4", "CLEAN-5"]) assert.ok(miss.stderr.includes(id));
+  const ok = cli("cite", "--topics", "clean", review(`Hard rules checked: ${clean.map((r) => `${r.id} pass`).join(", ")}\n`));
+  assert.equal(ok.status, 0, ok.stderr);
+});

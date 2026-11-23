@@ -58,8 +58,9 @@ export function validateRefs(refs) {
 // What a review accounts for: a finding row's rule field (ID | P | rule | where | problem | fix), and entries on
 // the "Hard rules checked:" line (`ID pass`, `ID fail (UX-R3)`, `ID not verifiable (why)`, `ID open`). A fail must
 // name its finding. An ID mentioned anywhere else (prose) accounts for nothing.
-export function accounted(text) {
-  const ids = new Set(), errors = [];
+export function accounted(text, refs = []) {
+  const ids = new Set(), errors = [], listed = new Set();
+  const byId = new Map(refs.map((r) => [r.id, r]));
   for (const line of text.split(/\r?\n/)) {
     const cells = line.split("|");
     if (cells.length >= 6) for (const m of (cells[2] || "").matchAll(ID)) ids.add(m[0].toUpperCase());
@@ -67,11 +68,13 @@ export function accounted(text) {
     if (!hc) continue;
     for (const m of hc[1].matchAll(/\b([A-Za-z]{3,8}-\d+)\s+(pass|fail|not verifiable|open)\b(?:\s*\(([^)]*)\))?/gi)) {
       const id = m[1].toUpperCase(), word = m[2].toLowerCase();
+      listed.add(id.split("-")[0].toLowerCase());
+      if (word === "open" && byId.has(id) && byId.get(id).status !== "pending") { errors.push(`${id} is marked open but its source is ${byId.get(id).status}: check it (pass, fail or not verifiable)`); continue; }
       if (word === "fail" && !/\b[A-Z]{2,}-R\d+\b/.test(m[3] || "")) { errors.push(`${id} is marked fail with no finding: write "${id} fail (UX-R1)" and add that finding row`); continue; }
       ids.add(id);
     }
   }
-  return { ids, errors };
+  return { ids, errors, listed };
 }
 
 // topics: ["dark", ...]. Returns { errors: [string], open: [id] }.
@@ -84,10 +87,11 @@ export function citeCheck(text, refs, topics = []) {
     if (!families.has(m[1].toUpperCase())) continue; // not a reference family (UX-R1, DS-1, G7...)
     if (!known.has(id)) errors.push(`unknown reference ${id}: not in docs/references/ux`);
   }
-  const want = new Set(topics.map((t) => t.trim().toLowerCase()).filter(Boolean));
+  const acc = accounted(text, refs);
+  // A topic listed on the Hard rules checked line must be listed in full, even when --topics was not given.
+  const want = new Set([...topics.map((t) => t.trim().toLowerCase()).filter(Boolean), ...[...acc.listed].filter((t) => refs.some((r) => r.topic === t))]);
   const have = new Set(refs.map((r) => r.topic));
-  for (const t of want) if (!have.has(t)) errors.push(`unknown topic "${t}" (have: ${[...have].join(", ")})`);
-  const acc = accounted(text);
+  for (const t of topics.map((x) => x.trim().toLowerCase()).filter(Boolean)) if (!have.has(t)) errors.push(`unknown topic "${t}" (have: ${[...have].join(", ")})`);
   errors.push(...acc.errors);
   const open = [];
   for (const r of refs) {
