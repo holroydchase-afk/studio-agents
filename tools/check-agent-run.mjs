@@ -5,12 +5,12 @@
 // `key: value` lines; keys are case-insensitive, values are not:
 //
 //   date: 2026-11-22                     (real YYYY-MM-DD)
-//   agent: qa-tdd                        (one of the ten studio agents, see AGENTS)
+//   agent: qa-tdd                        (a studio agent, see AGENTS, or any lowercase kebab-case product agent such as job-hunt)
 //   product: <name>                      tier: advisory | supervised | full
 //   model: <id>                          tokens: <integer>      cost_usd: <number>   (what the harness shows)
 //   input: <the task, one line>
 //   tool: <name> | ok | failed | <note>  (zero or more; name has no spaces)
-//   verdict: <see VERDICTS; any non-empty text for agents without a fixed list>
+//   verdict: <see VERDICTS; any non-empty text for the studio agents without a fixed list, one lowercase word for a product agent>
 //   findings: <integer>                  p0: <integer, at most findings>
 //   artifact: <repo-relative path>       (optional; no leading slash, no .. segment)
 //   escalated: yes | no                  (yes needs `escalation_reason: <text>`; no forbids it)
@@ -31,6 +31,7 @@ import { pathToFileURL } from "node:url";
 import { LEAKS } from "./check-story-entry.mjs";
 
 export const AGENTS = ["qa-tdd", "staff-pm", "engineer", "ux-reviewer", "privacy-security", "architect", "positioning", "release-captain", "story-keeper", "orchestrator"];
+export const SLUG = /^[a-z][a-z0-9-]*$/; // any product agent name, e.g. job-hunt
 export const TIERS = ["advisory", "supervised", "full"];
 export const VERDICTS = {
   "qa-tdd": ["green", "red", "flaky", "blocked"],
@@ -90,11 +91,12 @@ export function checkAgentRun(text) {
   for (const k of OPTIONAL) if (k in kv && !kv[k]) found.push(`${k}: is empty: fill it in or leave the line out`);
 
   if (kv.date && !realDate(kv.date)) found.push(`date "${kv.date}" is not a real YYYY-MM-DD date`);
-  if (kv.agent && !AGENTS.includes(kv.agent)) found.push(`agent "${kv.agent}" must be one of: ${AGENTS.join(", ")}`);
+  if (kv.agent && !SLUG.test(kv.agent)) found.push(`agent "${kv.agent}" must be a lowercase kebab-case name (a studio agent such as ${AGENTS.slice(0, 3).join(", ")}, or your own such as job-hunt)`);
   if (kv.tier && !TIERS.includes(kv.tier)) found.push(`tier "${kv.tier}" must be one of: ${TIERS.join(", ")}`);
   if (kv.tokens && !INT.test(kv.tokens)) found.push(`tokens "${kv.tokens}" must be a non-negative integer`);
   if (kv.cost_usd && !NUM.test(kv.cost_usd)) found.push(`cost_usd "${kv.cost_usd}" must be a non-negative number`);
   const allowed = VERDICTS[kv.agent];
+  if (kv.verdict && !allowed && kv.agent && !AGENTS.includes(kv.agent) && !SLUG.test(kv.verdict)) found.push(`verdict "${kv.verdict}" for ${kv.agent} must be a single lowercase word (e.g. shipped, needs-decision)`);
   if (kv.verdict && allowed && !allowed.includes(kv.verdict)) found.push(`verdict "${kv.verdict}" for ${kv.agent} must be one of: ${allowed.join(", ")}`);
   if (kv.findings && !INT.test(kv.findings)) found.push(`findings "${kv.findings}" must be a non-negative integer`);
   if (kv.p0 && !INT.test(kv.p0)) found.push(`p0 "${kv.p0}" must be a non-negative integer`);
