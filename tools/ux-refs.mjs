@@ -41,24 +41,59 @@ export function searchRefs(query, refs, opts = {}) {
   return search(query, docs, opts);
 }
 
+export const STRENGTHS = ["hard", "guide"];
+export const STATUSES = ["fetched", "search-summary", "pending"];
+
+// A typo in strength or status would silently drop a rule from enforcement, so every entry is validated.
+export function validateRefs(refs) {
+  const errors = [];
+  for (const r of refs) {
+    if (!STRENGTHS.includes(r.strength)) errors.push(`${r.id}: strength "${r.strength}" must be one of ${STRENGTHS.join(", ")}`);
+    if (!STATUSES.includes(r.status)) errors.push(`${r.id}: status "${r.status}" must be one of ${STATUSES.join(", ")}`);
+    if (!/^https:\/\//.test(r.source)) errors.push(`${r.id}: source must be an https link`);
+  }
+  return errors;
+}
+
+// What a review accounts for: a finding row's rule field (ID | P | rule | where | problem | fix), and entries on
+// the "Hard rules checked:" line (`ID pass`, `ID fail (UX-R3)`, `ID not verifiable (why)`, `ID open`). A fail must
+// name its finding. An ID mentioned anywhere else (prose) accounts for nothing.
+export function accounted(text) {
+  const ids = new Set(), errors = [];
+  for (const line of text.split(/\r?\n/)) {
+    const cells = line.split("|");
+    if (cells.length >= 6) for (const m of (cells[2] || "").matchAll(ID)) ids.add(m[0].toUpperCase());
+    const hc = /^\s*(?:\*\*)?Hard rules checked:?(?:\*\*)?:?\s*(.*)$/i.exec(line);
+    if (!hc) continue;
+    for (const m of hc[1].matchAll(/\b([A-Za-z]{3,8}-\d+)\s+(pass|fail|not verifiable|open)\b(?:\s*\(([^)]*)\))?/gi)) {
+      const id = m[1].toUpperCase(), word = m[2].toLowerCase();
+      if (word === "fail" && !/\b[A-Z]{2,}-R\d+\b/.test(m[3] || "")) { errors.push(`${id} is marked fail with no finding: write "${id} fail (UX-R1)" and add that finding row`); continue; }
+      ids.add(id);
+    }
+  }
+  return { ids, errors };
+}
+
 // topics: ["dark", ...]. Returns { errors: [string], open: [id] }.
 export function citeCheck(text, refs, topics = []) {
+  const errors = validateRefs(refs);
   const known = new Set(refs.map((r) => r.id));
-  const errors = [];
-  const mentioned = new Set();
-  for (const m of text.matchAll(ID)) {
-    const id = m[0];
-    const prefix = m[1];
-    if (!refs.some((r) => r.id.startsWith(`${prefix}-`))) continue; // not a reference family (UX-R1, DS-1, G7...)
+  const families = new Set(refs.map((r) => r.id.split("-")[0]));
+  for (const m of text.matchAll(/\b([A-Za-z]{3,8})-(\d+)\b/g)) {
+    const id = m[0].toUpperCase();
+    if (!families.has(m[1].toUpperCase())) continue; // not a reference family (UX-R1, DS-1, G7...)
     if (!known.has(id)) errors.push(`unknown reference ${id}: not in docs/references/ux`);
-    else mentioned.add(id);
   }
-  const want = new Set(topics.map((t) => t.toLowerCase()));
+  const want = new Set(topics.map((t) => t.trim().toLowerCase()).filter(Boolean));
+  const have = new Set(refs.map((r) => r.topic));
+  for (const t of want) if (!have.has(t)) errors.push(`unknown topic "${t}" (have: ${[...have].join(", ")})`);
+  const acc = accounted(text);
+  errors.push(...acc.errors);
   const open = [];
   for (const r of refs) {
     if (!want.has(r.topic) || r.strength !== "hard") continue;
     if (r.status === "pending") { open.push(r.id); continue; }
-    if (!mentioned.has(r.id)) errors.push(`hard rule ${r.id} (${r.title}) is neither cited in a finding nor listed under "Hard rules checked:"`);
+    if (!acc.ids.has(r.id)) errors.push(`hard rule ${r.id} (${r.title}) is neither cited in a finding row nor listed under "Hard rules checked:"`);
   }
   return { errors: [...new Set(errors)], open };
 }
@@ -73,7 +108,7 @@ if (isMain) {
     if (a === "-h" || a === "--help") { console.log(USAGE); process.exit(0); }
     else if (a === "--json") json = true;
     else if (a === "--root") { root = args[++i]; if (root === undefined) usage(); }
-    else if (a === "--topics") { const v = args[++i]; if (v === undefined) usage(); topics = v.split(",").filter(Boolean); }
+    else if (a === "--topics") { const v = args[++i]; if (v === undefined) usage(); topics = v.split(",").map((x) => x.trim()).filter(Boolean); }
     else if (a === "--limit") { const v = args[++i]; if (v === undefined || !/^[1-9]\d*$/.test(v)) usage(); limit = Number(v); }
     else if (a.startsWith("-")) usage();
     else pos.push(a);

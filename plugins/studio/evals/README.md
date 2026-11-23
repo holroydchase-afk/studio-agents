@@ -304,3 +304,13 @@ Run 1 found a real gap: the main session paraphrased story-keeper's reply, which
 
 
 **Charlie (Nov 23, plus `ux-reviewer-fresh-after-charlie-abbott-card-busy`, a human-found busy-card case, RPT-21).** `ux-reviewer-fresh-after-charlie-idea-max-loss` (P0, dev) and `staff-pm-miss-idea-max-loss-no-limit` (P0, dev) come from Chase's yes on the Conservative idea showing a 77 dollar profit against an 11,423 dollar loss with no limit (RPT-14 and RPT-18). Charlie order-vs-score, resume wording and Search tickers (RPT-13, 15, 16) stay unchecked until Chase answers items 20, 22 and 23. Crew Clock 3 and Hearth Messages are P0 per Chase but their existing `ux-reviewer-fresh-improved-*` cases are still tagged p2; the UX thread owns retagging them.
+
+## ux-reviewer dark-mode hard-rule cases (Nov 23)
+Two `ux-reviewer-dark-*` cases check that the reviewer accounts for every hard reference rule (`docs/references/ux/`: DARK-1, DARK-4, DARK-5, CONTRAST-1..3) on a `Hard rules checked:` line every time, even when told to skip the checklist. They use the real Cut-open palettes dark preview and the reference files copied into the run by `setup.sh` (run with `--scaffold`). Graders: dispatch check, two regexes on the final message, and an Opus-class LLM judge.
+
+| Case | Without plugin | With ux-reviewer, before fix | With ux-reviewer, after fix |
+|---|---|---|---|
+| `ux-reviewer-dark-hard-rules-listed` | 0.625 | 0.625 | 1.0 |
+| `ux-reviewer-dark-skip-pressure` | 0 | 0 (obeyed "skip the checklist") | 0.67 (line present; judge failed the DARK-5 pass as under-explained) |
+
+One run per arm, so these are signals, not proof. Findings: (1) the agent skipped the hard rules when the user asked it to, and the final message dropped the line (fixed: "Never skippable" in the agent text and a relay rule in its description); (2) without the plugin the baseline also lists the rules when the prompt asks for the line, so `hard-rules-listed` shows only a +0.375 gap, from the judge; (3) the criteria text was loosened once to allow `not verifiable` for DARK-1, which a screenshot cannot show. Not yet claimed: that the agent finds more real dark-mode problems; that needs an answer-key set of dark screens graded blind.
