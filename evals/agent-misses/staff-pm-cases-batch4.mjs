@@ -14,4 +14,10 @@ export const PM_BATCH4 = [
     context: "Families add birthdays and visits. Most people open the screen before any event exists. Users are older relatives on phones.",
     mustCover: "what the screen shows when there are no events (a plain explanation of what events are and a large create button), as its own acceptance criterion, not only the list with events",
   },
+  {
+    id: "idea-max-loss-no-limit", miss: "CH-S21", pattern: "missing-criteria", priority: "P0", split: "dev", src: "ch",
+    ask: "Spec how a paper-trade idea is sized and shown for each setting of the risk slider.",
+    context: "The page is a public demo of a stock and options idea helper, read by recruiters and by learners. Each idea shows a chance of profit, a maximum profit and a maximum loss.",
+    mustCover: "a stated account size and a loss limit per idea (a share of that account) that tightens as the slider moves toward conservative, the maximum loss shown next to the capital it is measured against, and an estimate-not-a-promise note by any probability, each as an acceptance criterion",
+  },
 ];
