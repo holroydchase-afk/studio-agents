@@ -16,3 +16,6 @@ for t in "$@"; do
   cp "$src/$t.mjs" "$dest/$t.mjs"
   echo "synced $t"
 done
+# The ux-refs tool reads the cited reference library; copy it when syncing everything or ux-refs.
+refs="$(cd "$(dirname "$0")/.." && pwd)/docs/references/ux"
+case " $* " in *" ux-refs "*) mkdir -p "$repo/docs/references/ux" && cp "$refs"/*.md "$repo/docs/references/ux/" && echo "synced references/ux";; esac
