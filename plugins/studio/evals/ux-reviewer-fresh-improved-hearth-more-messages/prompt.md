@@ -1,7 +1,7 @@
 ---
 name: ux-reviewer-fresh-improved-hearth-more-messages
 description: "improved-screen check: current hearth screen an independent reviewer found better but not flawless (Chase, Nov 22)"
-tags: [ux-reviewer, fresh, p2, src-hearth, by-agent]
+tags: [ux-reviewer, fresh, p0, src-hearth, by-agent]
 runs: 1
 max_turns: 20
 allowed_tools: [Agent, Read, Glob, Grep]
