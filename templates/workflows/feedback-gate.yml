@@ -1,0 +1,24 @@
+name: feedback-gate
+# Studio feedback loop (docs/feedback-loop.md). Screens each new feedback issue and labels it: needs-triage, spam
+# (closed), suspicious or over-cap. Plain node plus the gh CLI; never calls a model. Pause with the repo variable
+# FEEDBACK_PAUSED=true or the file .claude/feedback.off.
+on:
+  issues:
+    types: [opened, labeled]
+permissions:
+  issues: write
+  contents: read
+jobs:
+  gate:
+    if: ${{ vars.FEEDBACK_PAUSED != 'true' && contains(github.event.issue.labels.*.name, 'feedback') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preflight (kill switch, before any issue is read)
+        run: node scripts/feedback-gate.mjs --preflight --root . --paused "${{ vars.FEEDBACK_PAUSED == 'true' }}"
+      - name: Gate the issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: node scripts/feedback-gate.mjs --run --root . --issue "$ISSUE_NUMBER"
