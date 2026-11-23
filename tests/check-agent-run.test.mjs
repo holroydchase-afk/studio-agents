@@ -140,12 +140,12 @@ test("AGRUN-8 date: a real YYYY-MM-DD only (leap days, month 13, other formats)"
   for (const d of ["2026-02-29", "2026-13-01", "2026-00-10", "2026-04-31", "11/22/2026", "2026-11-22T10:00:00Z", "2026-1-2"]) bad(edit("qa-tdd", { set: { date: d } }), /date/);
 });
 
-test("AGRUN-9 agent: one of the ten studio agents", () => {
+test("AGRUN-9 agent: a studio agent or a kebab-case product agent", () => {
   for (const a of ["qa-tdd", "staff-pm", "engineer", "ux-reviewer", "privacy-security", "architect", "positioning", "release-captain", "story-keeper", "orchestrator"]) {
     const verdict = { "qa-tdd": "red", "staff-pm": "ready", "ux-reviewer": "Needs changes" }[a] ?? "done";
     ok(edit("engineer", { set: { agent: a, verdict } }), `agent ${a}`);
   }
-  for (const a of ["general-purpose", "qa", "focus-coach", "QA-TDD x"]) bad(edit("engineer", { set: { agent: a } }), /agent/);
+  for (const a of ["QA-TDD x", "general purpose", "Job-Hunt"]) bad(edit("engineer", { set: { agent: a } }), /agent/);
 });
 
 test("AGRUN-10 tier: advisory, supervised or full", () => {
@@ -275,4 +275,30 @@ test("AGRUN-22 CLI: exit 0 valid, 1 with one reason per line on stderr, 2 on usa
   assert.equal(cli(good, good).status, 2, "two files");
   assert.equal(cli(join(dir, "no-such-run.md")).status, 2, "unreadable file");
   assert.equal(cli("--bogus").status, 2, "unknown flag only");
+});
+
+// ---------- AGENTNAME-1..3: a product's own agent (any lowercase kebab-case slug) is a valid agent name ----------
+test("AGENTNAME-1 a product's own agent (job-hunt, any ^[a-z][a-z0-9-]*$ slug) passes with an otherwise valid block", () => {
+  for (const a of ["job-hunt", "grandparent-ux", "focus-coach", "a", "x9-y"]) {
+    const run = ok(edit("engineer", { set: { agent: a } }), `agent ${a}`);
+    assert.equal(run.agent, a);
+  }
+});
+
+test("AGENTNAME-2 an agent that is not a slug is rejected with an error naming agent", () => {
+  for (const a of ["job hunt", "Job-Hunt", "QA-TDD", "../x", "9lives", "-x", "a_b", "a/b"]) {
+    const r = bad(edit("engineer", { set: { agent: a } }), /agent/);
+    assert.ok(r.errors.every((e) => !/\.\.\/x/.test(e) || /agent/.test(e)), "error names the agent");
+  }
+  bad(edit("engineer", { drop: ["agent"] }), /agent/);
+  bad(edit("engineer", { set: { agent: "" } }), /agent/);
+});
+
+test("AGENTNAME-3 studio agents keep their verdict lists; an unknown agent's verdict is a single lowercase word", () => {
+  bad(edit("engineer", { set: { agent: "qa-tdd", verdict: "done" } }), /verdict/);
+  bad(edit("engineer", { set: { agent: "staff-pm", verdict: "green" } }), /verdict/);
+  bad(edit("engineer", { set: { agent: "ux-reviewer", verdict: "ready" } }), /verdict/);
+  ok(edit("engineer", { set: { agent: "job-hunt", verdict: "shipped" } }), "unknown agent, one lowercase word");
+  ok(edit("engineer", { set: { agent: "job-hunt", verdict: "needs-decision" } }), "hyphenated lowercase word");
+  for (const v of ["Done", "two words", "SHIPPED", "ok!"]) bad(edit("engineer", { set: { agent: "job-hunt", verdict: v } }), /verdict/);
 });

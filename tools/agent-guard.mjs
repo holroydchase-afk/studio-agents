@@ -18,7 +18,7 @@ import { readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import { checkAgentRun, AGENTS } from "./check-agent-run.mjs";
+import { checkAgentRun, SLUG } from "./check-agent-run.mjs";
 
 export const DEFAULT_CAP = 1.0;
 const USAGE = [
@@ -49,7 +49,7 @@ const isDir = (p) => { try { return statSync(p).isDirectory(); } catch { return 
 const isFile = (p) => { try { return statSync(p).isFile(); } catch { return false; } };
 
 export function guardKill(agent, root = process.cwd()) {
-  if (!AGENTS.includes(agent)) throw new UsageError(`unknown agent "${agent}": use one of ${AGENTS.join(", ")}`);
+  if (!SLUG.test(agent || "")) throw new UsageError(`bad agent name "${agent}": use a lowercase kebab-case name such as qa-tdd or job-hunt`);
   if (!isDir(root)) throw new UsageError(`--root ${root} is not a folder`);
   const reasons = [];
   if (isFile(join(root, ".claude", "agents.off"))) reasons.push("kill switch .claude/agents.off is on: every agent is halted (delete the file to resume)");

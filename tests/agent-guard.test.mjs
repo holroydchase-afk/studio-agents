@@ -144,11 +144,11 @@ test("GUARD-8 kill: --root defaults to the current folder", () => {
   assert.equal(run(["kill", "qa-tdd"], fresh("kill")).code, 0, "clean cwd passes");
 });
 
-test("GUARD-9 kill: an unknown agent exits 2, even when a switch file exists", () => {
+test("GUARD-9 kill: a bad agent name exits 2, even when a switch file exists", () => {
   const d = fresh("kill");
   write(d, ".claude/agents.off", "");
   write(d, ".claude/hacker.off", "");
-  for (const a of ["hacker", "QA-TDD", "general-purpose", "", "../qa-tdd", "grandparent-ux"]) {
+  for (const a of ["QA-TDD", "general purpose", "", "../qa-tdd", "Job-Hunt"]) {
     const r = run(["kill", a, "--root", d]);
     assert.equal(r.code, 2, `agent ${JSON.stringify(a)} should exit 2, got ${r.code}`);
   }
@@ -459,4 +459,19 @@ test("GUARD-41 kill and cost never write files (the root and the log are untouch
   assert.equal(run(["cost", f]).code, 1, "the guard ran and tripped");
   assert.equal(fs.readFileSync(f, "utf8"), text);
   assert.deepEqual(fs.readdirSync(path.dirname(f)), ["run.md"]);
+});
+
+// ---------- AGENTNAME-4: kill works for a product's own agent; a non-slug name is a usage error ----------
+test("AGENTNAME-4 kill job-hunt trips on .claude/job-hunt.off and passes otherwise; kill ../x is exit 2", () => {
+  const d = fresh("kill");
+  assert.equal(run(["kill", "job-hunt", "--root", d]).code, 0, "no switch: passes");
+  write(d, ".claude/job-hunt.off", "");
+  const r = run(["kill", "job-hunt", "--root", d]);
+  assert.equal(r.code, 1, `job-hunt.off should trip, got ${r.code}: ${r.err}`);
+  assert.ok(/job-hunt/.test(r.err), r.err);
+  assert.equal(run(["kill", "qa-tdd", "--root", d]).code, 0, "another agent is not halted");
+  write(d, ".claude/x.off", "");
+  for (const a of ["../x", "Job-Hunt", "job hunt", ""]) {
+    assert.equal(run(["kill", a, "--root", d]).code, 2, `agent ${JSON.stringify(a)} is a usage error`);
+  }
 });
