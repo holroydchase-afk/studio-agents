@@ -222,7 +222,7 @@ check "UXREF-1..8 ux-refs tool, reference library, hard-rule cite check, agent w
 check "CLEANQA-1..6 clean-UI rules: cite enforcement, eval regex, no stale wording" node --test "$root/tests/ux-refs-clean.test.mjs"
 check "UXREF-9 sync-tools copies the reference library with ux-refs" bash -c "d=\$(mktemp -d); bash '$root/scripts/sync-tools.sh' \"\$d\" ux-refs >/dev/null && test -f \"\$d/docs/references/ux/dark-mode.md\" && test -f \"\$d/scripts/ux-refs.mjs\""
 check "UXLOG-1..5 ux-reviewer run log on the shared agentrun format plus uxrun (fixture passes both checkers; prompt text)" node --test "$root/tests/ux-shared-log.test.mjs"
-check "UXPREC-1..8 ux-reviewer Scope and severity precision rule (P1 needs three things, by-eye is P2, read product rules, re-rank over two P1s, clean screen scores 8+, demo bar is chrome, a rule answers a question, Ready allowed)" node --test "$root/tests/ux-precision.test.mjs"
+check "UXPREC-1..8 ux-reviewer Scope and severity precision rule (P1 needs three things, by-eye is P2, read product rules, re-rank over two P1s, clean screen scores 8+, demo scaffolding is a finding when it crowds the first screen, a rule answers a question, Ready allowed)" node --test "$root/tests/ux-precision.test.mjs"
 check "CHKSPEC-1 tool check-spec exists and is listed in the README" bash -c "test -f '$root/tools/check-spec.mjs' || { echo missing tools/check-spec.mjs; exit 1; }; grep -q '\`check-spec\`' '$root/README.md'"
 check "CHKSPEC-2 check-spec tests" node --test "$root/tests/check-spec.test.mjs"
 check "QARUN3-1 tool qa-run3 exists and is listed in the README" bash -c "test -f '$root/tools/qa-run3.mjs' || { echo missing tools/qa-run3.mjs; exit 1; }; grep -q '\`qa-run3\`' '$root/README.md'"
