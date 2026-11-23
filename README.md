@@ -15,6 +15,8 @@ The AI team behind Chase Holroyd's one-person product studio. Each agent owns on
 | `architect` | One stack across products: reviews stack-crossing changes, reuse before build, architecture docs that match the code, weekly drift sweep |
 | `orchestrator` | PMO view across repos: morning digest, stalled-work checks, session rules and focus gate (builds nothing) |
 
+**Building an agent in a product repo? Start with [docs/agent-harness.md](docs/agent-harness.md): what harness pieces exist (run log, real token counts, kill switch, cost cap, evals, blind grader), how to sync them, and what is missing.  Agent infrastructure is built here and shared; don't rebuild it in a product repo.**
+
 The checklist every agent is held to: [docs/agent-template.md](docs/agent-template.md).
 The process that raises any agent (real misses, splits, scores, rules, infrastructure) and where QA-TDD and Staff PM stand: [docs/agent-training-plan.md](docs/agent-training-plan.md).
 
@@ -51,6 +53,7 @@ Scripts the agents run, copied into each repo's `scripts/` with `scripts/sync-to
 | `eval-miss-score` | Scores a miss-eval run recorded from subagent transcripts (no API key). Reads `evals/agent-misses/runs/<run>/results.json`, writes `results.md` (recall by agent, priority, pattern, arm), and `--check` fails on a stale report, a dev case in a held-out run (or the reverse), a missing transcript or a double score. `node tools/eval-miss-score.mjs <run-dir>` |
 | `ux-state` | The ux-reviewer's memory between runs: records each run log into one JSON file in the product repo (`docs/design/ux-state.json`), tracking each finding as open, fixed (gone from a rechecked run) or reopened. `node scripts/ux-state.mjs record run.md --state docs/design/ux-state.json`, then `show --state ...` lists what is open |
 | `ux-search` | Keyword search over the design rules, past run-log findings and the state file, so the agent checks whether a problem is already known before filing it. No network. `node scripts/ux-search.mjs <words> --root . [--limit N] [--json]` |
+| `ux-refs` | The ux-reviewer's cited reference library (`docs/references/ux/`: dark mode, contrast, clean UI): `search`, `show`, and `cite <review.md> --topics dark,contrast,clean`, which fails when a review cites an unknown reference or skips a hard rule. `pending` entries (source not read yet) are reported open, never enforced. No network. `node scripts/ux-refs.mjs search <words>`; sync-tools also copies the library. |
 
 ## When to use which agent (by default, without being asked)
 Agents only help if the session calls them. Copying them into a repo is not enough: the repo's `CLAUDE.md` must say when to use them. Paste [templates/CLAUDE-agents.md](templates/CLAUDE-agents.md) into it.

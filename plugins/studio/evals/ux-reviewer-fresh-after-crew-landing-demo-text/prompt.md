@@ -1,6 +1,6 @@
 ---
 name: ux-reviewer-fresh-after-crew-landing-demo-text
-description: "RPT-15 Crew Clock landing: demo bar, pitch bullets and Try it text are demo scaffolding on the first screen (Chase)"
+description: "RPT-22 Crew Clock landing: demo bar, pitch bullets and Try it text are demo scaffolding on the first screen (Chase)"
 tags: [ux-reviewer, fresh, p1, src-crew-clock, by-human, after-shot, split-dev]
 runs: 1
 max_turns: 20

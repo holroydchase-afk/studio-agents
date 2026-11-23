@@ -10,6 +10,7 @@ import { PM_BATCH3 } from "./staff-pm-cases-batch3.mjs";
 import { PM_BATCH4 } from "./staff-pm-cases-batch4.mjs";
 import { PM_BATCH5 } from "./staff-pm-cases-batch5.mjs";
 import { PM_BATCH6 } from "./staff-pm-cases-batch6.mjs";
+import { PM_BATCH7 } from "./staff-pm-cases-batch7.mjs";
 
 const PM_BASE = [
   {
@@ -62,4 +63,4 @@ const PM_BASE = [
   },
 ];
 
-export const PM_CASES = [...PM_BASE, ...PM_BATCH2, ...PM_BATCH3, ...PM_BATCH4, ...PM_BATCH5, ...PM_BATCH6];
+export const PM_CASES = [...PM_BASE, ...PM_BATCH2, ...PM_BATCH3, ...PM_BATCH4, ...PM_BATCH5, ...PM_BATCH6, ...PM_BATCH7];
