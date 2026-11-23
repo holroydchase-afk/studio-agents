@@ -1,0 +1,94 @@
+{
+ "run": "2026-11-22-batch5-noise",
+ "date": "2026-11-22",
+ "phase": "heldout",
+ "agent_model": "claude-sonnet-5-5 (agent arm only, 2 repeat runs per case; general-purpose subagents told to read and follow plugins/studio/agents/staff-pm.md; some runs reported they could not see all repo docs or were told not to read outside their sandbox)",
+ "grader_model": "opus, fresh context, saw only the criteria file and the saved reports, run labels shuffled",
+ "change": "No change to the agent: repeat runs of the same 6 held-out cases to measure noise. Plain arm was not repeated, so this gives no lift.",
+ "results": [
+  {
+   "case": "staff-pm-miss-four-demo-issues-already-in-flight",
+   "arm": "agent-repeat",
+   "pass": true,
+   "reason": "Names PR 34 on claude/demo-issues for issues 1 to 3, resume not redo; WK-1 concrete-hours test for issue 4.",
+   "transcript": "transcripts/four-demo-issues-already-in-flight-agent-n2.md"
+  },
+  {
+   "case": "staff-pm-miss-four-demo-issues-already-in-flight",
+   "arm": "agent-repeat",
+   "pass": true,
+   "reason": "Names PR 34, resume; WEEK-1 concrete-hours test.",
+   "transcript": "transcripts/four-demo-issues-already-in-flight-agent-n3.md"
+  },
+  {
+   "case": "staff-pm-miss-console-page-built-then-hidden",
+   "arm": "agent-repeat",
+   "pass": false,
+   "reason": "Register-gated lines and 'no runs yet' present; never cites the Studio page or asks whether the premise changed, opens build-now.",
+   "transcript": "transcripts/console-page-built-then-hidden-agent-n2.md"
+  },
+  {
+   "case": "staff-pm-miss-console-page-built-then-hidden",
+   "arm": "agent-repeat",
+   "pass": false,
+   "reason": "Same: evidence and no-run rows present; premise change not asked.",
+   "transcript": "transcripts/console-page-built-then-hidden-agent-n3.md"
+  },
+  {
+   "case": "staff-pm-miss-phone-font-again",
+   "arm": "agent-repeat",
+   "pass": true,
+   "reason": "Cites DEC-58, PR 146, DEC-31; needs-decision; relatives check before build; 17pt kept.",
+   "transcript": "transcripts/phone-font-again-agent-n3.md"
+  },
+  {
+   "case": "staff-pm-miss-phone-font-again",
+   "arm": "agent-repeat",
+   "pass": true,
+   "reason": "Cites the reversal and DEC-31; needs-decision; glyph test before build; 17pt kept.",
+   "transcript": "transcripts/phone-font-again-agent-n2.md"
+  },
+  {
+   "case": "staff-pm-miss-dream-roles-live-page-ahead",
+   "arm": "agent-repeat",
+   "pass": false,
+   "reason": "Sync first present; DREAM-7 checks README against live page, not against docs/status.md.",
+   "transcript": "transcripts/dream-roles-live-page-ahead-agent-n3.md"
+  },
+  {
+   "case": "staff-pm-miss-dream-roles-live-page-ahead",
+   "arm": "agent-repeat",
+   "pass": true,
+   "reason": "Sync first present; DR-8 names docs/status.md and tests README claims (close call).",
+   "transcript": "transcripts/dream-roles-live-page-ahead-agent-n2.md"
+  },
+  {
+   "case": "staff-pm-miss-demo-criteria-unconfigured",
+   "arm": "agent-repeat",
+   "pass": true,
+   "reason": "DEMO-1 shows sample criteria on the demo build, never unconfigured.",
+   "transcript": "transcripts/demo-criteria-unconfigured-agent-n2.md"
+  },
+  {
+   "case": "staff-pm-miss-demo-criteria-unconfigured",
+   "arm": "agent-repeat",
+   "pass": false,
+   "reason": "Ranks risks but not the sample-criteria state at P0, and designs a 'No criteria yet' state.",
+   "transcript": "transcripts/demo-criteria-unconfigured-agent-n3.md"
+  },
+  {
+   "case": "staff-pm-miss-empty-state-no-action",
+   "arm": "agent-repeat",
+   "pass": false,
+   "reason": "Large create button testable, but no criterion for a plain explanation of what events are.",
+   "transcript": "transcripts/empty-state-no-action-agent-n2.md"
+  },
+  {
+   "case": "staff-pm-miss-empty-state-no-action",
+   "arm": "agent-repeat",
+   "pass": false,
+   "reason": "Explanation of events only in prose, not a testable criterion.",
+   "transcript": "transcripts/empty-state-no-action-agent-n3.md"
+  }
+ ]
+}

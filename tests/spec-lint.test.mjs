@@ -31,6 +31,7 @@ const read = (name) => fs.readFileSync(path.join(FIX, name), "utf8");
 const NAMES = {
   "SL-1": "pinned-clock", "SL-2": "empty-input", "SL-3": "rollback", "SL-4": "phone-budget", "SL-5": "measured-bar",
   "SL-6": "auth-cases", "SL-7": "claim-parity", "SL-8": "stale-artifacts", "SL-9": "risk-rank",
+  "SL-10": "feedback-loop", "SL-11": "samples-only",
 };
 const FINDING = /^(.+?):(\d+) (SL-\d+) ([a-z-]+): (.+)$/;
 
@@ -76,6 +77,8 @@ const RULES = [
   { id: "SL-7", fail: "sl7-fail.md", pass: "sl7-pass.md", trigger: "Update the README quickstart" },
   { id: "SL-8", fail: "sl8-fail.md", pass: "sl8-pass.md", trigger: "Done when the code merges" },
   { id: "SL-9", fail: "sl9-fail.md", pass: "sl9-pass.md", trigger: "Risk (P1)" },
+  { id: "SL-10", fail: "sl10-fail.md", pass: "sl10-pass.md", trigger: "red-flag penalty" },
+  { id: "SL-11", fail: "sl11-fail.md", pass: "sl11-pass.md", trigger: "only tested against three saved samples" },
 ];
 
 test("SLINT-T0 fixture check (passes before the build): every fixture except the two error cases passes check-spec, and none holds personal data", () => {

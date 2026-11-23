@@ -115,3 +115,32 @@ test("MISS-T12 (QA-R14) the --check message says how to clear an orphan", () => 
   const r = run([], ["--check"], (e) => fs.mkdirSync(path.join(e, "qa-tdd-miss-old"), { recursive: true }));
   assert.match(r.stderr, /delete an orphan folder by hand/);
 });
+
+// Fixture repos for staff-pm cases (batch 5): the ask is a bare line and the traps live in files the agent has to read.
+const pmRepo = { ...pmGood, id: "demo-repo", repo: { "CLAUDE.md": "Hard rule: no dates in plans.\n", "docs/plan.md": "M1 in progress.\n" } };
+test("MISS-T13 a staff-pm case with a repo writes fixture files, setup.sh and case.yaml; --check catches a stale fixture", () => {
+  const w = run([], [], undefined, [pmRepo]);
+  assert.equal(w.status, 0, w.stderr);
+  const dir = path.join(w.evals, "staff-pm-miss-demo-repo");
+  assert.equal(fs.readFileSync(path.join(dir, "fixture", "CLAUDE.md"), "utf8"), "Hard rule: no dates in plans.\n");
+  assert.ok(fs.existsSync(path.join(dir, "fixture", "docs", "plan.md")));
+  assert.match(fs.readFileSync(path.join(dir, "setup.sh"), "utf8"), /cp -R/);
+  assert.match(fs.readFileSync(path.join(dir, "case.yaml"), "utf8"), /scaffold_script: setup\.sh/);
+  assert.match(fs.readFileSync(path.join(dir, "prompt.md"), "utf8"), /working directory/);
+  const ok = run([], ["--check"], (e) => run([], [], undefined, [pmRepo]) && fs.cpSync(dir, path.join(e, "staff-pm-miss-demo-repo"), { recursive: true }), [pmRepo]);
+  assert.equal(ok.status, 0, ok.stderr);
+  const stale = run([], ["--check"], (e) => {
+    fs.cpSync(dir, path.join(e, "staff-pm-miss-demo-repo"), { recursive: true });
+    fs.writeFileSync(path.join(e, "staff-pm-miss-demo-repo", "fixture", "CLAUDE.md"), "changed\n");
+  }, [pmRepo]);
+  assert.equal(stale.status, 1);
+  assert.match(stale.stderr, /fixture\/CLAUDE\.md/);
+});
+test("MISS-T14 a repo map with a path that escapes, an absolute path or a non-string body is rejected", () => {
+  for (const repo of [{ "../x.md": "a" }, { "/etc/x.md": "a" }, { "a.md": 5 }, [], { "": "a" }, { "a/../../b.md": "a" }])
+    assert.equal(run([], [], undefined, [{ ...pmGood, repo }]).status, 1, JSON.stringify(repo));
+});
+test("MISS-T15 a fixture file may mention the trap in plain words; only ask and context are screened for hint words", () => {
+  const r = { ...pmRepo, repo: { "HANDOFF.md": "A bug was fixed in the last PR.\n" } };
+  assert.equal(run([], [], undefined, [r]).status, 0);
+});
