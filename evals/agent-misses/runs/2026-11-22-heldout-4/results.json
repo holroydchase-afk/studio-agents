@@ -1,0 +1,94 @@
+{
+  "run": "2026-11-22-heldout-4",
+  "date": "2026-11-22",
+  "phase": "heldout",
+  "agent_model": "claude-sonnet-5-5 (general-purpose subagents given the current qa-tdd and staff-pm role prompts and tools in a throwaway sandbox)",
+  "grader_model": "opus, fresh context, saw only the criteria file and the saved report, blind to arm",
+  "change": "fresh held-out set: 6 batch-4 qa-tdd cases whose gap shows only when something is run (git on a renamed file, the check on the real folder or file); agent arm (role prompt) and plain arm (case prompt alone), one run each; Opus graders blind to arm",
+  "results": [
+    {
+      "case": "qa-tdd-miss-docs-only-skip-rename",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Rename gap P1, SKIP-3 red, source untouched.",
+      "transcript": "transcripts/qa-tdd-miss-docs-only-skip-rename-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-docs-only-skip-rename",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Rename gap P1, SKIP-3 red, source untouched.",
+      "transcript": "transcripts/qa-tdd-miss-docs-only-skip-rename-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-greeting-check-external-css",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Unscanned site.css P1, HOME-7d red on real folder.",
+      "transcript": "transcripts/qa-tdd-miss-greeting-check-external-css-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-greeting-check-external-css",
+      "arm": "plain",
+      "pass": false,
+      "reason": "No P0/P1; red tests use synthetic stylesheets not the shipped folder.",
+      "transcript": "transcripts/qa-tdd-miss-greeting-check-external-css-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-ignored-dir-imported",
+      "arm": "agent",
+      "pass": true,
+      "reason": "data/ rule gap P1, FRESH-6 red, source unfixed.",
+      "transcript": "transcripts/qa-tdd-miss-ignored-dir-imported-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-ignored-dir-imported",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Names data/ gap P1, FRESH-5 red, no source fix.",
+      "transcript": "transcripts/qa-tdd-miss-ignored-dir-imported-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-loose-pin-no-upper-bound",
+      "arm": "agent",
+      "pass": true,
+      "reason": "pypdf>=4.0 P1, PINS-9 red on real file.",
+      "transcript": "transcripts/qa-tdd-miss-loose-pin-no-upper-bound-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-loose-pin-no-upper-bound",
+      "arm": "plain",
+      "pass": false,
+      "reason": "P1, red, unfixed, but PINS-4 uses inline strings not the shipped requirements.txt.",
+      "transcript": "transcripts/qa-tdd-miss-loose-pin-no-upper-bound-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-merge-gate-red-main",
+      "arm": "agent",
+      "pass": true,
+      "reason": "void main P1, GATE-4 red, no fix.",
+      "transcript": "transcripts/qa-tdd-miss-merge-gate-red-main-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-merge-gate-red-main",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Never ranks gap P1; calls it a product call.",
+      "transcript": "transcripts/qa-tdd-miss-merge-gate-red-main-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-runner-list-form",
+      "arm": "agent",
+      "pass": true,
+      "reason": "List-form gap P1, red test on real ci.yml, no fix.",
+      "transcript": "transcripts/qa-tdd-miss-runner-list-form-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-runner-list-form",
+      "arm": "plain",
+      "pass": false,
+      "reason": "Found gap and ran red, but rewrote floating() and reported green.",
+      "transcript": "transcripts/qa-tdd-miss-runner-list-form-plain.md"
+    }
+  ]
+}

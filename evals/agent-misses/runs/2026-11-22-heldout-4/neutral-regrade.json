@@ -1,0 +1,77 @@
+{
+  "note": "Format-neutral re-grade, same Opus grader call as the written criteria (two independent verdicts per blind report). Rubric: identifies the real defect AND writes or concretely specifies a failing test that catches it; format requirements ignored.",
+  "results": [
+    {
+      "case": "qa-tdd-miss-docs-only-skip-rename",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Rename collapses to new path; SKIP-3."
+    },
+    {
+      "case": "qa-tdd-miss-docs-only-skip-rename",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Rename detection hides code move; SKIP-3."
+    },
+    {
+      "case": "qa-tdd-miss-greeting-check-external-css",
+      "arm": "agent",
+      "pass": true,
+      "reason": "checkHome ignores linked css; test on real folder."
+    },
+    {
+      "case": "qa-tdd-miss-greeting-check-external-css",
+      "arm": "plain",
+      "pass": true,
+      "reason": "checkHome ignores linked site.css; tests red."
+    },
+    {
+      "case": "qa-tdd-miss-ignored-dir-imported",
+      "arm": "agent",
+      "pass": true,
+      "reason": "isIgnored misses directory rules; FRESH-6."
+    },
+    {
+      "case": "qa-tdd-miss-ignored-dir-imported",
+      "arm": "plain",
+      "pass": true,
+      "reason": "FRESH-4/5 catch data/ rule miss."
+    },
+    {
+      "case": "qa-tdd-miss-loose-pin-no-upper-bound",
+      "arm": "agent",
+      "pass": true,
+      "reason": "loose() flags no-operator only; real-file test."
+    },
+    {
+      "case": "qa-tdd-miss-loose-pin-no-upper-bound",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Finds >= floor passes; PINS-4 fails now."
+    },
+    {
+      "case": "qa-tdd-miss-merge-gate-red-main",
+      "arm": "agent",
+      "pass": true,
+      "reason": "canMerge ignores red main; concrete test."
+    },
+    {
+      "case": "qa-tdd-miss-merge-gate-red-main",
+      "arm": "plain",
+      "pass": true,
+      "reason": "void main found; GATE-4 red."
+    },
+    {
+      "case": "qa-tdd-miss-runner-list-form",
+      "arm": "agent",
+      "pass": true,
+      "reason": "Regex misses list form; failing tests incl. real ci.yml."
+    },
+    {
+      "case": "qa-tdd-miss-runner-list-form",
+      "arm": "plain",
+      "pass": true,
+      "reason": "Lint misses list form; red test on ci.yml."
+    }
+  ]
+}

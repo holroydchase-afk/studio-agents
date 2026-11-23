@@ -79,7 +79,7 @@ Score it like ux-reviewer recall: overall (n of 9) and by priority.
 Read this carefully: **the plain session spotted the gap in every case too** and said "don't merge yet". It failed because it never wrote and ran a failing test for the gap, which the grader requires. So these cases measure test-first follow-through on a found gap, not detection. Next: harder cases where the gap isn't visible in 20 lines (a gap that only shows when two files interact, or a P0), and a P0 case, so detection itself separates the arms.
 
 ## qa-tdd miss cases
-Thirty `qa-tdd-miss-*` cases (nine in `qa-tdd-cases.mjs`, eleven fresh held-out ones in `qa-tdd-cases-batch2.mjs`, ten unread held-out ones in `qa-tdd-cases-batch3.mjs`) turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
+Thirty-six `qa-tdd-miss-*` cases (nine in `qa-tdd-cases.mjs`, eleven fresh held-out ones in `qa-tdd-cases-batch2.mjs`, ten unread held-out ones in `qa-tdd-cases-batch3.mjs`, six tool-dependent held-out ones with extra fixture files in `qa-tdd-cases-batch4.mjs`) turn real misses from `evals/agent-misses/README.md` into recall cases, built from one spec: `evals/agent-misses/qa-tdd-cases.mjs`. Same shape as the recall cases above (a passing `node:test` suite around a tiny module with one gap, a `criteria` grader that needs the gap named at its priority, a failing test run red and the source left unfixed), plus tags for the miss pattern and a `split-dev` or `split-heldout` tag. Held-out cases are run once per change and never read while tuning `qa-tdd.md`; dev cases may be used to tune.
 
 Do not edit the generated folders by hand. Change the spec, then:
 ```bash
@@ -120,6 +120,12 @@ node tools/eval-miss-cases.mjs --verify   # proves each repro: shipped test gree
 | `qa-tdd-miss-docs-folder-code` | PS-Q7 | tool-tests-missed-edge-cases | P1 | heldout |
 | `qa-tdd-miss-palm-wide-layout` | ES-Q2 | real-device-gap | P1 | heldout |
 | `qa-tdd-miss-today-vs-week-hours` | CK-Q3 | real-device-gap | P1 | heldout |
+| `qa-tdd-miss-docs-only-skip-rename` | CC-Q6 | tool-tests-missed-edge-cases | P1 | heldout |
+| `qa-tdd-miss-greeting-check-external-css` | PS-Q1 | guard-written-after-the-bug | P1 | heldout |
+| `qa-tdd-miss-loose-pin-no-upper-bound` | CH-Q4 | self-referential-or-skipped-tests | P1 | heldout |
+| `qa-tdd-miss-ignored-dir-imported` | CH-Q5 | self-referential-or-skipped-tests | P1 | heldout |
+| `qa-tdd-miss-runner-list-form` | RR-Q7 | ci-environment-drift | P1 | heldout |
+| `qa-tdd-miss-merge-gate-red-main` | RR-Q9 | ci-environment-drift | P1 | heldout |
 
 Run and score (needs `ANTHROPIC_API_KEY`; not run yet, so there are no results):
 ```bash
