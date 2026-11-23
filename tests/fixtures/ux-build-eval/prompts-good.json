@@ -1,0 +1,10 @@
+[
+{"id":"p1","type":"app home","split":"dev","text":"Hearth is a private family photo app. A grandparent opens it to see the newest photos from the family. Build the home screen."},
+{"id":"p2","type":"list","split":"dev","text":"Role Radar tracks job openings. A job seeker scans a ranked list of roles each morning. Build the list screen."},
+{"id":"p3","type":"settings","split":"dev","text":"Crew Clock lets a small construction crew clock in by phone. A crew member changes how the app uses their location. Build the settings screen."},
+{"id":"p4","type":"form","split":"dev","text":"Crew Clock again. A boss adds a new job site with a name, an address and a radius. Build the form."},
+{"id":"p5","type":"landing","split":"dev","text":"ccwatts is a command line tool that estimates the electricity used by coding assistants. A developer decides whether to install it. Build the landing page."},
+{"id":"p6","type":"dashboard","split":"heldout","text":"ccwatts shows a week of estimated energy use. A developer checks the week's total and range. Build the dashboard."},
+{"id":"p7","type":"empty state","split":"heldout","text":"Role Radar has no saved jobs yet. A new user needs to know the first step. Build the empty state."},
+{"id":"p8","type":"dialog","split":"heldout","text":"Charlie suggests paper trades. A learner confirms a practice trade. Build the confirmation dialog."}
+]
