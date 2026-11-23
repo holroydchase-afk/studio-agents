@@ -31,7 +31,7 @@ bash scripts/sync-tools.sh ../my-product agent-guard check-agent-run check-story
 These are gaps, not built things. Product Studio builds them here (Chase, Nov 23), one small PR each, so every product gets them.
 
 1. **A packaged blind grader.** It exists as a documented process run by hand as subagents, not a script or prompt file a product can call. A product agent would re-create the grader prompt.
-2. **Hard-coded agent names.** `check-agent-run.mjs` accepts only the ten studio agents (`AGENTS`). A new agent such as a job-hunt agent fails validation until it is added there (a one-line change plus a test, in studio-agents, not in the product repo).
+2. ~~Hard-coded agent names.~~ Fixed (AGENTNAME-1..4): `check-agent-run` and `agent-guard kill` accept any lowercase kebab-case agent name such as `job-hunt`; a product agent's verdict is one lowercase word.
 3. **Built for Claude Code subagents, not an app's own API loop.** `stamp-run` reads Claude Code subagent transcripts, and `agent-guard cost` checks a finished log. Nothing enforces a cost cap *inside* a running tool loop that calls the Anthropic API (and Chase has ruled out a paid API route for now, Nov 21).
 4. **Scheduled run in CI.** The "loop that runs without a person" is Partial for UX and Missing for the others (training plan, infra table). Needs the kill switch and cost cap first.
 5. **Retry helper and context budget.** Only `ux-flows` retries; no shared helper. No written context budget for any agent.
