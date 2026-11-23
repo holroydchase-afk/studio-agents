@@ -259,3 +259,85 @@ test("MISS-T23 a fixture file may mention the trap in plain words; only ask and 
   const r = { ...pmRepo, repo: { "HANDOFF.md": "A bug was fixed in the last PR.\n" } };
   assert.equal(run([], [], undefined, [r]).status, 0);
 });
+
+// ---- optional `flaky: true` on a qa-tdd case: --verify retries the shipped test up to 5 times (batch 6) ----
+// Fixture sources keep state outside the temp dir verify makes, so a fresh process can behave differently from the last one.
+const uniq = (tag) => path.join(os.tmpdir(), `emc-flaky-${tag}-${process.pid}-${Math.random().toString(36).slice(2)}`);
+const markerSrc = (marker) => `import fs from "node:fs";
+const M = ${JSON.stringify(marker)};
+export const add = (a, b) => {
+  if (!fs.existsSync(M)) { fs.writeFileSync(M, "seen"); throw new Error("first call in a fresh machine fails"); }
+  return a - b;
+};\n`;
+// Every call appends a line to a counter file; the first (k - 1) calls throw, later ones return the buggy a - b.
+const counterSrc = (cnt, k) => `import fs from "node:fs";
+const C = ${JSON.stringify(cnt)};
+export const add = (a, b) => {
+  fs.appendFileSync(C, "x\\n");
+  if (fs.readFileSync(C, "utf8").split("\\n").length - 1 < ${k}) throw new Error("flake");
+  return a - b;
+};\n`;
+const calls = (cnt) => (fs.existsSync(cnt) ? fs.readFileSync(cnt, "utf8").split("\n").length - 1 : 0);
+const cleanup = (...fs_) => fs_.forEach((f) => fs.rmSync(f, { force: true }));
+
+test("MISS-T24 flaky:true accepts a shipped test that fails once and then passes on a retry (exit 0)", () => {
+  const marker = uniq("marker");
+  try {
+    const r = run([{ ...good, flaky: true, code: markerSrc(marker) }], ["--verify"]);
+    assert.equal(r.status, 0, r.stderr);
+  } finally { cleanup(marker); }
+});
+test("MISS-T25 without flaky the same fail-once shipped test fails verify after exactly one try", () => {
+  const marker = uniq("marker"), cnt = uniq("cnt");
+  try {
+    const r = run([{ ...good, code: markerSrc(marker) }], ["--verify"]);
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /demo: the shipped test does not pass/);
+    const once = run([{ ...good, flaky: false, code: counterSrc(cnt, 999) }], ["--verify"]);
+    assert.equal(once.status, 1);
+    assert.match(once.stderr, /shipped test does not pass/);
+    assert.equal(calls(cnt), 2, "flaky:false: one shipped try plus one gap run");
+  } finally { cleanup(marker, cnt); }
+});
+test("MISS-T26 flaky:true stops at the first pass: fails twice then passes means 3 shipped tries, then 1 gap run", () => {
+  const cnt = uniq("cnt");
+  try {
+    const r = run([{ ...good, flaky: true, code: counterSrc(cnt, 3) }], ["--verify"]);
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(calls(cnt), 4, "3 shipped tries (2 fail, 1 pass) + 1 gap run");
+  } finally { cleanup(cnt); }
+});
+test("MISS-T27 flaky:true still fails verify when all 5 tries fail, and does not try a 6th time", () => {
+  const cnt = uniq("cnt");
+  try {
+    const r = run([{ ...good, flaky: true, code: counterSrc(cnt, 999) }], ["--verify"]);
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /demo: the shipped test does not pass/);
+    assert.equal(calls(cnt), 6, "5 shipped tries + 1 gap run");
+  } finally { cleanup(cnt); }
+});
+test("MISS-T28 flaky:true leaves the gap test strict: run once, and a gap that passes or fails on an import is still rejected", () => {
+  const cnt = uniq("cnt");
+  try {
+    const noGap = { ...good, flaky: true, code: markerSrc(uniq("m1")), gap: good.gap.replace("add(2,3),5", "add(2,0),2") };
+    // the marker file is created by the first shipped try, so the gap run finds a working add that returns 2
+    const r = run([noGap], ["--verify"]);
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /no gap/);
+    assert.doesNotMatch(r.stderr, /shipped test does not pass/, "the flaky shipped test passed on a retry");
+    const wrong = run([{ ...good, flaky: true, code: markerSrc(uniq("m2")), gap: good.gap.replace("./add.mjs", "./nope.mjs") }], ["--verify"]);
+    assert.equal(wrong.status, 1);
+    assert.match(wrong.stderr, /wrong reason/);
+    assert.doesNotMatch(wrong.stderr, /shipped test does not pass/);
+  } finally { cleanup(cnt); }
+});
+test("MISS-T29 validate: flaky must be a boolean; true and false are accepted, anything else exits 1 naming the case", () => {
+  assert.equal(run([{ ...good, flaky: true }]).status, 0);
+  assert.equal(run([{ ...good, flaky: false }]).status, 0);
+  for (const flaky of ["true", 1, 0, null, [], {}]) {
+    const r = run([{ ...good, flaky }], ["--check"]);
+    assert.equal(r.status, 1, JSON.stringify(flaky));
+    assert.match(r.stderr, /demo/);
+    assert.match(r.stderr, /flaky/);
+  }
+});

@@ -81,6 +81,7 @@ export function validate(cases) {
     if (!/^[A-Z]{2}-[QS]\d+$/.test(c.miss)) errs.push(`${c.id}: miss id ${c.miss}`);
     if (typeof c.code !== "string" || typeof c.test !== "string" || typeof c.ask !== "string") continue;
     if (!/^[a-z0-9-]+$/.test(c.pattern)) errs.push(`${c.id}: pattern must match [a-z0-9-]+`);
+    if (c.flaky !== undefined && typeof c.flaky !== "boolean") errs.push(`${c.id}: flaky must be true or false`);
     if (c.extra !== undefined) {
       if (!Array.isArray(c.extra)) errs.push(`${c.id}: extra must be an array`);
       else {
@@ -241,7 +242,9 @@ function verify(cases) {
       fs.writeFileSync(path.join(dir, c.file), c.code);
       fs.writeFileSync(path.join(dir, c.testFile), c.test);
       fs.writeFileSync(path.join(dir, c.gapName), c.gap);
-      const shipped = nodeTest(dir, [c.testFile]);
+      let shipped = nodeTest(dir, [c.testFile]);
+      // a flaky case's shipped test fails by chance: retry up to 5 times and accept the first pass
+      for (let n = 1; c.flaky === true && n < 5 && (shipped.status !== 0 || shipped.pass < 1) && !shipped.timedOut; n++) shipped = nodeTest(dir, [c.testFile]);
       if (shipped.timedOut) bad.push(`${c.id}: the shipped test timed out`);
       else if (shipped.status !== 0 || shipped.pass < 1) bad.push(`${c.id}: the shipped test does not pass (pass ${shipped.pass}, fail ${shipped.fail})`);
       const gap = nodeTest(dir, [c.gapName]);

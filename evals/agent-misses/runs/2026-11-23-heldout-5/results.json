@@ -1,0 +1,66 @@
+{
+  "run": "2026-11-23-heldout-5",
+  "date": "2026-11-23",
+  "phase": "heldout",
+  "agent_model": "claude-sonnet-5-5 (general-purpose subagents given the current qa-tdd and staff-pm role prompts and tools in a throwaway sandbox)",
+  "grader_model": "opus, fresh context, saw only the criteria file and the saved report, blind to arm",
+  "change": "fresh held-out set: 4 batch-5 flaky 1-in-N qa-tdd cases (fail about 1 run in 8, so one green run proves nothing); agent arm (role prompt, with tools/qa-run3.mjs in the sandbox) and plain arm (case prompt alone), one run each; Opus graders blind to arm",
+  "results": [
+    {
+      "case": "qa-tdd-miss-focus-after-draw-race",
+      "arm": "agent",
+      "pass": false,
+      "reason": "P1/flaky/unfixed but wrote no red 300-form test.",
+      "transcript": "transcripts/qa-tdd-miss-focus-after-draw-race-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-focus-after-draw-race",
+      "arm": "plain",
+      "pass": false,
+      "reason": "P1, flaky, unfixed, but no new failing test written or run red.",
+      "transcript": "transcripts/qa-tdd-miss-focus-after-draw-race-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-results-in-finish-order",
+      "arm": "agent",
+      "pass": true,
+      "reason": "P1 completion-order push, LOAD-3 red, unfixed.",
+      "transcript": "transcripts/qa-tdd-miss-results-in-finish-order-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-results-in-finish-order",
+      "arm": "plain",
+      "pass": false,
+      "reason": "No P0/P1 rank; otherwise complies.",
+      "transcript": "transcripts/qa-tdd-miss-results-in-finish-order-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-shared-temp-file-parallel",
+      "arm": "agent",
+      "pass": true,
+      "reason": "P1, OUTBOX-3 red, unfixed, flaky verdict.",
+      "transcript": "transcripts/qa-tdd-miss-shared-temp-file-parallel-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-shared-temp-file-parallel",
+      "arm": "plain",
+      "pass": false,
+      "reason": "No priority; no failing test written.",
+      "transcript": "transcripts/qa-tdd-miss-shared-temp-file-parallel-plain.md"
+    },
+    {
+      "case": "qa-tdd-miss-timing-budget-under-load",
+      "arm": "agent",
+      "pass": false,
+      "reason": "P1 and unfixed, but wrote no new failing test.",
+      "transcript": "transcripts/qa-tdd-miss-timing-budget-under-load-agent.md"
+    },
+    {
+      "case": "qa-tdd-miss-timing-budget-under-load",
+      "arm": "plain",
+      "pass": false,
+      "reason": "No P1 rank, no new failing test; calls INDEX-2 correct.",
+      "transcript": "transcripts/qa-tdd-miss-timing-budget-under-load-plain.md"
+    }
+  ]
+}
