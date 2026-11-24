@@ -71,6 +71,7 @@ function loadLedger(flags) {
   let l;
   try { l = JSON.parse(readFileSync(p, "utf8")); } catch { throw new Usage(`ledger ${flags.ledger} is not valid JSON`); }
   if (!l || typeof l !== "object" || !l.stages || !LANES.includes(l.lane)) throw new Usage(`ledger ${flags.ledger} is not a pipeline ledger`);
+  if (l.version !== 1) throw new Usage(`ledger ${flags.ledger} has version ${JSON.stringify(l.version)}; this tool reads version 1`);
   return { path: p, ledger: l };
 }
 
