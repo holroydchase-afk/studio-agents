@@ -1,0 +1,8 @@
+{
+  "name": "stakeholder",
+  "version": "0.1.0",
+  "description": "Before something goes public, simulated readers (recruiter, hiring manager, staff engineer, PM peer and more) guess what they might stop at, with a quote id tied to your quote index and one fix each. Hypotheses to check with real people, not research; advisory only.",
+  "author": {
+    "name": "Chase Holroyd"
+  }
+}
