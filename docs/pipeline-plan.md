@@ -108,13 +108,55 @@ Same lazy prompt, two arms, **plain Claude vs the pipeline**, graded blind by Op
 - **Also recorded, not graded:** cost per prompt, stages that tripped a stop, rounds used, and Chase's own spot-check of 3 pairs as the answer key.
 - **Claim rule:** report wins out of N, tune on dev only, score held-out once per change. If the pipeline doesn't beat plain Claude on shipped-PR quality, the site says so or says nothing. Staff PM alone is currently a tie, so the pipeline has to earn lift from the test-first and UX loops, not from the spec.
 
+## MVP-o-matic: the overnight shape (Chase, Nov 24)
+
+Goal: Chase drops an idea at night and wakes up to an MVP or v1. This is a fourth door into the same pipeline, not a new one, with two extra stages around it (a Stage 0 "seed" and a Stage 7 "preview"). Chase's input is one message; the run asks him nothing.
+
+**Do we need an engineer? Yes, but a better one.** Staff PM, UX and QA-TDD can't replace it: UX builds screens, QA writes tests and fixes the bugs tests find, and nobody else writes the logic, data and wiring that make an MVP work. Today `engineer.md` is a 2 KB prompt with no output contract, no scaffold, and a "stack is fixed" rule that assumes an existing repo. For a blank repo it needs a stack to start from and a way to prove what it built. It stays a full agent (Chase, Nov 23: no downgrades).
+
+**What to mature, in order of need for this pipeline:**
+
+| Agent | Today | What it needs for MVP-o-matic |
+|---|---|---|
+| **engineer** | 2 KB prompt, no validator | A ```build block (files, commands run, tests it made green, deps added with reason), validated by a new `check-build`. A greenfield mode: start from a studio scaffold, not an empty folder. Stack ladder from `architect`. |
+| **architect** | Stack and dependency gate | Picks the stack for a new repo once, from a short list (static page with no build step first; the same patterns Hearth, ccwatts and Charlie already use). Owns the scaffold templates. |
+| **privacy-security** | Reviews changes | A fixed pre-preview gate: no secrets, no personal data, no third-party calls, repo visibility check. Output block validated like `qa`. Blocks the preview, never the build. |
+| **positioning** | Copy and claims | Writes the README and the preview's first screen from the claims register, so v1 doesn't overclaim (the AGENT BAR rule). Runs once, at the end. |
+| **preview (new, thin)** | Doesn't exist | Takes the finished branch, builds the static output, publishes it as a private preview, checks the link loads, writes the morning card. Never publishes publicly, never merges, never touches a live site. Not an agent with judgment; mostly a script plus a short checklist. |
+| staff-pm, qa-tdd, ux-reviewer | Already mature | Staff PM gets an **MVP cut** mode: one persona, one job, 3 to 5 features, everything else on a "v2" list. No change to QA or UX beyond the pipeline's limits. |
+
+Not needed now: release-captain (nothing is released), orchestrator (no coordination across repos), a second builder.
+
+**Overnight run shape (zero input from Chase)**
+
+```
+idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ ARCHITECT (stack, scaffold) ─▶ QA pre ─▶ BUILD (UX for UI, engineer for logic)
+   ─▶ QA post, green 3x ─▶ PRIVACY GATE ─▶ POSITIONING (README, first screen) ─▶ PREVIEW ─▶ MORNING CARD
+```
+
+1. **Seed.** Chase's idea goes in as one message (or an issue labeled `mvp-idea`). The run starts at the evening cutoff and must finish by morning.
+2. **Decide without asking.** Staff PM picks defaults for every open question and lists them in the morning card as "I assumed X". No `needs-decision` cards overnight. If the idea breaks a standing rule (real money, personal data, live deploy), the run stops at Stage 1 and the card says why; it never works around the rule.
+3. **New repo.** One private repo named literally for what it is (repo naming rule), from the scaffold. **Gate:** creating a repo is an outward step, so it needs Chase's standing OK, once, for "one new private repo per night, studio-agents scaffold only". Without that OK the run builds on a branch in studio-agents' `mvp/<slug>/` folder instead and says so. This is decision 6 below.
+4. **Build.** Stages 2 to 4 as above, with a tighter budget: scaffold, one persona, 3 to 5 features, UX max 3 rounds, QA max 2 fix attempts per bug.
+5. **Preview link.** v1 scope is **static, on-device MVPs** (HTML, CSS, JS, no backend, no accounts, no real data), which is how most studio products already start. The preview is published as a **private claude.ai Artifact** (private by default, so no public deploy and nothing indexed). Anything needing a backend, login or paid service is out of scope for v1: the run builds the front end against fake data, labels it, and lists the backend as a v2 item.
+6. **Morning card (the only output).** One message: the preview link, the repo link, three screenshots, the "I assumed" list, the v2 list, what the tests covered (qa block verbatim), what the run cost, and one promote button's worth of next step (go public, or throw it away). Chase promotes; nothing goes public or live on its own.
+
+**Overnight limits and caps (kept, and tighter):**
+- Per-run cost cap: **$1.00 default, MVP runs $2.50 hard stop** because there are more stages; per-night: one MVP run, no retries after a stop.
+- A stage over 1.5x its budget stops the run; the card reports how far it got ("the v1 stopped at stage 4, here is the branch").
+- Kill switch file halts it. Nightly stays **off** until Chase says resume, and the first MVP run is a supervised daytime dry run on a throwaway idea, not a night run.
+- Partial is a success state: a run that stops at a gate hands Chase a short, honest card, never a broken link.
+
+**How we'll know it works (added to the outcome eval):** same idea, plain Claude (one long session, same $ cap) vs the pipeline, blind Opus grader asks "would Chase open this in the morning and keep going, or start over?" Plus counts: preview loads, tests green, privacy gate clean, assumptions listed, cost. Use 4 real ideas from Chase's side-ideas list. Wins out of N, no multipliers.
+
 ## Build order (one small PR each, test-first, each stops for Chase's go)
 1. `tools/pipeline-run.mjs` ledger and stop rules (validators reused), with a fake-stage test run. No model calls.
 2. Staff PM adds `lane:` and `touches:` lines to the spec block; `check-spec` accepts them.
 3. The runbook as a skill so a thread follows it without rereading this doc.
 4. Dry run on one real non-live task (suggest a studio-agents docs fix), end to end, cost logged.
 5. Outcome eval on the 4 dev prompts, then held-out once.
-6. Open the doors: feedback on Energy Scanner (after PR 126 merges), then nightly hardening only on Chase's resume.
+6. MVP-o-matic pieces, one PR each: `check-build` and the engineer's ```build block; scaffold templates and the architect's stack list; the privacy-security pre-preview gate; the preview script and morning card; Staff PM's MVP cut mode. Then one supervised daytime dry run on a throwaway idea.
+7. Open the doors: feedback on Energy Scanner (after PR 126 merges), nightly hardening and the first overnight MVP run only on Chase's resume.
 
 ## Decisions for Chase
 1. **Approve this plan?** Recommend yes.
@@ -122,3 +164,5 @@ Same lazy prompt, two arms, **plain Claude vs the pipeline**, graded blind by Op
 3. **Per-run cost cap and weekly token ceiling.** Recommend $1.00 per run and a weekly ceiling you set when usage recovers.
 4. **First dry-run task.** Recommend a small studio-agents docs fix, not a product.
 5. **Merge order of the open PRs.** PR 121 and 126 both touch HANDOFF.md and the harness doc; recommend merging 121, then 126, before build step 1.
+6. **MVP-o-matic repo rule.** Recommend a standing OK for one new private repo per night from the studio scaffold, and v1 limited to static on-device MVPs previewed as a private Artifact. Alternative: no new repos, build in a studio-agents folder only.
+7. **Overnight cap.** Recommend $2.50 hard stop per MVP run and one run per night.
