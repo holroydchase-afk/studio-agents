@@ -9,7 +9,7 @@ bash scripts/sync-tools.sh ../my-product            # every tool, into ../my-pro
 bash scripts/sync-tools.sh ../my-product agent-guard check-agent-run check-story-entry stamp-run
 ```
 
-`sync-tools.sh` copies flat into `scripts/`, so a tool's neighbours must come with it (see "Needs" below). Re-run it to pick up fixes; it never touches other files in `scripts/`. Hooks and the run-log script come from `scripts/sync.sh` and `scripts/install-cloud.sh` (cloud threads start above the repo, so repo `.claude/` never loads; see `docs/session-rules.md`).
+`sync-tools.sh` copies flat into `scripts/` and brings along any tool the named one imports (the "Needs" column below is what that means). Re-run it to pick up fixes; it never touches other files in `scripts/`. Hooks and the run-log script come from `scripts/sync.sh` and `scripts/install-cloud.sh` (cloud threads start above the repo, so repo `.claude/` never loads; see `docs/session-rules.md`).
 
 ## What exists today
 
@@ -38,7 +38,7 @@ These are gaps, not built things. Product Studio builds them here (Chase, Nov 23
 4. **Scheduled run in CI.** The "loop that runs without a person" is Partial for UX and Missing for the others (training plan, infra table). Needs the kill switch and cost cap first.
 5. **Retry helper and context budget.** Only `ux-flows` retries; no shared helper. No written context budget for any agent.
 6. **Scorecard is local.** `agent-scorecard` prints a report; it isn't published to the Studio page yet.
-7. **`sync-tools.sh` copies flat and doesn't resolve neighbours.** Syncing one tool without its "Needs" breaks it. Sync everything, or use the Needs column above.
+7. ~~`sync-tools.sh` doesn't resolve neighbours.~~ Fixed (SYNCDEP-1..3): syncing one tool also copies the tools it imports, transitively, and prints `synced <dep> (needed by <tool>)`.
 8. **No example of a non-studio product agent using the harness end to end.** The first one (Role Radar's job-hunt agent, role-radar issue #86) is the proof; record what it had to change here.
 
 ## Rules for product repos
