@@ -771,3 +771,13 @@ test("PIPE-51 class C for a lower-case claude.md (a case-insensitive filesystem 
   assert.equal(letter(cls(e, "claude.md")), "C");
 });
 
+
+test("PIPE-62 a ledger written by another version of the tool exits 2 instead of being trusted", () => {
+  const e = fresh();
+  const l = JSON.parse(fs.readFileSync(e.ledger, "utf8"));
+  l.version = 2;
+  fs.writeFileSync(e.ledger, JSON.stringify(l));
+  assert.equal(run(["status", "--ledger", e.ledger]).code, 2);
+  assert.equal(start(e, "staff-pm").code, 2);
+});
+
