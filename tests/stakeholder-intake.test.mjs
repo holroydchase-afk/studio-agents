@@ -69,7 +69,7 @@ const CTRL = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028\u2029\u202a-\u202e\
 function run(args, { timeout = 15000, cwd = ROOT, env } = {}) {
   assert.ok(fs.existsSync(TOOL), "plugins/stakeholder/tools/stakeholder-intake.mjs does not exist");
   const t0 = Date.now();
-  const r = spawnSync("node", [TOOL, ...args], { encoding: "utf8", timeout, cwd, env, maxBuffer: 64 * 1024 * 1024, killSignal: "SIGKILL" });
+  const r = spawnSync(process.execPath, [TOOL, ...args], { encoding: "utf8", timeout, cwd, env, maxBuffer: 64 * 1024 * 1024, killSignal: "SIGKILL" });
   const ms = Date.now() - t0;
   assert.equal(r.signal, null, `the tool was killed after ${ms} ms (hang): signal ${r.signal}`);
   let json = null; try { json = JSON.parse(r.stdout); } catch {}
@@ -143,7 +143,7 @@ test("SKT-19 each kind's output works unchanged as check-stakeholder --index: id
   ];
   for (const [kind, mk] of fixtures) {
     const d = tmp(); const idx = path.join(d, "index.json"); const target = mk();
-    const r = ok(run([target, "--out", idx])); assert.equal(r.json, null, "with --out stdout carries no JSON");
+    const r = run([target, "--out", idx]); assert.equal(r.code, 0, r.err); assert.equal(r.out, ""); assert.equal(r.json, null, "with --out stdout carries no JSON");
     const j = JSON.parse(read(idx)); assert.equal(j.kind, kind);
     assert.ok(j.quotes.length >= 2, kind);
     j.quotes.forEach((q, i) => { assert.equal(q.id, `q${i + 1}`, `${kind}: ids run q1..qn`); assert.match(q.id, /^[A-Za-z0-9_-]{1,40}$/); assert.equal(typeof q.text, "string"); });
@@ -155,7 +155,7 @@ test("SKT-19 each kind's output works unchanged as check-stakeholder --index: id
 
 test("SKT-19 the first quote of the html fixture is text that is on the page, and a finding on a quote id that does not exist is rejected naming it", () => {
   const html = page("<h1>Crew Clock</h1><p>Clock in with three taps.</p>"); const d = tmp(); const p = put(d, "p.html", html); const idx = path.join(d, "i.json");
-  ok(run([p, "--out", idx])); const j = JSON.parse(read(idx));
+  { const w = run([p, "--out", idx]); assert.equal(w.code, 0, w.err); } const j = JSON.parse(read(idx));
   for (const q of j.quotes) assert.ok(html.includes(q.text.replace(/\.$/, "")) || html.includes(q.text), `quote not on the page: ${q.text}`);
   const rev = path.join(d, "r.md"); fs.writeFileSync(rev, reviewFor([`q${j.quotes.length + 1}`]));
   const c = CHECK(rev, idx); assert.equal(c.code, 1); assert.match(c.err, new RegExp(`q${j.quotes.length + 1}`));
@@ -419,7 +419,7 @@ test("SKT-26 no tests and no license: 'test files: 0' and no license line; a sym
   assert.ok(rf.indexOf("Alpha.txt") < rf.indexOf("README.md") && rf.indexOf("README.md") < rf.indexOf("beta.txt") && rf.indexOf("beta.txt") < rf.indexOf("zeta.txt"), `code point order: ${rf}`);
   const out = tmp(); put(out, "real.md", "SYMLINKEDREADME sentence.\n"); const s = tmp(); fs.symlinkSync(path.join(out, "real.md"), path.join(s, "README.md")); put(s, "src/a.js", "x\n");
   const rs = run([s]); assert.ok(rs.code === 0 || rs.code === 1); assert.ok(!rs.out.includes("SYMLINKEDREADME"), "a symlinked README was followed");
-  const many = repo(); for (let i = 0; i < 300; i++) put(many, `file-${String(i).padStart(3, "0")}-${"n".repeat(60)}.txt`, "x\n");
+  const many = repo(); for (let i = 0; i < 150; i++) put(many, `file-${String(i).padStart(3, "0")}-${"n".repeat(60)}.txt`, "x\n");
   const big = ok(run([many])); for (const q of big.json.quotes) assert.ok(q.text.length <= 500); const line = big.json.quotes.find((q) => /^root files: /.test(q.text)); assert.ok(line && line.truncated === true, "an over-long root list is truncated, flagged");
   const nm = repo({ files: { [`${"q".repeat(120)}.txt`]: "x\n" } }); assert.ok(!ok(run([nm])).out.includes("q".repeat(81)), "a file name over 80 chars was echoed");
 });

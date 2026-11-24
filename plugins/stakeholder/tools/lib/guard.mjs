@@ -77,6 +77,7 @@ export function scanText(text, allow = new Set()) {
   const hits = []; const allowed = new Map();
   const lines = text.split("\n");
   lines.forEach((raw, i) => {
+    if (raw.length === 0) return; // an empty line holds nothing to find (keeps a file of a million newlines fast)
     const line = i + 1;
     const ln = foldForScan(raw);
     for (const addr of emailsIn(ln)) {

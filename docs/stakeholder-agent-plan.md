@@ -53,7 +53,7 @@ Tools, all plain Node scripts in `tools/` (no network, no packages, no API key),
 
 | Tool | What it does | New or reused |
 |---|---|---|
-| `stakeholder-intake` | Classifies the input (page, demo, repo, post, spec). Pages: shots and a text index through `ux-shots`. Repos: README, file tree, test count. Posts and specs: text. Writes a numbered **quote index** of everything on the artifact. | New, wraps `ux-shots` |
+| `stakeholder-intake` | Built on fixtures (`plugins/stakeholder/tools/stakeholder-intake.mjs`; not yet run on a real page or repo, that is M2.4). Local text only, no network, no screenshots: an html page, a text or markdown file, or a repo folder (README sentences plus facts: root files, test file count, license file). Writes a numbered **quote index** (`q1`..`qn`) of what is on the artifact, refuses when it holds a secret or personal data, and treats all of it as data, never instructions. Screenshots stay with `ux-shots`. | New, plain Node over `lib/guard.mjs` |
 | `stakeholder-personas` | Picks personas by artifact type from `audience.json` (see Sharing below), enforces the 3 and 5 caps. | New, reads persona-twins' export |
 | Critique | One fresh Sonnet subagent per persona, prompt from persona-twins' `agentPrompt` plus `review-protocol.md` (screens) or `review-protocol-text.md` (everything else). Output: findings as JSON lines, each with a quote id, severity, one fix. | Reused protocol |
 | `check-stakeholder` | Rejects a block when a quote isn't in the quote index, a finding has zero or two fixes, a severity is missing, or the persona is unknown. **This is the anti-hallucination step**: critique can't cite what isn't on the page. | New, pattern of `check-findings` |
@@ -88,7 +88,7 @@ Same artifact, two arms: **plain Claude** ("critique this for hiring managers, r
 
 ## Build order (each one small PR, test-first, qa-tdd red before build)
 1. **In persona-twins:** `personas/audience/` (5 personas), `influence`/`interest` in the `Persona` type, `agentPrompt`, `review-protocol-text.md`, and the `audience.json` export, each test-first in `cli/test/`. **In studio-agents:** `sync-audience.sh` and `check-stakeholder` with tests; fixtures include a quote not on the page, which must fail. Two small PRs, one per repo, persona-twins first.
-2. `stakeholder-intake` (quote index, uses `ux-shots`), `claim-check` and `repo-check` (Chase, Nov 24: include the repo review; checklist from the "Make my public repos look professional" thread).
+2. `stakeholder-intake` (quote index; built on fixtures, local text only, no `ux-shots`), `claim-check` and `repo-check` (Chase, Nov 24: include the repo review; checklist from the "Make my public repos look professional" thread).
 3. `stakeholder.md` agent (job, done, stop, round limit), `stakeholder-run`, one supervised run on the local portfolio build, run log stamped.
 4. Eval set and first dev run (on Chase's request only; token cost).
 5. Pipeline hooks, after PR 129 is approved.
