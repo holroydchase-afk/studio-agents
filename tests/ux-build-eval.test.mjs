@@ -316,3 +316,253 @@ test("UXB-15 the harness resumes at the errored prompt", async () => {
 // ---- Manual (stubs, labeled; not run here)
 test("UXB-9 MANUAL: Chase spot-checks 3 pairs per run", { skip: "manual: Chase compares 3 pairs to his eye; if he prefers the grader's loser on 2 of 3, no claim from that run" }, () => {});
 test("UXB-12 MANUAL: frontend-design skill reachability recorded with source and date", { skip: "manual: recorded Nov 23 in the spec; re-confirm before the UX arm gets it" }, () => {});
+
+// =====================================================================================================
+// real runner: pure or injectable pieces for the real `claude -p` path (UXB-1, 2, 3, 7, 8, 13, 14, 15, 5).
+// Named exports the engineer adds to tools/ux-build-eval.mjs. Fakes below are TEST-ONLY; no model, no network.
+// Contracts the engineer must meet (chosen here, change them only with the test):
+//   spawn(cmd, args, {cwd, timeout}) -> {status, stdout, stderr?, error?, signal?} (spawnSync shape; may be async)
+//   mkdtemp(prefix) -> directory path (may be async); claude's stdout is the `--output-format json` object
+//     {result, usage:{input_tokens, output_tokens}, total_cost_usd}
+//   grader({job, pairShotsAB}) -> raw text (parseGrade turns it into scores); pairShotsAB = {A:[p,p], B:[p,p]}
+// =====================================================================================================
+import { mkdtempSync, writeFileSync, existsSync, statSync, readFileSync as readFile } from "node:fs";
+import { tmpdir } from "node:os";
+
+const SUFFIX_RE = /index\.html/;
+const promptArg = (argv) => argv[argv.length - 1];
+const valueOf = (argv, flag) => argv[argv.indexOf(flag) + 1];
+const P = { id: "p1", text: "Hearth home: a grandparent opens the app to see the newest family photos." };
+
+test("UXB-1 real runner: buildClaudeArgs plain arm has no --agent, sonnet, json output, Write-only tools", async () => {
+  const { buildClaudeArgs } = await load();
+  const a = buildClaudeArgs({ arm: "plain", prompt: P, model: "sonnet", dir: "/tmp/x" });
+  assert.ok(Array.isArray(a));
+  assert.ok(a.includes("-p"));
+  assert.ok(!a.includes("--agent"), "plain arm has no role file");
+  assert.equal(valueOf(a, "--model"), "sonnet");
+  assert.equal(valueOf(a, "--output-format"), "json");
+  const toolFlag = a.findIndex((x) => /^--(allowed-?tools|tools)$/i.test(x));
+  assert.ok(toolFlag >= 0, "tools are limited with --tools or --allowedTools");
+  assert.equal(a[toolFlag + 1], "Write", "only Write");
+});
+test("UXB-1 real runner: buildClaudeArgs ux arm uses --agent ux-reviewer on sonnet", async () => {
+  const { buildClaudeArgs } = await load();
+  const a = buildClaudeArgs({ arm: "ux", prompt: P, model: "sonnet", dir: "/tmp/x" });
+  assert.equal(valueOf(a, "--agent"), "ux-reviewer");
+  assert.equal(valueOf(a, "--model"), "sonnet");
+  assert.equal(valueOf(a, "--output-format"), "json");
+  assert.ok(!a.includes("--append-system-prompt"), "the stub's system-prompt shortcut is gone");
+});
+test("UXB-1 real runner: both arms get the IDENTICAL prompt text with one identical suffix", async () => {
+  const { buildClaudeArgs } = await load();
+  const plain = promptArg(buildClaudeArgs({ arm: "plain", prompt: P, model: "sonnet", dir: "/tmp/x" }));
+  const ux = promptArg(buildClaudeArgs({ arm: "ux", prompt: P, model: "sonnet", dir: "/tmp/x" }));
+  assert.equal(plain, ux);
+  assert.ok(plain.startsWith(P.text));
+  const suffix = plain.slice(P.text.length);
+  assert.match(suffix, SUFFIX_RE);
+  assert.match(suffix, /self-contained/i);
+  assert.match(suffix, /no remote url/i);
+  assert.match(suffix, /working directory/i);
+});
+
+const okStdout = JSON.stringify({ result: "done", usage: { input_tokens: 40, output_tokens: 60 }, total_cost_usd: 0.25 });
+const tmpMk = () => async (prefix) => mkdtempSync(join(tmpdir(), String(prefix || "uxb-").replace(/[\\/]/g, "_")));
+const writingSpawn = (html, over = {}, calls = []) => async (cmd, args, opts) => {
+  calls.push({ cmd, args, opts });
+  if (html !== null) writeFileSync(join(opts.cwd, "index.html"), html);
+  return { status: 0, stdout: okStdout, ...over };
+};
+
+test("UXB-1 UXB-14 real runner: runClaudeArm runs claude in the temp dir and returns html, tokens, cost", async () => {
+  const { runClaudeArm } = await load();
+  const calls = [];
+  const r = await runClaudeArm({ arm: "ux", prompt: P, model: "sonnet", spawn: writingSpawn(fx("html-good.html"), {}, calls), mkdtemp: tmpMk() });
+  assert.equal(r.error, undefined, JSON.stringify(r));
+  assert.equal(r.html, fx("html-good.html"));
+  assert.equal(r.tokens, 100);
+  assert.equal(r.costUsd, 0.25);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].cmd, /claude/);
+  assert.ok(calls[0].opts.cwd && existsSync(calls[0].opts.cwd), "cwd is the temp dir");
+  assert.equal(valueOf(calls[0].args, "--agent"), "ux-reviewer");
+});
+for (const [name, spawnFn] of [
+  ["spawn error", writingSpawn(null, { status: null, error: Object.assign(new Error("ENOENT"), { code: "ENOENT" }) })],
+  ["timeout", writingSpawn(null, { status: null, error: Object.assign(new Error("spawnSync claude ETIMEDOUT"), { code: "ETIMEDOUT" }), signal: "SIGTERM" })],
+  ["nonzero exit", writingSpawn(fx("html-good.html"), { status: 1, stdout: "", stderr: "rate limit" })],
+  ["index.html missing", writingSpawn(null)],
+  ["index.html empty", writingSpawn("  \n")],
+  ["spawn throws", async () => { throw new Error("boom"); }],
+]) {
+  test(`UXB-15 real runner: runClaudeArm returns {error:{kind}} on ${name}, never a loss`, async () => {
+    const { runClaudeArm, classifyRun } = await load();
+    const r = await runClaudeArm({ arm: "plain", prompt: P, model: "sonnet", spawn: spawnFn, mkdtemp: tmpMk() });
+    assert.equal(typeof r.error?.kind, "string", JSON.stringify(r));
+    assert.ok(r.error.kind.length > 0);
+    assert.equal(r.html, undefined);
+    assert.equal(classifyRun(r).excluded, true);
+  });
+}
+test("UXB-15 real runner: a timeout is reported with kind 'timeout'", async () => {
+  const { runClaudeArm } = await load();
+  const r = await runClaudeArm({ arm: "plain", prompt: P, model: "sonnet", mkdtemp: tmpMk(),
+    spawn: writingSpawn(null, { status: null, error: Object.assign(new Error("ETIMEDOUT"), { code: "ETIMEDOUT" }), signal: "SIGTERM" }) });
+  assert.equal(r.error.kind, "timeout");
+});
+
+// ---- UXB-3 real Playwright (chromium preinstalled; launch with no options)
+test("UXB-3 real runner: renderShots writes two non-empty PNGs and counts page errors", async () => {
+  const { renderShots } = await load();
+  const outDir = mkdtempSync(join(tmpdir(), "uxb-shots-"));
+  const html = '<!doctype html><html><body><h1>Tiny</h1><script>throw new Error("boom")</script></body></html>';
+  const r = await renderShots({ html, widths: [390, 1280], outDir });
+  assert.equal(r.shots.length, 2);
+  for (const p of r.shots) {
+    assert.ok(existsSync(p), p);
+    assert.ok(statSync(p).size > 0, `${p} is empty`);
+    assert.deepEqual([...readFile(p).subarray(1, 4)], [0x50, 0x4e, 0x47], "PNG signature");
+  }
+  assert.ok(r.consoleErrors >= 1, "the thrown error is counted");
+});
+test("UXB-3 real runner: renderShots reports zero errors for a clean page", async () => {
+  const { renderShots } = await load();
+  const r = await renderShots({ html: "<!doctype html><html><body><p>ok</p></body></html>", widths: [390, 1280], outDir: mkdtempSync(join(tmpdir(), "uxb-shots-")) });
+  assert.equal(r.consoleErrors, 0);
+  assert.equal(r.shots.length, 2);
+});
+test("UXB-2 real runner: renderShots blocks remote URL requests, counts them and fails the call", async () => {
+  const { renderShots } = await load();
+  const html = '<!doctype html><html><body><img src="https://example.invalid/x.png"><p>x</p></body></html>';
+  const r = await renderShots({ html, widths: [390], outDir: mkdtempSync(join(tmpdir(), "uxb-shots-")) });
+  assert.equal(r.ok, false);
+  assert.ok(r.remoteRequests >= 1, `remoteRequests=${r.remoteRequests}`);
+});
+
+// ---- UXB-7, UXB-8 grader
+const SHOTS = { A: ["/s/a-390.png", "/s/a-1280.png"], B: ["/s/b-390.png", "/s/b-1280.png"] };
+test("UXB-7 real runner: buildGraderPrompt has the one-line job and four image paths in A/B order", async () => {
+  const { buildGraderPrompt } = await load();
+  const job = "A grandparent sees the newest family photos.";
+  const t = String(buildGraderPrompt({ job, pairShotsAB: SHOTS }));
+  assert.equal(t.split(job).length - 1, 1, "job appears exactly once");
+  const idx = [...SHOTS.A, ...SHOTS.B].map((p) => t.indexOf(p));
+  assert.ok(idx.every((i) => i >= 0), "all four paths present");
+  assert.deepEqual([...idx].sort((a, b) => a - b), idx, "A paths before B paths, 390 before 1280");
+  assert.equal([...t.matchAll(/\/s\/[ab]-\d+\.png/g)].length, 4, "exactly four image paths");
+});
+test("UXB-7 real runner: buildGraderPrompt leaks no prompt text, arm names or role names", async () => {
+  const { buildGraderPrompt } = await load();
+  const t = String(buildGraderPrompt({ job: "A grandparent sees the newest family photos.", pairShotsAB: SHOTS }));
+  for (const w of ["plain", "ux", "ux-reviewer", "reviewer", "sonnet", "claude", "Hearth home", "arm"]) {
+    assert.ok(!new RegExp(`(?<![a-z])${w}(?![a-z])`, "i").test(t), `grader prompt mentions "${w}"`);
+  }
+});
+const goodGrade = { A: { clean: [true, true, false, true, true], polish: 6 }, B: { clean: [true, true, true, true, true], polish: 9 } };
+test("UXB-8 real runner: parseGrade reads the JSON object, also inside a code fence", async () => {
+  const { parseGrade } = await load();
+  const r = parseGrade(JSON.stringify(goodGrade));
+  assert.equal(r.error, undefined, JSON.stringify(r));
+  assert.deepEqual(r.grade.A.clean, goodGrade.A.clean);
+  assert.equal(r.grade.B.polish, 9);
+  assert.equal(parseGrade("```json\n" + JSON.stringify(goodGrade) + "\n```").error, undefined);
+});
+for (const [name, text] of [
+  ["not JSON", "I think B is nicer."],
+  ["empty", ""],
+  ["four CLEAN booleans", JSON.stringify({ ...goodGrade, A: { clean: [true, true, true, true], polish: 6 } })],
+  ["non-boolean CLEAN", JSON.stringify({ ...goodGrade, A: { clean: [1, 1, 1, 1, 1], polish: 6 } })],
+  ["polish above 10", JSON.stringify({ ...goodGrade, B: { clean: [true, true, true, true, true], polish: 11 } })],
+  ["missing B", JSON.stringify({ A: goodGrade.A })],
+]) {
+  test(`UXB-8 real runner: parseGrade returns an error, not a score, on ${name}`, async () => {
+    const { parseGrade } = await load();
+    const r = parseGrade(text);
+    assert.equal(typeof r.error?.kind, "string", JSON.stringify(r));
+    assert.equal(r.grade, undefined);
+  });
+}
+
+// ---- runDevSet (UXB-5, 13, 14, 15)
+function devFakes() {
+  const log = { runner: [], active: 0, maxActive: 0, grader: [] };
+  const runner = async ({ arm, prompt, model }) => {
+    log.active++; log.maxActive = Math.max(log.maxActive, log.active);
+    log.runner.push({ arm, promptId: prompt.id, model });
+    await new Promise((r) => setTimeout(r, 2));
+    log.active--;
+    if (prompt.id === "p2" && arm === "plain") return { error: { kind: "rate_limit" } };
+    return { html: fx("html-good.html"), tokens: 100, costUsd: 0.5 };
+  };
+  const renderer = async ({ width, height }) => ({ png: `/s/shot-${width}x${height}.png`, consoleErrors: 0 });
+  const grader = async ({ job, pairShotsAB }) => { log.grader.push({ job, pairShotsAB }); return JSON.stringify({ A: { clean: [true, true, true, true, true], polish: 5 }, B: { clean: [true, true, true, true, true], polish: 9 } }); };
+  return { log, runner, renderer, grader };
+}
+const outPath = (n) => join(mkdtempSync(join(tmpdir(), "uxb-out-")), n);
+
+test("UXB-13 UXB-14 real runner: runDevSet writes a results file with the UXB-13 fields, one arm at a time", async () => {
+  const m = await load();
+  const f = devFakes();
+  const outFile = outPath("results.json");
+  await m.runDevSet({ prompts: prompts(), split: "dev", runner: f.runner, renderer: f.renderer, grader: f.grader, changeId: "chg-1", model: "sonnet", outFile });
+  assert.ok(existsSync(outFile), "results file written");
+  const res = JSON.parse(readFile(outFile, "utf8"));
+  assert.equal(m.checkResults(res).ok, true, JSON.stringify(m.checkResults(res)));
+  assert.equal(res.split, "dev");
+  assert.equal(res.changeId, "chg-1");
+  assert.equal(res.graderModel, "opus");
+  assert.deepEqual([...res.arms].sort(), ["plain", "ux"]);
+  assert.equal(res.armModels.plain, "sonnet");
+  assert.equal(res.armModels.ux, "sonnet");
+  assert.ok(res.n && Number.isFinite(res.n.prompts) && res.n.runsPerArm === 1, JSON.stringify(res.n));
+  assert.ok(Array.isArray(res.limits) && res.limits.length > 0);
+  assert.ok(res.cost > 0, "cost totals the runs");
+  assert.equal(f.log.maxActive, 1, "arms run strictly one at a time");
+  assert.ok(f.log.runner.every((r) => r.model === "sonnet"));
+  const ids = new Set(f.log.runner.map((r) => r.promptId));
+  assert.deepEqual([...ids].sort(), ["p1", "p2", "p3", "p4", "p5"], "dev split only, no heldout prompt");
+});
+test("UXB-15 real runner: runDevSet excludes an errored pair from scores and counts no loss", async () => {
+  const m = await load();
+  const f = devFakes();
+  const outFile = outPath("results.json");
+  await m.runDevSet({ prompts: prompts(), split: "dev", runner: f.runner, renderer: f.renderer, grader: f.grader, changeId: "chg-2", model: "sonnet", outFile });
+  const res = JSON.parse(readFile(outFile, "utf8"));
+  const text = JSON.stringify(res);
+  assert.ok(text.includes("rate_limit"), "the error is recorded, not hidden");
+  const scored = res.scored ?? res.tally?.scored;
+  assert.ok(scored && typeof scored === "object", "results carry scored prompts");
+  assert.equal(scored.p2, undefined, "p2 had an errored arm so it has no score");
+  assert.equal(Object.keys(scored).length, 4);
+  assert.equal(f.log.grader.length, 4, "an errored pair is never sent to the grader");
+  const t = res.tally ?? res;
+  assert.equal((t.wins?.plain ?? 0) + (t.wins?.ux ?? 0) + (t.ties ?? 0), 4, "only the 4 clean pairs are counted");
+});
+test("UXB-7 real runner: runDevSet gives the grader only the job and screenshots", async () => {
+  const m = await load();
+  const f = devFakes();
+  await m.runDevSet({ prompts: prompts(), split: "dev", runner: f.runner, renderer: f.renderer, grader: f.grader, changeId: "chg-3", model: "sonnet", outFile: outPath("r.json") });
+  for (const g of f.log.grader) {
+    assert.deepEqual(Object.keys(g).sort(), ["job", "pairShotsAB"]);
+    assert.equal(g.pairShotsAB.A.length, 2);
+    assert.equal(g.pairShotsAB.B.length, 2);
+  }
+});
+test("UXB-5 real runner: runDevSet refuses a second heldout run for the same change id", async () => {
+  const m = await load();
+  const ledger = m.createHeldoutLedger();
+  const run = (changeId) => { const f = devFakes(); return m.runDevSet({ prompts: prompts(), split: "heldout", ledger, runner: f.runner, renderer: f.renderer, grader: f.grader, changeId, model: "sonnet", outFile: outPath("h.json") }); };
+  await run("chg-h");
+  await assert.rejects(() => run("chg-h"), /held-?out/i);
+  await run("chg-h2");
+});
+test("UXB-5 real runner: a heldout run uses only the 3 heldout prompts; dev may repeat for one change id", async () => {
+  const m = await load();
+  const f = devFakes();
+  await m.runDevSet({ prompts: prompts(), split: "heldout", ledger: m.createHeldoutLedger(), runner: f.runner, renderer: f.renderer, grader: f.grader, changeId: "chg-x", model: "sonnet", outFile: outPath("h.json") });
+  assert.deepEqual([...new Set(f.log.runner.map((r) => r.promptId))].sort(), ["p6", "p7", "p8"]);
+  const g = devFakes();
+  const ledger = m.createHeldoutLedger();
+  for (let i = 0; i < 2; i++) await m.runDevSet({ prompts: prompts(), split: "dev", ledger, runner: g.runner, renderer: g.renderer, grader: g.grader, changeId: "same", model: "sonnet", outFile: outPath("d.json") });
+});

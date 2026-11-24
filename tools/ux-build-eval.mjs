@@ -4,9 +4,12 @@
 // entry at the bottom; `--dry-run` there uses fakes. Tests never execute the CLI.
 // Usage: node tools/ux-build-eval.mjs --dry-run [--prompts prompts.json]
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
+import { join, dirname, resolve } from "node:path";
+import { pathToFileURL, fileURLToPath } from "node:url";
 
 const ARMS = ["plain", "ux"];
 const VIEWPORTS = [[390, 844], [1280, 800]];
@@ -96,9 +99,17 @@ export function checkPrompts(prompts, { bannedWords = [] } = {}) {
   return { ok: problems.length === 0, problems };
 }
 
-export function createHeldoutLedger() {
-  const seen = new Set();
-  return { record(changeId) { if (seen.has(changeId)) throw new Error(`held-out already run for change ${changeId}`); seen.add(changeId); } };
+// Optional {file}: the ledger is loaded from and saved to that JSON file, so it survives between CLI runs.
+export function createHeldoutLedger({ file } = {}) {
+  let seen = new Set();
+  if (file && existsSync(file)) { try { seen = new Set(JSON.parse(readFileSync(file, "utf8"))); } catch { /* start empty */ } }
+  return {
+    record(changeId) {
+      if (seen.has(changeId)) throw new Error(`held-out already run for change ${changeId}`);
+      seen.add(changeId);
+      if (file) { mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, JSON.stringify([...seen], null, 2)); }
+    },
+  };
 }
 
 // UXB-7
@@ -194,26 +205,200 @@ export function resumePoint(promptIds, runs) {
   return promptIds.find((id) => !done.has(id)) ?? null;
 }
 
-// ---- CLI (never run by tests). Real arms call `claude -p`; --dry-run uses fakes.
+// ---- Real runner pieces (UXB-1, 2, 3, 5, 7, 8, 13, 14, 15). Spawn, mkdtemp, renderer and grader are injectable.
+const HERE = dirname(fileURLToPath(import.meta.url));
+const DEFAULT_PLUGIN_DIR = resolve(HERE, "..", "plugins", "studio");
+const PROMPT_SUFFIX = "\n\nWrite the finished screen as one self-contained file named index.html in your working directory. Inline all CSS and JS, no remote URLs, no external fonts or images.";
+
+// Both arms get the identical prompt; the only difference is the role file (--agent) on the ux arm. `--` ends the
+// variadic --tools list so the prompt stays the last argument.
+export function buildClaudeArgs({ arm, prompt, model, dir, pluginDir = DEFAULT_PLUGIN_DIR }) {
+  const args = ["-p", "--model", model, "--output-format", "json", "--tools", "Write", "--permission-mode", "acceptEdits"];
+  if (dir) args.push("--add-dir", dir);
+  if (arm === "ux") args.push("--agent", "ux-reviewer", "--plugin-dir", pluginDir);
+  args.push("--", `${prompt.text}${PROMPT_SUFFIX}`);
+  return args;
+}
+
+const defaultSpawn = (cmd, args, opts) => spawnSync(cmd, args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, ...opts });
+const defaultMkdtemp = (prefix) => mkdtempSync(join(tmpdir(), prefix));
+const failKind = (r) => {
+  if (r.error?.code === "ETIMEDOUT" || /ETIMEDOUT|timed? ?out/i.test(r.error?.message || "") || (r.signal && r.status == null)) return "timeout";
+  if (/rate.?limit|429|overloaded/i.test(`${r.stderr || ""}${r.stdout || ""}`)) return "rate_limit";
+  return r.error ? "spawn_error" : "exit_nonzero";
+};
+
+export async function runClaudeArm({ arm, prompt, model, spawn = defaultSpawn, mkdtemp = defaultMkdtemp, timeout = 900000, pluginDir }) {
+  try {
+    const dir = await mkdtemp(`uxb-${arm}-`);
+    const r = await spawn("claude", buildClaudeArgs({ arm, prompt, model, dir, pluginDir }), { cwd: dir, timeout });
+    if (!r || r.error || r.status !== 0) return { error: { kind: failKind(r || {}) } };
+    let j = {};
+    try { j = JSON.parse(r.stdout); } catch { /* usage unknown */ }
+    const file = join(dir, "index.html");
+    const html = existsSync(file) ? readFileSync(file, "utf8") : "";
+    if (html.trim() === "") return { error: { kind: "no_output" } };
+    return { html, tokens: (j.usage?.input_tokens ?? 0) + (j.usage?.output_tokens ?? 0), costUsd: j.total_cost_usd ?? 0 };
+  } catch (e) {
+    return { error: { kind: /timeout|ETIMEDOUT/i.test(e.message) ? "timeout" : "error" } };
+  }
+}
+
+function loadPlaywright() {
+  const tries = [import.meta.url, pathToFileURL(join(process.cwd(), "x.js")).href];
+  for (const base of tries) { try { return createRequire(base)("playwright"); } catch { /* next */ } }
+  for (const p of (process.env.NODE_PATH || "").split(":").filter(Boolean)) { try { return createRequire(import.meta.url)(join(p, "playwright")); } catch { /* next */ } }
+  return createRequire(import.meta.url)("playwright"); // throws the real error
+}
+const heightFor = (w) => (w <= 600 ? 844 : 800);
+
+// Real Playwright, chromium with no launch options. Remote http(s) requests are aborted and counted (UXB-2).
+export async function renderShots({ html, widths = [390, 1280], outDir }) {
+  const { chromium } = loadPlaywright();
+  mkdirSync(outDir, { recursive: true });
+  const browser = await chromium.launch();
+  const shots = [];
+  let consoleErrors = 0, remoteRequests = 0;
+  try {
+    for (const width of widths) {
+      const ctx = await browser.newContext({ viewport: { width, height: heightFor(width) } });
+      const page = await ctx.newPage();
+      page.on("pageerror", () => { consoleErrors++; });
+      page.on("console", (m) => { if (m.type() === "error") consoleErrors++; });
+      await page.route(/^(https?|wss?|ftp):|^\/\//i, (route) => { remoteRequests++; return route.abort(); });
+      await page.setContent(html, { waitUntil: "load" });
+      const file = join(outDir, `shot-${width}x${heightFor(width)}.png`);
+      await page.screenshot({ path: file, fullPage: true });
+      shots.push(file);
+      await ctx.close();
+    }
+  } finally { await browser.close(); }
+  return { shots, consoleErrors, remoteRequests, ok: remoteRequests === 0 };
+}
+
+// UXB-7: job and four image paths only. No prompt text, no arm or role names.
+export function buildGraderPrompt({ job, pairShotsAB }) {
+  const { A, B } = pairShotsAB;
+  return [
+    "You are grading two versions of one screen, A and B. Judge only what you see.",
+    `What the screen is for: ${job}`,
+    "Open each image file with the Read tool before you grade. Each version has a phone-width image (390 wide) then a desktop-width image (1280 wide).",
+    `Version A: ${A[0]} then ${A[1]}`,
+    `Version B: ${B[0]} then ${B[1]}`,
+    "For each version, pass or fail each rule (true = passes):",
+    "1. White space: room to breathe, nothing cramped, consistent gaps.",
+    "2. One or two fonts only, with clear sizes.",
+    "3. A limited color palette with one accent.",
+    "4. Alignment and a grid: edges line up.",
+    "5. Consistency: the same thing looks the same everywhere.",
+    "Then give each version a polish score from 0 to 10 for how finished and generally acceptable it looks.",
+    'Reply with only this JSON: {"A":{"clean":[true,true,true,true,true],"polish":0},"B":{"clean":[true,true,true,true,true],"polish":0}}',
+  ].join("\n");
+}
+
+// UXB-8: a reply that is not the exact shape is an error, never a score.
+export function parseGrade(text) {
+  const t = String(text ?? "").trim();
+  const fenced = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const body = fenced ? fenced[1] : t.slice(t.indexOf("{"), t.lastIndexOf("}") + 1);
+  let g;
+  try { g = JSON.parse(body); } catch { return { error: { kind: "unparseable" } }; }
+  for (const k of ["A", "B"]) {
+    const x = g?.[k];
+    if (!x || !Array.isArray(x.clean) || x.clean.length !== 5 || !x.clean.every((v) => typeof v === "boolean")) return { error: { kind: "bad_clean" } };
+    if (typeof x.polish !== "number" || !Number.isFinite(x.polish) || x.polish < 0 || x.polish > 10) return { error: { kind: "bad_polish" } };
+  }
+  return { grade: { A: g.A, B: g.B } };
+}
+
+const seedOf = (s) => parseInt(sha(s).slice(0, 8), 16);
+const jobOf = (p) => p.job ?? (String(p.text).split(/(?<=[.!?])\s+/)[1] || String(p.text));
+const limits = [
+  "One Sonnet run per arm per prompt: n is small, so wins and losses are noisy.",
+  "A single Opus grader scores looks from screenshots only, and A/B order is shuffled per pair.",
+  "Grader cost is included only if the grader reports it.",
+  "Dev results are for tuning; held-out is run once per change id.",
+];
+
+export async function runDevSet({ prompts, split = "dev", ledger, runner, renderer, grader, changeId, model = "sonnet", graderModel = "opus", outFile }) {
+  const set = prompts.filter((p) => p.split === split);
+  if (split === "heldout") (ledger ??= createHeldoutLedger()).record(changeId);
+  const runs = [], mapping = {}, gradings = {};
+  let cost = 0;
+  for (const p of set) {
+    const { runs: pr } = await runArms({ prompt: p, runner, renderer, model });
+    const byArm = Object.fromEntries(pr.map((r) => [r.arm, r]));
+    cost += pr.reduce((a, r) => a + (r.costUsd || 0), 0);
+    if (byArm.plain.status === "ok" && byArm.ux.status === "ok") {
+      const pair = { promptId: p.id, job: jobOf(p), arms: { plain: { shots: byArm.plain.shots }, ux: { shots: byArm.ux.shots } } };
+      const { presented, mapping: m } = shuffleAndMap([pair], seedOf(`${changeId}:${p.id}`));
+      const raw = await grader({ job: pair.job, pairShotsAB: { A: presented[0].arms.A.shots, B: presented[0].arms.B.shots } });
+      const text = typeof raw === "string" ? raw : raw?.text;
+      cost += typeof raw === "object" ? raw?.costUsd || 0 : 0;
+      const g = parseGrade(text);
+      const toRec = (x) => ({ clean: Object.fromEntries(CLEAN_IDS.map((id, i) => [id, x.clean[i]])), polish: x.polish });
+      const ok = !g.error && scoreRecord({ graderModel, A: toRec(g.grade.A), B: toRec(g.grade.B) }, { armModel: model }).ok;
+      if (ok) {
+        mapping[p.id] = m[p.id];
+        gradings[p.id] = { A: toRec(g.grade.A), B: toRec(g.grade.B) };
+        for (const label of ["A", "B"]) {
+          const run = byArm[m[p.id][label]];
+          run.polish = g.grade[label].polish;
+          run.cleanFailures = CLEAN_IDS.filter((id, i) => !g.grade[label].clean[i]);
+        }
+      } else for (const r of pr) { r.status = "error"; r.excluded = true; r.reasons = [`grader: ${g.error?.kind || "invalid grading"}`]; }
+    }
+    runs.push(...pr);
+  }
+  const t = tally(runs);
+  const res = {
+    n: { prompts: set.length, runsPerArm: 1, scoredPairs: Object.keys(t.scored).length },
+    arms: ARMS, armModels: { plain: model, ux: model }, graderModel, split, changeId, cost, limits,
+    scored: t.scored, tally: t, mapping, gradings,
+    runs,
+  };
+  if (outFile) { mkdirSync(dirname(resolve(outFile)), { recursive: true }); writeFileSync(outFile, JSON.stringify(res, null, 2)); }
+  return res;
+}
+
+// ---- CLI (never run by tests). --dry-run uses fakes; otherwise real `claude -p` arms, Playwright and an Opus grader.
+function flag(argv, name, dflt) { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : dflt; }
+
 async function main(argv) {
   const dry = argv.includes("--dry-run");
-  const pi = argv.indexOf("--prompts");
-  const prompts = pi >= 0 ? JSON.parse(readFileSync(argv[pi + 1], "utf8")) : [{ id: "dry", type: "app home", split: "dev", text: "Dry run." }];
-  const goodHtml = '<!doctype html><html><body><p>dry run</p></body></html>';
-  const fakeRunner = async () => ({ html: goodHtml, tokens: 0, costUsd: 0 });
-  const realRunner = async ({ arm, prompt, model }) => {
-    const sys = arm === "ux" ? ["--append-system-prompt", "Act as the ux-reviewer agent but BUILD the screen. Output one self-contained HTML file only."] : [];
-    const r = spawnSync("claude", ["-p", "--model", model, "--output-format", "json", ...sys, `${prompt.text}\nReturn one self-contained HTML file, no remote URLs.`], { encoding: "utf8", timeout: 600000 });
-    if (r.error || r.status !== 0) return { error: { kind: r.error?.code === "ETIMEDOUT" ? "timeout" : "error" } };
-    const j = JSON.parse(r.stdout);
-    const html = String(j.result ?? "").replace(/^```html\s*|```\s*$/g, "");
-    return { html, tokens: (j.usage?.input_tokens ?? 0) + (j.usage?.output_tokens ?? 0), costUsd: j.total_cost_usd ?? 0 };
-  };
-  const renderer = async ({ width, height }) => ({ png: `shot-${width}x${height}.png`, consoleErrors: 0 });
-  for (const p of prompts) {
-    const out = await runArms({ prompt: p, runner: dry ? fakeRunner : realRunner, renderer, model: "sonnet" });
-    console.log(JSON.stringify({ promptId: p.id, runs: out.runs.map(({ html, ...r }) => r) }));
+  const prompts = argv.includes("--prompts") ? JSON.parse(readFileSync(flag(argv, "--prompts"), "utf8")) : [{ id: "dry", type: "app home", split: "dev", text: "Dry run." }];
+  if (dry) {
+    const goodHtml = '<!doctype html><html><body><p>dry run</p></body></html>';
+    const renderer = async ({ width, height }) => ({ png: `shot-${width}x${height}.png`, consoleErrors: 0 });
+    for (const p of prompts) {
+      const out = await runArms({ prompt: p, runner: async () => ({ html: goodHtml, tokens: 0, costUsd: 0 }), renderer, model: "sonnet" });
+      console.log(JSON.stringify({ promptId: p.id, runs: out.runs.map(({ html, ...r }) => r) }));
+    }
+    return;
   }
+  const split = flag(argv, "--split", "dev");
+  const changeId = flag(argv, "--change-id");
+  const outFile = flag(argv, "--out");
+  if (!changeId || !outFile) throw new Error("real run needs --change-id <id> and --out <file> (or use --dry-run)");
+  const pluginDir = flag(argv, "--plugin-dir", DEFAULT_PLUGIN_DIR);
+  const ledger = createHeldoutLedger({ file: `${outFile}.heldout-ledger.json` });
+  const shotsRoot = `${outFile}.shots`;
+  mkdirSync(shotsRoot, { recursive: true });
+  const runner = (a) => runClaudeArm({ ...a, pluginDir });
+  const renderer = async ({ html, width, height }) => {
+    const r = await renderShots({ html, widths: [width], outDir: mkdtempSync(join(resolve(shotsRoot), "r-")) });
+    return { png: r.shots[0], consoleErrors: r.consoleErrors };
+  };
+  const grader = async ({ job, pairShotsAB }) => {
+    const dirs = [...new Set([...pairShotsAB.A, ...pairShotsAB.B].map((f) => dirname(f)))];
+    const args = ["-p", "--model", "opus", "--output-format", "json", "--tools", "Read", "--permission-mode", "acceptEdits", ...dirs.flatMap((d) => ["--add-dir", d]), "--", buildGraderPrompt({ job, pairShotsAB })];
+    const r = spawnSync("claude", args, { encoding: "utf8", timeout: 600000, cwd: mkdtempSync(join(tmpdir(), "uxb-grade-")), maxBuffer: 64 * 1024 * 1024 });
+    if (r.error || r.status !== 0) return { text: "", costUsd: 0 };
+    const j = JSON.parse(r.stdout);
+    return { text: String(j.result ?? ""), costUsd: j.total_cost_usd ?? 0 };
+  };
+  const res = await runDevSet({ prompts, split, ledger, runner, renderer, grader, changeId, model: "sonnet", outFile });
+  console.log(JSON.stringify({ outFile, split, changeId, n: res.n, wins: res.tally.wins, ties: res.tally.ties, cost: res.cost }));
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main(process.argv.slice(2)).catch((e) => { console.error(e.message); process.exit(1); });
