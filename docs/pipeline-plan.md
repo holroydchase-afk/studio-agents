@@ -130,8 +130,8 @@ Not needed now: release-captain (nothing is released), orchestrator (no coordina
 **Overnight run shape (zero input from Chase)**
 
 ```
-idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ ARCHITECT (stack, scaffold) ─▶ QA pre ─▶ BUILD (UX for UI, plain Claude for logic)
-   ─▶ QA post, green 3x ─▶ PRIVACY GATE ─▶ POSITIONING (README, first screen) ─▶ PREVIEW ─▶ MORNING CARD
+idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ STAKEHOLDERS (cut) ─▶ ARCHITECT (stack, scaffold) ─▶ QA pre ─▶ BUILD (UX for UI, plain Claude for logic)
+   ─▶ QA post, green 3x ─▶ PRIVACY GATE ─▶ POSITIONING (README, first screen) ─▶ PREVIEW ─▶ STAKEHOLDERS (preview) ─▶ MORNING CARD
 ```
 
 1. **Seed.** Chase's idea goes in as one message (or an issue labeled `mvp-idea`). The run starts at the evening cutoff and must finish by morning.
@@ -149,6 +149,27 @@ idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ ARCHITECT (stack
 
 **How we'll know it works (added to the outcome eval):** same idea, plain Claude (one long session, same $ cap) vs the pipeline, blind Opus grader asks "would Chase open this in the morning and keep going, or start over?" Plus counts: preview loads, tests green, privacy gate clean, assumptions listed, cost. Use 4 real ideas from Chase's side-ideas list. Wins out of N, no multipliers.
 
+## Stakeholder agent: Stakeholder Twins as a loop (Chase, Nov 24)
+
+Chase wants Stakeholder Twins evolved into a stakeholder agent that loops through personas. **Reuse, don't rebuild:** the persona set and prompts come from the Twins work (its own repo, `persona-twins`, and the portfolio prompt `prompts/stakeholder-twins.txt`: everyday user, customer, skeptic, marketing, sales, finance, product, each saying what it would push back on, ask, and what would make it say yes). I read the prompt; I did not read the `persona-twins` repo (outside this session's repo scope), so the first build step is to pull its persona text in rather than retype it.
+
+**Job (one sentence):** read the artifact in front of it as each chosen persona, in character, and return the few objections that would change what ships.
+
+**Where it sits in the MVP-o-matic run (two checkpoints):**
+1. **Before the build, on Staff PM's MVP cut** (cheap: the input is a short spec). It can only cut, reorder or sharpen the cut; it never adds scope. If it finds a blocker the cut doesn't answer, Staff PM revises once.
+2. **After the preview, before the morning card** (input is the preview shots plus README). Objections go on the card as "what your stakeholders would say"; they don't trigger a rebuild overnight, except a P0 that a failed test or the privacy gate also confirms.
+
+**The loop:** for each chosen persona in turn, one pass, each with fresh instructions and only the artifact (not the other personas' answers, so they don't echo each other). Then one merge step: dedupe, rank by "would change what ships", cap at 5 objections total.
+- **Personas per run:** the everyday user and the skeptic always, plus 2 picked by the product (finance for anything paid, engineer-minded product for tooling, sales or marketing for something public). Four passes, not seven, to hold the token cost down.
+- **Round limit:** 1 pass per persona per checkpoint, **2 checkpoints per run, at most 1 revise after checkpoint 1**. Never a debate between personas.
+- **Stop rule:** stop when every chosen persona has answered once. An objection counts only if it cites a line of the spec or a screen; uncited "I'd want more polish" is dropped. If no persona says "would not use", the checkpoint passes and the run goes on.
+- **Cost:** one cheap pass each on Sonnet, inside the run's cap (about 10 percent of it). No separate cap; it stops with the run.
+- **Output contract:** a ```stakeholders block (persona, objection, evidence line, `blocker | note`), checked by a small `check-stakeholders`, same pattern as the other blocks.
+
+**What it is not:** not a real user, not a gate on Chase's taste, and not a source of claims. Twins are invented voices; the card labels them "simulated stakeholders". Real feedback still comes through the feedback loop.
+
+**How we'll know it helps:** add it as one more arm in the outcome eval: pipeline with and without the stakeholder checkpoints, same blind Opus question ("would Chase keep going or start over?"). If it doesn't win, it stays a card section, not a stage. Until then no claim that it improves MVPs.
+
 ## Build order (one small PR each, test-first, each stops for Chase's go)
 1. `tools/pipeline-run.mjs` ledger and stop rules (validators reused), with a fake-stage test run. No model calls.
 2. Staff PM adds `lane:` and `touches:` lines to the spec block; `check-spec` accepts them.
@@ -156,7 +177,8 @@ idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ ARCHITECT (stack
 4. Dry run on one real non-live task (suggest a studio-agents docs fix), end to end, cost logged.
 5. Outcome eval on the 4 dev prompts, then held-out once.
 6. MVP-o-matic pieces, one PR each: `check-build` and qa-tdd's ```build block; scaffold templates and the architect's stack list; the privacy-security pre-preview gate; the preview script and morning card; Staff PM's MVP cut mode. Then one supervised daytime dry run on a throwaway idea.
-7. Open the doors: feedback on Energy Scanner (after PR 126 merges), nightly hardening and the first overnight MVP run only on Chase's resume.
+7. Stakeholder agent: pull the persona text from `persona-twins`, add the loop prompt and `check-stakeholders`, test on one finished MVP, then add the eval arm.
+8. Open the doors: feedback on Energy Scanner (after PR 126 merges), nightly hardening and the first overnight MVP run only on Chase's resume.
 
 ## Decisions for Chase
 1. **Approve this plan?** Recommend yes.
@@ -166,3 +188,4 @@ idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ ARCHITECT (stack
 5. **Merge order of the open PRs.** PR 121 and 126 both touch HANDOFF.md and the harness doc; recommend merging 121, then 126, before build step 1.
 6. **MVP-o-matic repo rule.** Recommend a standing OK for one new private repo per night from the studio scaffold, and v1 limited to static on-device MVPs previewed as a private Artifact. Alternative: no new repos, build in a studio-agents folder only.
 7. **Overnight cap.** Recommend $2.50 hard stop per MVP run and one run per night.
+8. **Stakeholder agent.** Recommend yes as a two-checkpoint critic (cut and preview), four personas per run, one pass each, kept only if the eval arm shows it helps.
