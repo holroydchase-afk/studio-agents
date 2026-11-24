@@ -1,0 +1,12 @@
+{
+  "about": "Results with no machine-readable log. Every entry needs a source. Add an entry here, then run: node tools/studio-scorecard.mjs --html scorecard.html",
+  "entries": [
+    { "agent": "qa-tdd", "id": "qa-neutral-20", "label": "QA-TDD, format-neutral scoring, batches 3 to 5 (20 cases)", "agent_wins": 1, "plain_wins": 0, "ties": 19, "n": 20, "grader": "written criteria with report format ignored", "source": "docs/agent-training-plan.md (update log 2026-11-23)", "note": "Agent 20 of 20 passed, plain 19 of 20. A tie on finding defects: QA-TDD's measured value is report format, the QA-R contract and guards." },
+    { "agent": "staff-pm", "id": "staff-pm-chase-spot", "label": "Staff PM, Chase's own spot check of pairs", "agent_wins": 3, "plain_wins": 0, "ties": 0, "n": 3, "grader": "Chase", "source": "Chase, project thread, Nov 23 (no log in the repo yet)", "note": "Three pairs only." },
+    { "agent": "ux-reviewer", "id": "ux-status", "status": "no measured gain yet", "source": "HANDOFF.md (UX agent entries, 2026-11-22 and 2026-11-23)" },
+    { "agent": "ux-reviewer", "id": "ux-pilot", "label": "Pilot on the Energy Scanner demo: 5/10 before, 7/10 after; 8 of 11 findings fixed", "source": "HANDOFF.md (UX agent, first full loop closed, 2026-11-22)" },
+    { "agent": "ux-reviewer", "id": "ux-real-set", "label": "Real before-screens: caught 13 of 24 known problems (54%, plus or minus 2); false alarms 1 of 16 good screens", "source": "HANDOFF.md and plugins/studio/evals/README.md (Fresh human-miss cases)" },
+    { "agent": "ux-reviewer", "id": "ux-build", "label": "Build eval (plain Claude vs the UX agent building the same screen): not run yet; the real runner is still a stub", "source": "HANDOFF.md (UX build eval spec, 2026-11-23)" },
+    { "agent": "stakeholder", "id": "stakeholder-status", "status": "not run", "source": "docs/stakeholder-agent-plan.md" }
+  ]
+}
