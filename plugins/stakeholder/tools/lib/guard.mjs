@@ -64,12 +64,21 @@ const isReserved = (addr) => {
   return host === "noreply.github.com" || host.endsWith(".noreply.github.com");
 };
 
+// Unicode look-alikes are folded before any personal-data scan: NFKC turns NBSP, thin and ideographic spaces and fullwidth
+// digits, dots and "@" into ASCII; the dash family (non-breaking hyphen, en and em dash, minus) becomes "-"; zero-width and
+// bidi marks are dropped. Used for scanning only; nothing printed is rewritten. Other non-ASCII digit sets (Arabic-Indic)
+// are not folded (known limit).
+const DASHES = /[\u2010-\u2015\u2212\ufe58\ufe63\uff0d]/g;
+const INVISIBLE = /[\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff\u00ad]/g;
+export const foldForScan = (s) => s.normalize("NFKC").replace(DASHES, "-").replace(INVISIBLE, "");
+
 // text -> { hits: [{line, category}], allowed: Map(address -> count) }
 export function scanText(text, allow = new Set()) {
   const hits = []; const allowed = new Map();
   const lines = text.split("\n");
-  lines.forEach((ln, i) => {
+  lines.forEach((raw, i) => {
     const line = i + 1;
+    const ln = foldForScan(raw);
     for (const addr of emailsIn(ln)) {
       if (isReserved(addr)) continue;
       if (allow.has(addr.toLowerCase())) { allowed.set(addr.toLowerCase(), (allowed.get(addr.toLowerCase()) || 0) + 1); continue; }
@@ -169,6 +178,8 @@ export function samePath(a, b) {
 
 // Runs a tool's main(argv); turns a Refusal into stderr lines and an exit code. Never prints a stack trace.
 export function runMain(main) {
+  // a reader that exits early (head, a closed pipe) is not our error: leave quietly, no stack trace
+  for (const st of [process.stdout, process.stderr]) st.on("error", (e) => { if (e && e.code === "EPIPE") process.exit(0); });
   try { main(process.argv.slice(2)); }
   catch (e) {
     if (e instanceof Refusal) { process.stderr.write(e.lines.map((l) => l + "\n").join("")); process.exit(e.code); }

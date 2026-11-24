@@ -553,10 +553,10 @@ test("R11-class a 900 KB line of repeated 'agent ', of 'eyJ', of '|' and of '$' 
   assert.equal(r.code, 1); assert.ok(r.ms < 2000);
 });
 
-test("R11-class a 3000-quote index runs in under 5 s and keeps the 10 cap with an exact omitted count", () => {
-  const q = quotes(...Array.from({ length: 3000 }, (_, i) => `I built ${1000 + i} agents`));
+test("R11-class a 2000-quote index (the cap since STK-PS-R20; 3000 is now refused) runs in under 5 s and keeps the 10 cap with an exact omitted count", () => {
+  const q = quotes(...Array.from({ length: 2000 }, (_, i) => `I built ${1000 + i} agents`));
   const r = claim({ index: q, register: regA(agents(3)) }); assert.equal(r.code, 0, r.err.slice(0, 200)); assert.ok(r.ms < 5000, `${r.ms} ms`);
-  assert.equal(r.json.findings.length, 10); assert.equal(r.json.omitted, 2990);
+  assert.equal(r.json.findings.length, 10); assert.equal(r.json.omitted, 1990);
 });
 
 // ================================================================ safe writes (STK-PS-R12 class)
