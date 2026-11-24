@@ -1,0 +1,5 @@
+# Fixture values the stakeholder tools' tests use on purpose (no real people).
+@notreserved\.net$
+^git@github\.com$
+^a@b\.net\.json$
+^a@b\.example\.org$

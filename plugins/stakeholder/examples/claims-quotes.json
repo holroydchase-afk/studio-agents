@@ -1,0 +1,7 @@
+{"quotes":[
+  {"id":"q1","text":"I built 8 agents."},
+  {"id":"q2","text":"The demo-notes agent is live."},
+  {"id":"q3","text":"The demo-reviewer agent checks every draft."},
+  {"id":"q4","text":"The demo-planner agent plans the week."},
+  {"id":"q5","text":"Planned: 5 more agents."}
+]}
