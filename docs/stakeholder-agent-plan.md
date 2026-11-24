@@ -1,6 +1,6 @@
-# Stakeholder agent: plan (not built)
+# Stakeholder agent: plan (step 1 built in a PR, rest not built)
 
-Chase, Nov 24: evolve Stakeholder Twins into a real stakeholder agent that loops through personas to critique a product idea, spec or preview. Plan only. Nothing here is built until Chase approves it.
+Chase, Nov 24: evolve Stakeholder Twins into a real stakeholder agent that loops through personas to critique a product idea, spec or preview. Status (Nov 24): step 1, studio-agents half, is built in `plugins/stakeholder` (spec `docs/product/SPEC-STAKEHOLDER-PKG.md`; PR open, not merged, so not installable yet). Because it is distributed, it ships as its own plugin: the checker lives in `plugins/stakeholder/tools/`, not `tools/` (which `sync-tools.sh` copies into product repos), and the agent file was pulled forward from step 3. Everything else below is still plan only.
 
 **Reuse, don't rebuild.** The Twins repo (`holroydchase-afk/persona-twins`, public, MIT; Chase's rename to `stakeholder-twins` is pending, so tools read the repo name from one constant) already has, and the agent reads in place, never retyped:
 - **Persona files:** `personas/*.md`, 7 fictional twins plus `TEMPLATE.md`. Frontmatter: required `name, role, goals, fears, pet_peeves, sample_quotes`; optional `id, label, voice, starter_question, wins_them_over`; body is the background paragraph.

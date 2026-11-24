@@ -26,6 +26,9 @@ Skills (for chats with no repo): `staff-pm`, `story-and-positioning`, `ux-review
 
 An agent can preload skills with a `skills:` list in its frontmatter (ux-reviewer preloads `review-rounds`, since it has no Skill tool). `sync.sh` copies each synced agent's preloaded skills into the repo's `.claude/skills/`, replacing only those folders.
 
+## Stakeholder plugin (separate from the studio team)
+`plugins/stakeholder` is a second plugin in the same marketplace: an advisory agent that reads your README, page or post as a recruiter, hiring manager, staff engineer or PM peer, and a checker that rejects any finding whose quote is not in your quote index. It is not synced into product repos. Its output is guesses to check, not research. Install after merge: `/plugin marketplace add holroydchase-afk/studio-agents`, then `/plugin install stakeholder@chase-studio`. Details: [plugins/stakeholder/README.md](plugins/stakeholder/README.md).
+
 ## Tools
 Scripts the agents run, copied into each repo's `scripts/` with `scripts/sync-tools.sh ../my-product`.
 

@@ -1,0 +1,16 @@
+{
+ "quotes": [
+  {
+   "id": "q1",
+   "text": "Senior PM who ships."
+  },
+  {
+   "id": "q2",
+   "text": "Built a CLI that estimates kilowatt-hours."
+  },
+  {
+   "id": "q3",
+   "text": "Public demo, no sign-in."
+  }
+ ]
+}
