@@ -1,0 +1,156 @@
+{
+ "date": "2026-11-23",
+ "agent3": "staff-pm.md with the job block, second run",
+ "plain2": "plain, second run",
+ "grader": "opus, one per prompt, blind, spec blocks stripped",
+ "tally": {
+  "agent3": 7,
+  "plain2": 1
+ },
+ "results": [
+  {
+   "id": "lp-agent-for-orchestration",
+   "winner": "agent3",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "plain2": [
+     4,
+     4,
+     2,
+     3
+    ],
+    "agent3": [
+     4,
+     5,
+     4,
+     4
+    ]
+   }
+  },
+  {
+   "id": "lp-role-radar-tokens",
+   "winner": "agent3",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "plain2": [
+     4,
+     2,
+     2,
+     5
+    ],
+    "agent3": [
+     4,
+     5,
+     4,
+     3
+    ]
+   }
+  },
+  {
+   "id": "lp-linkedin-drip",
+   "winner": "agent3",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "plain2": [
+     3,
+     3,
+     2,
+     3
+    ],
+    "agent3": [
+     4,
+     5,
+     5,
+     3
+    ]
+   }
+  },
+  {
+   "id": "lp-inbox-merge-tokens",
+   "winner": "agent3",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "agent3": [
+     4,
+     5,
+     2,
+     3
+    ],
+    "plain2": [
+     3,
+     3,
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "id": "lp-convert-old-projects",
+   "winner": "agent3",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "agent3": [
+     5,
+     4,
+     3,
+     4
+    ],
+    "plain2": [
+     4,
+     2,
+     2,
+     3
+    ]
+   }
+  },
+  {
+   "id": "lp-licenses-scan",
+   "winner": "agent3",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "plain2": [
+     4,
+     2,
+     2,
+     3
+    ],
+    "agent3": [
+     4,
+     5,
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "id": "lp-hearth-on-portfolio",
+   "winner": "agent3",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "agent3": [
+     4,
+     5,
+     4,
+     3
+    ],
+    "plain2": [
+     3,
+     3,
+     3,
+     4
+    ]
+   }
+  },
+  {
+   "id": "lp-shifts-and-ratio",
+   "winner": "plain2",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "agent3": [
+     5,
+     4,
+     4,
+     3
+    ],
+    "plain2": [
+     5,
+     5,
+     4,
+     5
+    ]
+   }
+  }
+ ]
+}
