@@ -222,6 +222,7 @@ check "PRV-1..16 product-review tool (claims check, freshness, lanes, plan, repo
 check "STK-PS-R3..R9 stakeholder plugin hardening: fetch script, escaping, strict parser, ship rule, fences, caps, hash agreement" node --test "$root/tests/stakeholder-hardening.test.mjs"
 check "SKT-1..8 repo-check (SKT-28..30 parts): standards by id and hash, local vs GitHub items, secrets stop, caps, safe walk" node --test "$root/tests/stakeholder-repo-check.test.mjs"
 check "STK-PS-R10..R16 repo-check hardening: fail-closed scan, JWT time bound, safe writes, name/ref scan, caps" node --test "$root/tests/stakeholder-repo-check-hardening.test.mjs"
+check "SKT-9..16 claim-check (SKT-17 manual; SKT-28..30 parts): register formats, number and word claims, contradicted and unproven, ignore file, determinism, fail-closed, safe writes" node --test "$root/tests/stakeholder-claim-check.test.mjs"
 check "PDRIFT-1..6 TRAIN-1..9 portfolio drift check and nightly release train logic" node --test "$root/tests/portfolio-drift.test.mjs"
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
