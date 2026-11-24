@@ -797,3 +797,11 @@ test("PIPE-63 a hand-edited ledger missing a stage, or with an unknown state, ne
   }
 });
 
+
+test("PIPE-72 done with a block file that is a directory or unreadable-as-text exits 2, not a crash with a stack", () => {
+  const e = fresh();
+  ok(start(e, "staff-pm"));
+  const r = done(e, "staff-pm", e.dir);
+  assert.equal(r.code, 2);
+  assert.ok(!/\n\s+at /.test(r.err), `no stack trace: ${r.err}`);
+});
