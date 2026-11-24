@@ -1,10 +1,68 @@
 [
-{"id":"lp-agent-for-orchestration","split":"dev","source":"Chase, project chat, 2026-10-21","prompt":"Would it make sense to make you an agent? There are orchestration tasks I want to build / build on. E.g. every morning at like 6am you should get one of these intakes covering last 24hrs or something or we need rules to ensure repos are updated and you/agents read whatever doc before proceeding"},
-{"id":"lp-linkedin-drip","split":"dev","source":"Chase, project chat, 2026-10-21","prompt":"We need to spin up the marketing agent for me and my journey. I want a progressive drip campaign covering our work on LinkedIn. I want to organically roll it out. From a here are some helpful tools I've been tinkering with standpoint. Nothing audacious, or selling the products. If you have a family and are tech savvy then these might be helpful or fun for you"},
-{"id":"lp-role-radar-tokens","split":"dev","source":"Chase, project chat, 2026-10-21","prompt":"I still feel like Role radar is using a lot of tokens. Im not sure the best route to take. Should I be using you to run through future jobs?"},
-{"id":"lp-shifts-and-ratio","split":"dev","source":"Chase, project chat, 2026-10-21","prompt":"Is it possible to max my sessions and create a day shift or like morning, afternoon, night? I need to not stay up late, I have to put some boundaries in around application submission vs portfolio work with some set ratio and daily rolling goals that block me on other fronts. E.g. I'm focusing way too much on portfolio work vs applications"},
-{"id":"lp-hearth-on-portfolio","split":"heldout","source":"Chase, project chat, 2026-10-21","prompt":"what do we need to do to make hearth available on the portfolio"},
-{"id":"lp-licenses-scan","split":"heldout","source":"Chase, project chat, 2026-10-21","prompt":"Do a scan and ensure we have all the right licenses in place now that we have the portfolio - should we shut down the portfolio?!"},
-{"id":"lp-inbox-merge-tokens","split":"heldout","source":"Chase, project chat, 2026-10-20","prompt":"what are your thoughts on this? I created it to reduce tokens. is it smart? (a long paste describing an inbox-and-merge process so parallel chats never overwrite shared docs: each chat writes entries to its own inbox file, a merge pass applies them, with locks and a fixed entry format)"},
-{"id":"lp-convert-old-projects","split":"heldout","source":"Chase, project chat, 2026-10-20","prompt":"Also is this new approach way better than the older projects? like should I convert all projectS?"}
+ {
+  "id": "lp-agent-for-orchestration",
+  "split": "dev",
+  "source": "Chase, project chat, 2026-10-21",
+  "prompt": "Would it make sense to make you an agent? There are orchestration tasks I want to build / build on. E.g. every morning at like 6am you should get one of these intakes covering last 24hrs or something or we need rules to ensure repos are updated and you/agents read whatever doc before proceeding"
+ },
+ {
+  "id": "lp-linkedin-drip",
+  "split": "dev",
+  "source": "Chase, project chat, 2026-10-21",
+  "prompt": "We need to spin up the marketing agent for me and my journey. I want a progressive drip campaign covering our work on LinkedIn. I want to organically roll it out. From a here are some helpful tools I've been tinkering with standpoint. Nothing audacious, or selling the products. If you have a family and are tech savvy then these might be helpful or fun for you"
+ },
+ {
+  "id": "lp-role-radar-tokens",
+  "split": "dev",
+  "source": "Chase, project chat, 2026-10-21",
+  "prompt": "I still feel like Role radar is using a lot of tokens. Im not sure the best route to take. Should I be using you to run through future jobs?"
+ },
+ {
+  "id": "lp-shifts-and-ratio",
+  "split": "dev",
+  "source": "Chase, project chat, 2026-10-21",
+  "prompt": "Is it possible to max my sessions and create a day shift or like morning, afternoon, night? I need to not stay up late, I have to put some boundaries in around application submission vs portfolio work with some set ratio and daily rolling goals that block me on other fronts. E.g. I'm focusing way too much on portfolio work vs applications"
+ },
+ {
+  "id": "lp-hearth-on-portfolio",
+  "split": "heldout",
+  "source": "Chase, project chat, 2026-10-21",
+  "prompt": "what do we need to do to make hearth available on the portfolio"
+ },
+ {
+  "id": "lp-licenses-scan",
+  "split": "heldout",
+  "source": "Chase, project chat, 2026-10-21",
+  "prompt": "Do a scan and ensure we have all the right licenses in place now that we have the portfolio - should we shut down the portfolio?!"
+ },
+ {
+  "id": "lp-inbox-merge-tokens",
+  "split": "heldout",
+  "source": "Chase, project chat, 2026-10-20",
+  "prompt": "what are your thoughts on this? I created it to reduce tokens. is it smart? (a long paste describing an inbox-and-merge process so parallel chats never overwrite shared docs: each chat writes entries to its own inbox file, a merge pass applies them, with locks and a fixed entry format)"
+ },
+ {
+  "id": "lp-convert-old-projects",
+  "split": "heldout",
+  "source": "Chase, project chat, 2026-10-20",
+  "prompt": "Also is this new approach way better than the older projects? like should I convert all projectS?"
+ },
+ {
+  "id": "lp3-five-products-plan",
+  "split": "heldout",
+  "source": "Chase, project chat, 2026-10-20",
+  "prompt": "Did we create a plan for going from where we are to a portfolio website with Hearth (need to rename), Role Radar, ccwatts, Energy scanner, PM tools including build slate"
+ },
+ {
+  "id": "lp3-optimize-rule",
+  "split": "heldout",
+  "source": "Chase, project chat, 2026-10-20",
+  "prompt": "New rule to at least tell me if I am making a dumb mistake. Always optimize for my efficiency. Should I put it in Claude code as well"
+ },
+ {
+  "id": "lp3-improve-agent-cases",
+  "split": "heldout",
+  "source": "Chase, project chat, 2026-11-24",
+  "prompt": "new thread for improving the staff pm agent on new cases. they marked it down for tool-check claims it couldn't have run, extra decisions, and stray lint lines. how do we address this? what tools did they need, etc."
+ }
 ]

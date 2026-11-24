@@ -1,0 +1,2 @@
+B
+B asks nothing of Chase until it has a real blocker list. It starts step 1 now, and it lines up the right lanes (positioning claim check, privacy scan, ux, qa) against the go-live gate without guessing what is left. A is tighter and makes an explicit reuse-over-build call, but it asks for a merge go before the PR list exists, and it ends with a "Checks: all 3 passed" tool footer it could not have backed up. A's next step is also only "next session". B loses some points for length and for restating the project status, but it is the safer reply to ship.

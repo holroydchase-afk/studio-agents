@@ -1,0 +1,2 @@
+A
+A gives the right call (yes, user-level CLAUDE.md so it applies everywhere), wisely adds the safety guardrail, and leaves Chase a one-word "do it", though it lacks a dated owner for the next step. B scores on reuse and a named owner, but it states things it could not have checked (exact Hearth CLAUDE.md wording, "Checks: all 3 passed" tool output), and that tool output is clutter. B also over-engineers a one-paragraph rule edit with qa-tdd failing checks, an engineer session and PRs across repos.

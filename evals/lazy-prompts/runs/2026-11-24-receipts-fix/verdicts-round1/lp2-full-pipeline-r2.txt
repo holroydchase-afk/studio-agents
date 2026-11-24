@@ -1,0 +1,2 @@
+B
+A is tighter and makes a clear reuse call with a sessioned plan, but its whole premise rests on things it could not have seen: an existing `pipeline-run.mjs`, PIPE-5/PIPE-8 checks, and a block of "all 3 passed" tool output. That kind of unbacked claim breaks Chase's no-overclaiming rule. B is wordier, mostly restates standing rules and adds a one-word decision (pointing at the live Hearth beta is a questionable default), but it says plainly what it did not check and still gives a concrete next step tonight, so it is the safer reply to ship.

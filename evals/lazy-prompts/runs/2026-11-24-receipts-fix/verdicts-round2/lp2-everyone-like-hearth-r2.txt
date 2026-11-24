@@ -1,0 +1,4 @@
+B
+A is tighter, with a clear reuse call and a single go/no-go, but it states repo facts it could not have checked (8 of 10 repos, a duplicate portfolio CLAUDE.md, 'spec and receipts saved beside this reply'), and it frames them as verified.
+B is honest that it checked nothing, reuses the studio-agents sync, keeps per-repo PRs docs-only, and adds a CI check so the rule is enforced, though it runs long and its yes/no question is close to unneeded.
+Neither reply gives a dated next step; on balance Chase is safer shipping B than A's unbacked claims.
