@@ -252,9 +252,10 @@ test("SKP-13 non-strict lines and duplicates are each rejected; the other valid 
     assert.equal(r.code, 1, `${name}: expected exit 1`); noStack(r);
     assert.match(r.err, name === "identical_twice" ? /duplicate/i : /strict JSON/i, `${name}: reason text`);
     assert.match(r.err, new RegExp(`\\b${lineNo}\\b`), `${name}: reason carries line ${lineNo}: ${r.err}`);
-    const j = JSON.parse(r.out);
-    assert.equal(j.findings.length, 2, `${name}: the 2 valid lines must still be reported as read`);
-    assert.deepEqual(j.findings.map((f) => f.persona).sort(), ["recruiter-skim", "staff-engineer"]);
+    // STK-PS-R8d (QA-R2): --json prints findings only on success, so a rejected run has no stdout findings.
+    // The valid lines are still never hidden or blamed: the only reason names the bad line, not the two good ones.
+    assert.doesNotMatch(r.out, /findings|recruiter-skim|staff-engineer/, `${name}: stdout must not carry findings on exit 1`);
+    assert.doesNotMatch(r.err, /recruiter-skim|staff-engineer/, `${name}: the valid lines must not be blamed`);
   }
 });
 
@@ -274,7 +275,9 @@ test("SKP-14 caps: 5 personas, 10 findings per persona, 40 per block, 10 subagen
 
 test("SKP-15 verdicts: ship may be empty; fix-first and rethink may not; unknown or doubled verdict fails", () => {
   const idx = IDX;
-  assert.equal(run([reviewFile([], { verdict: "ship", subagents: 0 }), "--index", idx]).code, 0);
+  // STK-PS-R6 (QA-R1): an empty ship with zero subagents run is rejected; an empty ship after real subagents passes.
+  assert.equal(run([reviewFile([], { verdict: "ship", subagents: 0 }), "--index", idx]).code, 1);
+  assert.equal(run([reviewFile([], { verdict: "ship", subagents: 2 }), "--index", idx]).code, 0);
   for (const v of ["fix-first", "rethink"]) { const r = run([reviewFile([], { verdict: v }), "--index", idx]); assert.equal(r.code, 1, v); assert.match(r.err, /finding/i); }
   const approved = run([reviewFile([fnd("recruiter-skim", "q1")], { verdict: "approved" }), "--index", idx]); assert.equal(approved.code, 1); assert.match(approved.err, /verdict/i);
   const twice = run([writeTmp("twice.md", "```stakeholder\nverdict: ship\nverdict: rethink\nround: 1\nsubagents: 0\n```\n"), "--index", idx]); assert.equal(twice.code, 1); assert.match(twice.err, /verdict/i);
@@ -307,7 +310,10 @@ test("SKP-22 20 fixture findings, 5 with quote ids not in the index: exactly 5 r
   const bad = r.err.split("\n").filter((l) => /\bq10[1-5]\b/.test(l));
   assert.equal(bad.length, 5, `exactly 5 reasons name the missing ids: ${r.err}`);
   assert.equal(r.err.split("\n").filter(Boolean).length, 5, "no other reasons");
-  assert.equal(JSON.parse(r.out).hit_rate, "15 of 20");
+  // STK-PS-R8d (QA-R2): --json prints nothing on exit 1, so the 15 of 20 hit rate is no longer on stdout for a rejected run.
+  assert.doesNotMatch(r.out, /findings|hit_rate/, "stdout carries no findings on exit 1");
+  const ok = run([reviewFile(lines.slice(0, 15), { subagents: 4 }), "--index", idx, "--json"]);
+  assert.equal(ok.code, 0, ok.err); assert.equal(JSON.parse(ok.out).hit_rate, "15 of 15");
 });
 
 // ---------------------------------------------------------------- SKP-18, 21 docs
