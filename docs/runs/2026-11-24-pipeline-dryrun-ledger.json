@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "lane": "docs",
+  "touches": "non-live",
+  "stopped": false,
+  "stop_reason": null,
+  "stages": {
+    "staff-pm": {
+      "state": "done",
+      "model": "sonnet",
+      "tokens": 4000,
+      "rounds": 0,
+      "failures": 1,
+      "bugs": {}
+    },
+    "tests-pre": {
+      "state": "skipped",
+      "model": null,
+      "tokens": 0,
+      "rounds": 0,
+      "failures": 0,
+      "bugs": {}
+    },
+    "build": {
+      "state": "skipped",
+      "model": null,
+      "tokens": 0,
+      "rounds": 0,
+      "failures": 0,
+      "bugs": {}
+    },
+    "verify": {
+      "state": "done",
+      "model": "sonnet",
+      "tokens": 2000,
+      "rounds": 0,
+      "failures": 0,
+      "bugs": {}
+    },
+    "pr": {
+      "state": "started",
+      "model": "sonnet",
+      "tokens": 0,
+      "rounds": 0,
+      "failures": 0,
+      "bugs": {}
+    }
+  }
+}

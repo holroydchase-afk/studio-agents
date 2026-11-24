@@ -179,6 +179,18 @@ Chase wants Stakeholder Twins evolved into a stakeholder agent that loops throug
 
 **How we'll know it helps:** add it as one more arm in the outcome eval: pipeline with and without the stakeholder checkpoints, same blind Opus question ("would Chase keep going or start over?"). If it doesn't win, it stays a card section, not a stage. Until then no claim that it improves MVPs.
 
+## Status and decisions made while building step 1 (Nov 24)
+
+Build step 1 is merged (`tools/pipeline-run.mjs`, PR 138). Decisions taken while building it, so no thread has to re-decide them:
+- **Verify needs a green qa verdict.** A red, flaky or blocked block cannot finish `verify`; it is refused and not counted as a strike.
+- **Only validators strike.** Stop rule 3 (two failed validations) counts the spec and qa checkers. An empty block is a presence check and does not count.
+- **Build gets 3 rounds on every lane**, not only `ui`. Staff PM gets 1 round; verify gets 2 fix attempts per bug.
+- **Class C covers manifests and lockfiles**, not only `package.json` (pyproject, requirements, Cargo, go.mod, lockfiles), plus CLAUDE.md in any letter case and `.github/` however the path is written.
+- **Skipped stages are set at `init`:** docs and config lanes skip `tests-pre` and `build`.
+- **No dollar caps.** Chase is on Max; the run stops on rounds, stage token budgets and the kill switch.
+
+First dry run (this section was written through the ledger on the docs lane, `docs/runs/2026-11-24-pipeline-dryrun-ledger.json`): the spec validator rejected Staff PM's first block over id formats, which counted as one strike, and the second block passed. That is the stop rule working as designed.
+
 ## Build order (one small PR each, test-first, each stops for Chase's go)
 1. `tools/pipeline-run.mjs` ledger and stop rules (validators reused), with a fake-stage test run. No model calls.
 2. Staff PM adds `lane:` and `touches:` lines to the spec block; `check-spec` accepts them.
