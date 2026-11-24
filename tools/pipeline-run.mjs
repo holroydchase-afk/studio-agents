@@ -3,7 +3,7 @@
 // It chains nothing and calls no model: it records which stage ran, refuses the next stage when the last one is
 // not done or a stop rule tripped, and says which merge class a change falls in.
 //
-//   init   --ledger F --lane ui|logic|docs|config --touches live|non-live|hearth
+//   init   --ledger F (--lane ui|logic|docs|config --touches live|non-live|hearth | --spec FILE)
 //   start  STAGE --ledger F [--model sonnet|opus|haiku] [--root DIR]
 //   done   STAGE --ledger F --block FILE [--tokens N [--budget N]]
 //   round  STAGE --ledger F [--bug ID]        build: 3 rounds, staff-pm: 1, verify: 2 per --bug
@@ -18,12 +18,11 @@
 // Needs check-spec.mjs and check-qa-report.mjs beside it.
 import { readFileSync, writeFileSync, renameSync, existsSync } from "node:fs";
 import { resolve, basename } from "node:path";
-import { checkSpec } from "./check-spec.mjs";
+import { checkSpec, LANES, TOUCHES } from "./check-spec.mjs";
 import { checkQaReport } from "./check-qa-report.mjs";
 
 export const STAGES = ["staff-pm", "tests-pre", "build", "verify", "pr"];
-export const LANES = ["ui", "logic", "docs", "config"];
-export const TOUCHES = ["live", "non-live", "hearth"];
+export { LANES, TOUCHES }; // one source of truth: check-spec.mjs
 export const STATES = ["pending", "started", "done", "skipped"];
 export const MODELS = ["sonnet", "opus", "haiku"];
 export const SKIPPED_BY_LANE = { docs: ["tests-pre", "build"], config: ["tests-pre", "build"] };
@@ -38,7 +37,7 @@ class Usage extends Error {}
 class Tripped extends Error {}
 
 const USAGE = [
-  "usage: pipeline-run.mjs init --ledger F --lane ui|logic|docs|config --touches live|non-live|hearth",
+  "usage: pipeline-run.mjs init --ledger F (--lane ui|logic|docs|config --touches live|non-live|hearth | --spec FILE)",
   "       pipeline-run.mjs start STAGE --ledger F [--model sonnet|opus|haiku] [--root DIR]",
   "       pipeline-run.mjs done STAGE --ledger F --block FILE [--tokens N [--budget N]]",
   "       pipeline-run.mjs round STAGE --ledger F [--bug ID]",
@@ -114,8 +113,20 @@ function intFlag(flags, name, { min }) {
   return n;
 }
 
+function laneFromSpec(flags) {
+  if (flags.lane !== undefined || flags.touches !== undefined) throw new Usage("--spec replaces --lane and --touches: use one or the other");
+  const file = flags.spec;
+  if (!existsSync(file)) throw new Usage(`spec file not found: ${file}`);
+  let text;
+  try { text = readFileSync(file, "utf8"); } catch { throw new Usage(`spec file cannot be read as text: ${file}`); }
+  const { spec, errors } = checkSpec(text);
+  if (errors.length || !spec) throw new Usage(`spec ${file} is not valid:\n${errors.join("\n")}`);
+  if (!spec.lane || !spec.touches) throw new Usage(`spec ${file} needs both lane: and touches: lines (lane ${spec.lane || "missing"}, touches ${spec.touches || "missing"})`);
+  return { lane: spec.lane, touches: spec.touches };
+}
+
 function cmdInit({ flags }) {
-  const lane = need(flags, "lane"), touches = need(flags, "touches");
+  const { lane, touches } = typeof flags.spec === "string" ? laneFromSpec(flags) : { lane: need(flags, "lane"), touches: need(flags, "touches") };
   if (!LANES.includes(lane)) throw new Usage(`--lane must be one of ${LANES.join(", ")}`);
   if (!TOUCHES.includes(touches)) throw new Usage(`--touches must be one of ${TOUCHES.join(", ")}`);
   const path = resolve(need(flags, "ledger"));

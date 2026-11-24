@@ -32,7 +32,9 @@ import { pathToFileURL } from "node:url";
 import { LEAKS } from "./check-story-entry.mjs";
 
 export const VERDICTS = ["ready", "needs-decision", "blocked", "cut"];
-export const KEYS = ["verdict", "bet", "step", "criterion", "cut", "risk", "decision", "handoff", "blocked"];
+export const LANES = ["ui", "logic", "docs", "config"]; // pipeline lane (docs/pipeline-plan.md); pipeline-run re-exports these
+export const TOUCHES = ["live", "non-live", "hearth"];
+export const KEYS = ["verdict", "bet", "step", "criterion", "cut", "risk", "decision", "handoff", "blocked", "lane", "touches"];
 // The studio roster (plugins/studio/agents) plus the product-specific agents that product repos add.
 export const AGENTS = ["staff-pm", "qa-tdd", "engineer", "ux-reviewer", "privacy-security", "architect", "release-captain",
   "positioning", "story-keeper", "orchestrator", "focus-coach", "grandparent-ux"];
@@ -55,7 +57,7 @@ function parts(key, val, names, errors) {
   return p;
 }
 
-// Returns { spec: {verdict, bet, blocked, steps, criteria, cuts, risks, decisions, handoffs} | null, errors: [string] }.
+// Returns { spec: {verdict, bet, blocked, lane, touches, steps, criteria, cuts, risks, decisions, handoffs} | null, errors: [string] }.
 export function checkSpec(text) {
   const lines = text.split(/\r?\n/);
   const errors = [];
@@ -72,7 +74,8 @@ export function checkSpec(text) {
   if (!blocks.length) return { spec: null, errors: [...errors, "no ```spec block: end the spec with one (see staff-pm.md, ## Output)"] };
   const [a, b] = blocks[blocks.length - 1];
 
-  let verdict = null, bet = null, blocked = null;
+  let verdict = null, bet = null, blocked = null, lane = null, touches = null;
+  const seenLT = { lane: 0, touches: 0 };
   const seen = { verdict: 0, bet: 0, blocked: 0 };
   const steps = [], criteria = [], cuts = [], risks = [], decisions = [], handoffs = [];
   for (const raw of lines.slice(a + 1, b)) {
@@ -82,6 +85,14 @@ export function checkSpec(text) {
     if (!kv) { errors.push(`line "${line}" is not a key: value line (keys: ${KEYS.join(", ")})`); continue; }
     const key = kv[1].toLowerCase(), val = kv[2].trim();
     if (!KEYS.includes(key)) { errors.push(`unknown key "${kv[1]}": the keys are ${KEYS.join(", ")}`); continue; }
+    if (key === "lane" || key === "touches") {
+      const allowed = key === "lane" ? LANES : TOUCHES;
+      if (seenLT[key]++) { errors.push(`more than one ${key}: line; keep one`); continue; }
+      if (!val) { errors.push(`${key}: line is empty: say one of ${allowed.join(", ")}`); continue; }
+      if (!allowed.includes(val.toLowerCase())) { errors.push(`${key} "${val}" must be one of: ${allowed.join(", ")}`); continue; }
+      if (key === "lane") lane = val.toLowerCase(); else touches = val.toLowerCase();
+      continue;
+    }
     if (key in seen) {
       if (seen[key]++) { errors.push(`more than one ${key}: line; keep one`); continue; }
       if (!val) { errors.push(`${key}: line is empty: say ${key === "bet" ? "who has to believe or do what, and what proves it" : key === "blocked" ? "what's missing" : "one of " + VERDICTS.join(", ")}`); continue; }
@@ -144,7 +155,7 @@ export function checkSpec(text) {
   if (verdict === "needs-decision" && !decisions.length) errors.push("verdict needs-decision needs a decision: line (question | recommendation)");
   if (verdict === "blocked" && !blocked && seen.blocked === 0) errors.push("verdict blocked needs a blocked: line saying what's missing");
   if (verdict && verdict !== "blocked" && seen.blocked) errors.push(`verdict ${verdict} can't have a blocked: line: use verdict: blocked`);
-  return { spec: { verdict, bet, blocked, steps, criteria, cuts, risks, decisions, handoffs }, errors };
+  return { spec: { verdict, bet, blocked, lane, touches, steps, criteria, cuts, risks, decisions, handoffs }, errors };
 }
 
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
