@@ -97,7 +97,7 @@ Agents run on **Sonnet**. **Opus** is for blind graders in evals and for review 
 - Stage skipping by lane (docs and config skip UX and the QA build cycle).
 - Context budget per stage: handoff **blocks**, not transcripts, move between stages. A stage reads the spec and the block before it, not the history.
 - Reports short: the spec shows only the recommended option and the rejected one.
-- Hard caps: per-run (`agent-guard cost`, starting at $1.00 per run as the repo default), per-day (feedback caps from PR 126), and a weekly token ceiling Chase sets. Real tokens come from `stamp-run`; "cost not measured" is reported as such.
+- Caps are in rounds and stage token budgets, not dollars (Chase is on Max): per-day feedback caps from PR 126 stay, and `agent-guard cost` is reported, not enforced. Real tokens come from `stamp-run`; "cost not measured" is reported as such.
 - No scheduled runs until approved. Eval runs are batched and run only on request, 4 dev prompts first.
 
 ## How we'll know it works: outcome eval for the whole pipeline
@@ -142,7 +142,7 @@ idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ STAKEHOLDERS (cu
 6. **Morning card (the only output).** One message: the preview link, the repo link, three screenshots, the "I assumed" list, the v2 list, what the tests covered (qa block verbatim), what the run cost, and one promote button's worth of next step (go public, or throw it away). Chase promotes; nothing goes public or live on its own.
 
 **Overnight limits and caps (kept, and tighter):**
-- Per-run cost cap: **$1.00 default, MVP runs $2.50 hard stop** because there are more stages; per-night: one MVP run, no retries after a stop.
+- Per-run cap: **no dollar cap (Chase is on Max, Nov 24: tokens are use-it-before-reset, not dollars).** Runs are bounded by rounds and stage budgets in tokens instead, and by the plan's own reset: the run keeps going until it is done or the plan's limit stops it, and it must leave a resumable ledger so a limit stop picks up after the reset. Per-night: one MVP run, no retries after a stop.
 - A stage over 1.5x its budget stops the run; the card reports how far it got ("the v1 stopped at stage 4, here is the branch").
 - Kill switch file halts it. Nightly stays **off** until Chase says resume, and the first MVP run is a supervised daytime dry run on a throwaway idea, not a night run.
 - Partial is a success state: a run that stops at a gate hands Chase a short, honest card, never a broken link.
@@ -183,9 +183,9 @@ Chase wants Stakeholder Twins evolved into a stakeholder agent that loops throug
 ## Decisions for Chase
 1. **Approve this plan?** Recommend yes.
 2. **Who builds UI in the UI lane?** **Decided Nov 24:** the UX agent builds UI screens and plain Claude builds logic, both inside QA-TDD's gates; no engineer agent.
-3. **Per-run cost cap and weekly token ceiling.** Recommend $1.00 per run and a weekly ceiling you set when usage recovers.
+3. **Caps.** Decided Nov 24: no dollar caps (Max plan). Rounds, stage token budgets and the kill switch stay; `agent-guard cost` is recorded for reporting only, not enforced as a stop.
 4. **First dry-run task.** Recommend a small studio-agents docs fix, not a product.
 5. **Merge order of the open PRs.** PR 121 and 126 both touch HANDOFF.md and the harness doc; recommend merging 121, then 126, before build step 1.
 6. **MVP-o-matic repo rule.** Recommend a standing OK for one new private repo per night from the studio scaffold, and v1 limited to static on-device MVPs previewed as a private Artifact. Alternative: no new repos, build in a studio-agents folder only.
-7. **Overnight cap.** Recommend $2.50 hard stop per MVP run and one run per night.
+7. **Overnight cap.** Decided Nov 24: no dollar cap. One MVP run per night, resumable after a plan-limit stop.
 8. **Stakeholder agent.** Recommend yes as a two-checkpoint critic (cut and preview), four personas per run, one pass each, kept only if the eval arm shows it helps.
