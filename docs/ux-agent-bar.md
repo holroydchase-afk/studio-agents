@@ -18,6 +18,8 @@ The eight-point template every studio agent is held to, with ux-reviewer's statu
 | Supervised | Files issues and drafts fixes on a branch; Chase spot-checks. | Not yet |
 | Full | Acts alone with an audit trail and a flag-and-hold. | Not yet, and not planned |
 
+**Scoped exception (Chase approved Nov 23, feedback loop):** `risk: lowrisk` fixes (copy, typo, CSS or layout, a small UI bug with a test) may be merged by the loop in non-live repos only, when `tools/feedback-merge-check.mjs` allows, inside the caps (5 issues, 3 auto-PRs per UTC day) and with the kill switch off. Live demo or site changes, Hearth, and auth, privacy, data, dependencies, `.github/` and `CLAUDE.md` always wait for Chase. This does not promote ux-reviewer or qa-tdd to Supervised or Full; the table above is unchanged. See `docs/feedback-loop.md`.
+
 Promotion Advisory to Supervised needs all of: the eval suite stable (no case flips across 3 runs), recall at or above 90% on the recall set, and 20 consecutive reviews where Chase accepted at least 80% of P0/P1 findings (the correction rate). Demotion to Advisory: any P0 miss found in production, or an eval regression after a prompt, model or tool change.
 
 ## 3. Human checkpoints and safe mode (Partial)

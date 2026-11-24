@@ -1,0 +1,18 @@
+name: portfolio-drift
+# Studio: when a merge to main touches files behind this product's portfolio page or demo
+# (see .portfolio-watch.json), file an intake issue on the portfolio repo. Never fails the build.
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: holroydchase-afk/studio-agents/actions/portfolio-drift@main
+        with:
+          token: ${{ secrets.PORTFOLIO_INTAKE_TOKEN }}

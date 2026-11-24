@@ -1,0 +1,48 @@
+name: Portfolio drift
+description: When a merged change touches files behind this product's portfolio page or demo, file an intake issue on the portfolio repo.
+inputs:
+  token:
+    description: Token that can create issues on the portfolio repo (a fine-grained token with Issues write on that repo only). Without it the action only writes a job summary.
+    required: false
+    default: ""
+  portfolio-repo:
+    description: Where the intake goes.
+    required: false
+    default: holroydchase-afk/holroydchase-afk.github.io
+  config:
+    description: Watch config in the product repo.
+    required: false
+    default: .portfolio-watch.json
+runs:
+  using: composite
+  steps:
+    - name: File or update the intake
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        PORTFOLIO: ${{ inputs.portfolio-repo }}
+        CONFIG: ${{ inputs.config }}
+        REPO: ${{ github.repository }}
+        SHA: ${{ github.sha }}
+        BEFORE: ${{ github.event.before }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        # Never fails the product's build: any problem becomes a notice.
+        {
+          set +e
+          git diff --name-only "$BEFORE" "$SHA" > "$RUNNER_TEMP/changed.txt" 2>/dev/null || git show --name-only --pretty=format: "$SHA" > "$RUNNER_TEMP/changed.txt"
+          TITLE="$(git log -1 --pretty=%s "$SHA")"
+          OUT="$(node "$ACTION_PATH/../../tools/portfolio-drift.mjs" --repo "$REPO" --sha "$SHA" --title "$TITLE" --files "$RUNNER_TEMP/changed.txt" --config "$CONFIG")"
+          if [ -z "$OUT" ]; then echo "No watched files changed."; exit 0; fi
+          ITITLE="$(echo "$OUT" | node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0,"utf8")).title)')"
+          echo "$OUT" | node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0,"utf8")).body)' > "$RUNNER_TEMP/body.md"
+          { echo "### Portfolio drift"; cat "$RUNNER_TEMP/body.md"; } >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$GH_TOKEN" ]; then echo "::notice::Portfolio drift found, but no token input, so no intake was filed. See the job summary."; exit 0; fi
+          N="$(gh issue list -R "$PORTFOLIO" -l intake --state open --search "\"$ITITLE\" in:title" --json number -q '.[0].number')"
+          if [ -n "$N" ]; then
+            gh issue comment "$N" -R "$PORTFOLIO" -F "$RUNNER_TEMP/body.md"
+          else
+            gh issue create -R "$PORTFOLIO" -t "$ITITLE" -F "$RUNNER_TEMP/body.md" -l intake -l portfolio-drift
+          fi
+        } || echo "::notice::Portfolio drift check hit a problem; the build is not affected."
+        exit 0
