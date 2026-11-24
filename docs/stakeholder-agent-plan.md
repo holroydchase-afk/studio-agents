@@ -33,7 +33,7 @@ A new pack in **persona-twins**, `personas/audience/`, five twins in exactly the
 |---|---|---|
 | `hiring-manager` | Senior PM or agent hiring manager, Anthropic bar, 5 minutes | A claim with no run log or score behind it; "prompts" dressed as agents |
 | `recruiter-skim` | 30 seconds, matching a req | No clear role, level or outcome in the first screen; gaps; jargon |
-| `staff-engineer` | Opens the repo, reads code and tests | README claims the code doesn't back; no tests; fake data presented as real |
+| `staff-engineer` | Opens the repo, reads code and tests | README claims the code doesn't back; no tests; fake data presented as real; a repo missing the basics `repo-check` looks for |
 | `pm-peer` | A PM who'd actually use the tool | "What problem is this, and would I use it Monday?" |
 | `linkedin-scroller` | 2 seconds in a feed | No hook; self-congratulation; a post that reads as junior |
 
@@ -57,6 +57,7 @@ Tools, all plain Node scripts in `tools/` (no network, no packages, no API key),
 | `stakeholder-personas` | Picks personas by artifact type from `audience.json` (see Sharing below), enforces the 3 and 5 caps. | New, reads persona-twins' export |
 | Critique | One fresh Sonnet subagent per persona, prompt from persona-twins' `agentPrompt` plus `review-protocol.md` (screens) or `review-protocol-text.md` (everything else). Output: findings as JSON lines, each with a quote id, severity, one fix. | Reused protocol |
 | `check-stakeholder` | Rejects a block when a quote isn't in the quote index, a finding has zero or two fixes, a severity is missing, or the persona is unknown. **This is the anti-hallucination step**: critique can't cite what isn't on the page. | New, pattern of `check-findings` |
+| `repo-check` | Deterministic audit of a public repo for the `staff-engineer` persona, no model: GitHub community standards (README, LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue and PR templates, description, topics), OpenSSF Scorecard basics (branch protection, pinned CI actions, a security policy, dependency updates, token permissions), and first-impression clutter (stray files at the root, no tests, stale or default README). Each miss becomes a finding with a quote id from the repo index and one fix. **The checklist is not written here:** it comes from the sibling thread "Make my public repos look professional" once it lands (a checklist file in studio-agents or pm-tools, to be named in step 2); until then this tool is a stub and the plan doesn't duplicate its content. | New, checklist reused |
 | `claim-check` | Deterministic: every number, "agent", "built", "shipped" claim on the artifact against the claims register (`docs/agent-audit.md`, `pmo/portfolio/claims-register.md`). Flags unsupported claims without asking a model. | New, small |
 | Merge | Dedupe with `agent-memory` against past runs and Chase's earlier accept or decline, rank by severity then persona agreement, and **surface conflicts as trade-offs** (recruiter wants shorter, engineer wants depth) instead of averaging them away. | Reused memory |
 | Run log | `agentrun` block, stamped with real tokens by the caller, cost cap and kill switch via `agent-guard`. | Reused |
@@ -87,7 +88,7 @@ Same artifact, two arms: **plain Claude** ("critique this for hiring managers, r
 
 ## Build order (each one small PR, test-first, qa-tdd red before build)
 1. **In persona-twins:** `personas/audience/` (5 personas), `influence`/`interest` in the `Persona` type, `agentPrompt`, `review-protocol-text.md`, and the `audience.json` export, each test-first in `cli/test/`. **In studio-agents:** `sync-audience.sh` and `check-stakeholder` with tests; fixtures include a quote not on the page, which must fail. Two small PRs, one per repo, persona-twins first.
-2. `stakeholder-intake` (quote index, uses `ux-shots`) and `claim-check`.
+2. `stakeholder-intake` (quote index, uses `ux-shots`), `claim-check` and `repo-check` (Chase, Nov 24: include the repo review; checklist from the "Make my public repos look professional" thread).
 3. `stakeholder.md` agent (job, done, stop, round limit), `stakeholder-run`, one supervised run on the local portfolio build, run log stamped.
 4. Eval set and first dev run (on Chase's request only; token cost).
 5. Pipeline hooks, after PR 129 is approved.
