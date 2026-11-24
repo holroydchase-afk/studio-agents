@@ -55,11 +55,14 @@ test("UXPREC-5 a screen with no P0 or P1 scores 8 or more", () => {
   assert.match(p, /\b(8|eight)\b[^.]{0,20}(or (more|higher|above)|\+)|at least (8|eight)/i, "8 or more");
 });
 
-test("UXPREC-6 a labeled demo or sample bar is chrome, out of scope unless it covers the content", () => {
+test("UXPREC-6 demo scaffolding on the first screen is a finding: nudge, don't instruct (Chase, Nov 22)", () => {
   const p = paragraph();
-  assert.match(p, /demo (chrome|bar)|sample bar/i, "names the demo bar");
-  assert.match(p, /(out of scope|not product UI|do not rate)/i, "says it is out of scope");
-  assert.match(p, /unless it (covers|pushes)/i, "exception when it covers content");
+  assert.match(p, /demo (chrome|bar|scaffolding)/i, "names demo scaffolding");
+  assert.match(p, /do not (rate|judge) its tap sizes/i, "bar's own tap sizes are not rated");
+  assert.match(p, /(clutter|crowd)/i, "instruction text and pitch bullets count as clutter");
+  assert.match(p, /nudge/i, "propose a nudge");
+  assert.match(p, /pulsing dot|highlight/i, "example nudge");
+  assert.doesNotMatch(p, /out of scope unless it (covers|pushes)/i, "no longer out of scope");
 });
 
 test("UXPREC-7 when a product rule says who sees which variant, do not ask the user which", () => {

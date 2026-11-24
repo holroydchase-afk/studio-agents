@@ -1,0 +1,179 @@
+{
+ "date": "2026-11-23",
+ "agent": "staff-pm.md before the job/done-test/stop-rule block, general-purpose subagent on sonnet",
+ "plain": "same context pack, no role file",
+ "grader": "opus, one per prompt, pairwise, blind to arm, spec blocks stripped from replies",
+ "context": "evals/lazy-prompts/context.md",
+ "results": [
+  {
+   "id": "lp-agent-for-orchestration",
+   "split": "dev",
+   "winner": "plain",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "agent": [
+     4,
+     4,
+     2,
+     3
+    ],
+    "plain": [
+     4,
+     4,
+     3,
+     4
+    ]
+   }
+  },
+  {
+   "id": "lp-linkedin-drip",
+   "split": "dev",
+   "winner": "agent",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "plain": [
+     4,
+     3,
+     3,
+     5
+    ],
+    "agent": [
+     5,
+     5,
+     4,
+     3
+    ]
+   }
+  },
+  {
+   "id": "lp-role-radar-tokens",
+   "split": "dev",
+   "winner": "plain",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "agent": [
+     4,
+     3,
+     3,
+     3
+    ],
+    "plain": [
+     4,
+     4,
+     3,
+     5
+    ]
+   }
+  },
+  {
+   "id": "lp-shifts-and-ratio",
+   "split": "dev",
+   "winner": "agent",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "plain": [
+     4,
+     3,
+     3,
+     3
+    ],
+    "agent": [
+     5,
+     5,
+     3,
+     4
+    ]
+   }
+  },
+  {
+   "id": "lp-hearth-on-portfolio",
+   "split": "heldout",
+   "winner": "plain",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "plain": [
+     4,
+     4,
+     3,
+     5
+    ],
+    "agent": [
+     4,
+     4,
+     4,
+     2
+    ]
+   }
+  },
+  {
+   "id": "lp-licenses-scan",
+   "split": "heldout",
+   "winner": "agent",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "plain": [
+     4,
+     2,
+     2,
+     5
+    ],
+    "agent": [
+     4,
+     4,
+     4,
+     3
+    ]
+   }
+  },
+  {
+   "id": "lp-inbox-merge-tokens",
+   "split": "heldout",
+   "winner": "agent",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "agent": [
+     5,
+     4,
+     2,
+     4
+    ],
+    "plain": [
+     3,
+     3,
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "id": "lp-convert-old-projects",
+   "split": "heldout",
+   "winner": "plain",
+   "scores_goal_buyvsbuild_dated_effort": {
+    "plain": [
+     4,
+     3,
+     2,
+     5
+    ],
+    "agent": [
+     4,
+     3,
+     3,
+     3
+    ]
+   }
+  }
+ ],
+ "dev": {
+  "agent_wins": 2,
+  "plain_wins": 2,
+  "ties": 0,
+  "n": 4
+ },
+ "heldout": {
+  "agent_wins": 2,
+  "plain_wins": 2,
+  "ties": 0,
+  "n": 4
+ },
+ "all": {
+  "agent_wins": 4,
+  "plain_wins": 4,
+  "ties": 0,
+  "n": 8
+ }
+}

@@ -41,9 +41,13 @@ r = pathlib.Path(sys.argv[1])
 plugin = json.loads((r / "plugins/studio/.claude-plugin/plugin.json").read_text())
 market = json.loads((r / ".claude-plugin/marketplace.json").read_text())
 json.loads((r / "templates/claude-settings.json").read_text())
-entry = next(p for p in market["plugins"] if p["name"] == plugin["name"])
-assert entry["description"] == plugin["description"], "marketplace description differs from plugin.json"
-assert (r / entry["source"]).is_dir(), "marketplace source folder missing"
+names = [p["name"] for p in market["plugins"]]
+assert plugin["name"] in names, "studio plugin missing from marketplace"
+for entry in market["plugins"]:
+    assert (r / entry["source"]).is_dir(), entry["name"] + ": marketplace source folder missing"
+    pj = json.loads((r / entry["source"] / ".claude-plugin/plugin.json").read_text())
+    assert pj["name"] == entry["name"], entry["name"] + ": plugin.json name differs from the marketplace entry"
+    assert entry["description"] == pj["description"], entry["name"] + ": marketplace description differs from plugin.json"
 PY
 
 # sync.sh: copies every agent and its preloaded skills, keeps project-only agents and skills, rejects unknown names.
@@ -212,6 +216,10 @@ check "SYNCDEP-3 sync-tools with no names copies each tool exactly once, with no
 for f in "$root"/tools/*.mjs; do
   check "tool $(basename "$f" .mjs): listed in the README" grep -q "\`$(basename "$f" .mjs)\`" "$root/README.md"
 done
+check "QACYC-1..7 qa-cycle tool (build-cycle ledger, verify, gate, misses, hardening caps, score)" node --test "$root/tests/qa-cycle.test.mjs"
+check "SKP-1..22 stakeholder plugin: checker, fetch script, package, README (SKP-20 is manual)" node --test "$root/tests/stakeholder.test.mjs"
+check "PRV-1..16 product-review tool (claims check, freshness, lanes, plan, report contract, merge)" node --test "$root/tests/product-review.test.mjs"
+check "STK-PS-R3..R9 stakeholder plugin hardening: fetch script, escaping, strict parser, ship rule, fences, caps, hash agreement" node --test "$root/tests/stakeholder-hardening.test.mjs"
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
 check "UXREL-1..5 ux-flows reliability and permissions tests" node --test "$root/tests/ux-reliability.test.mjs"
@@ -227,7 +235,8 @@ check "UXREF-1..8 ux-refs tool, reference library, hard-rule cite check, agent w
 check "CLEANQA-1..6 clean-UI rules: cite enforcement, eval regex, no stale wording" node --test "$root/tests/ux-refs-clean.test.mjs"
 check "UXREF-9 sync-tools copies the reference library with ux-refs" bash -c "d=\$(mktemp -d); bash '$root/scripts/sync-tools.sh' \"\$d\" ux-refs >/dev/null && test -f \"\$d/docs/references/ux/dark-mode.md\" && test -f \"\$d/scripts/ux-refs.mjs\""
 check "UXLOG-1..5 ux-reviewer run log on the shared agentrun format plus uxrun (fixture passes both checkers; prompt text)" node --test "$root/tests/ux-shared-log.test.mjs"
-check "UXPREC-1..8 ux-reviewer Scope and severity precision rule (P1 needs three things, by-eye is P2, read product rules, re-rank over two P1s, clean screen scores 8+, demo bar is chrome, a rule answers a question, Ready allowed)" node --test "$root/tests/ux-precision.test.mjs"
+check "UXPREC-1..8 ux-reviewer Scope and severity precision rule (P1 needs three things, by-eye is P2, read product rules, re-rank over two P1s, clean screen scores 8+, demo scaffolding is a finding when it crowds the first screen, a rule answers a question, Ready allowed)" node --test "$root/tests/ux-precision.test.mjs"
+check "UXB-1..15 UX build eval harness (arm inputs, self-contained HTML, prompt set and banned words, blind shuffle, grading record, rounds to good, results check, error runs)" node --test "$root/tests/ux-build-eval.test.mjs"
 check "CHKSPEC-1 tool check-spec exists and is listed in the README" bash -c "test -f '$root/tools/check-spec.mjs' || { echo missing tools/check-spec.mjs; exit 1; }; grep -q '\`check-spec\`' '$root/README.md'"
 check "CHKSPEC-2 check-spec tests" node --test "$root/tests/check-spec.test.mjs"
 check "QARUN3-1 tool qa-run3 exists and is listed in the README" bash -c "test -f '$root/tools/qa-run3.mjs' || { echo missing tools/qa-run3.mjs; exit 1; }; grep -q '\`qa-run3\`' '$root/README.md'"
@@ -236,6 +245,7 @@ check "AGRUN-1 tool check-agent-run exists and is listed in the README" bash -c 
 check "AGRUN-2 check-agent-run tests" node --test "$root/tests/check-agent-run.test.mjs"
 check "SLINT-1 tool spec-lint exists and is listed in the README" bash -c "test -f '$root/tools/spec-lint.mjs' || { echo missing tools/spec-lint.mjs; exit 1; }; grep -q '\`spec-lint\`' '$root/README.md'"
 check "SLINT-2 spec-lint tests" node --test "$root/tests/spec-lint.test.mjs"
+check "PIPE-1..43 pipeline-run ledger, stop rules, merge class" node --test "$root/tests/pipeline-run.test.mjs"
 check "SLINT-3 spec-lint SL-10 and SL-11 gap tests (QA-R1..R5)" node --test "$root/tests/spec-lint-sl10-11-gaps.test.mjs"
 check "GUARD-1 tool agent-guard exists and is listed in the README" bash -c "test -f '$root/tools/agent-guard.mjs' || { echo missing tools/agent-guard.mjs; exit 1; }; grep -q '\`agent-guard\`' '$root/README.md'"
 check "GUARD-2 agent-guard tests" node --test "$root/tests/agent-guard.test.mjs"
