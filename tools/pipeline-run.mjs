@@ -231,7 +231,7 @@ export function classify(files, touches, feedback = false) {
   const reasons = [];
   if (touches === "live" || touches === "hearth") reasons.push(`run touches ${touches}`);
   for (const f of files) {
-    const parts = f.replace(/\\/g, "/").split("/").filter(Boolean);
+    const parts = f.replace(/\\/g, "/").split("/").filter((p) => p && p !== ".");
     const base = parts[parts.length - 1] || "";
     const lower = parts.map((p) => p.toLowerCase());
     if (lower[0] === ".github") reasons.push(`${f}: under .github/`);
