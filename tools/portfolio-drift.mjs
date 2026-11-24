@@ -35,7 +35,7 @@ export function buildIntake({ repo, sha, title, files, config, date }) {
     `From: ${product} portfolio-drift check, ${date || new Date().toISOString().slice(0, 10)}`,
     `Ask: Check that ${page} and the ${product} demo on the portfolio still match ${product} main, and update them if not.`,
     `Why: A merged change touched files behind the portfolio's ${product} page or demo (screens, copy, features or claims).`,
-    `Facts: ${repo} @ ${String(sha).slice(0, 7)}, "${String(title).replace(/\s+/g, " ").slice(0, 120)}". Watched files changed (${hit.length}):\n${shown}${more}`,
+    `Facts: ${repo} @ ${String(sha ?? "unknown").slice(0, 7)}, "${String(title ?? "no title").replace(/\s+/g, " ").slice(0, 120)}". Watched files changed (${hit.length}):\n${shown}${more}`,
     `Done when: ${page} and any demo copy match ${product} main, or a comment here says nothing needed to change. Log it in ${product}'s HANDOFF.md under "Portfolio / public presence".`,
     `Reply: none`,
   ].join("\n");

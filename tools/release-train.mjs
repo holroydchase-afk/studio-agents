@@ -12,7 +12,7 @@ const mergeAfter = (body) => {
   return [...m[1].matchAll(/#(\d+)/g)].map((x) => Number(x[1]));
 };
 
-export function eligible(prs) {
+export function eligible(prs, { merged = [] } = {}) {
   const held = [];
   const base = [];
   for (const p of prs) {
@@ -29,7 +29,7 @@ export function eligible(prs) {
     const nums = new Set(ready.filter((p) => true).map((p) => `${p.repo}#${p.number}`));
     const next = [];
     for (const p of ready) {
-      const blocker = mergeAfter(p.body).find((n) => !nums.has(`${p.repo}#${n}`));
+      const blocker = mergeAfter(p.body).find((n) => !nums.has(`${p.repo}#${n}`) && !merged.includes(`${p.repo}#${n}`));
       if (blocker) { held.push({ number: p.number, repo: p.repo, reason: `Merge after #${blocker} not merged or not riding` }); changed = true; }
       else next.push(p);
     }
@@ -43,8 +43,10 @@ export function order(ready) {
   const deps = (p) => mergeAfter(p.body);
   const sorted = [...ready].sort((a, b) => rank(a.repo) - rank(b.repo) || a.repo.localeCompare(b.repo) || new Date(a.createdAt) - new Date(b.createdAt));
   const out = [];
+  const seen = new Set(); // a Merge after cycle or self-reference must not recurse forever
   const place = (p) => {
-    if (out.includes(p)) return;
+    if (out.includes(p) || seen.has(p)) return;
+    seen.add(p);
     for (const n of deps(p)) { const d = sorted.find((x) => x.repo === p.repo && x.number === n); if (d) place(d); }
     out.push(p);
   };

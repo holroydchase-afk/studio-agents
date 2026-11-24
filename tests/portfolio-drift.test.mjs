@@ -82,3 +82,48 @@ test("TRAIN-9 ship decision: auto-ship or tonight's yes; silence ships nothing",
   const d = decideShip({ autoShip: false, yesTonight: false });
   assert.equal(d.ship, false); assert.match(d.reason, /yes/i);
 });
+
+// QA edge cases (qa-tdd review of PR 141)
+test("PDRIFT-7 ignore also catches root-level test files, and an empty watch list watches nothing", () => {
+  assert.deepEqual(watchedFiles(["app.test.ts", "README.md"], cfg), ["README.md"]);
+  assert.deepEqual(watchedFiles(["README.md"], { watch: [] }), []);
+  assert.deepEqual(watchedFiles(["README.md"], { product: "x" }), []);
+});
+test("PDRIFT-8 a glob's dots are literal and * does not cross folders", () => {
+  assert.deepEqual(watchedFiles(["docs/aXmd", "docs/x/a.md"], { watch: ["docs/*.md"] }), []);
+});
+test("PDRIFT-9 intake with missing title or sha never prints undefined", () => {
+  const i = buildIntake({ repo: "o/ccwatts", files: ["packages/web/a.ts"], config: cfg });
+  assert.ok(!/undefined/.test(i.body));
+});
+test("TRAIN-10 a Merge after cycle or self-reference orders without hanging", () => {
+  const cyc = [pr(1, { body: "Merge after: #2" }), pr(2, { body: "Merge after: #1" })];
+  assert.equal(order(eligible(cyc).ready).length, 2);
+  assert.equal(order([pr(3, { body: "Merge after: #3" })]).length, 1);
+});
+test("TRAIN-11 Merge after is per repo: the same number in another repo does not satisfy it", () => {
+  const r = eligible([pr(1, { body: "Merge after: #2" }), pr(2, { repo: "other" })]);
+  assert.deepEqual(r.ready.map((p) => `${p.repo}#${p.number}`), ["other#2"]);
+});
+test("TRAIN-12 a hold chains: a PR after a held PR is held too", () => {
+  const r = eligible([pr(1, { checks: "failure" }), pr(2, { body: "Merge after: #1" }), pr(3, { body: "Merge after: #2" })]);
+  assert.deepEqual(r.ready, []);
+  assert.equal(r.held.length, 3);
+});
+test("TRAIN-13 mergeable null (GitHub still computing) is held, never merged", () => {
+  assert.deepEqual(eligible([pr(1, { mergeable: null })]).ready, []);
+});
+test("TRAIN-14 ship decision with no inputs ships nothing; empty inputs make a readable note", () => {
+  assert.equal(decideShip({}).ship, false);
+  const n = releaseNote({ merged: [], held: [], verified: [], date: "d" });
+  assert.match(n, /nothing/); assert.doesNotMatch(n, /FAILED/);
+});
+test("TRAIN-15 verifyPage with no marker needs only a 200", () => {
+  assert.equal(verifyPage({ status: 200, body: "", mustContain: undefined }).ok, true);
+  assert.equal(verifyPage({ status: 404, body: HOME_MARKER, mustContain: undefined }).ok, false);
+});
+
+test("TRAIN-11 Merge after a PR that is already merged does not hold (QA-R4)", () => {
+  const r = eligible([pr(2, { body: "Merge after: #1" })], { merged: ["pm-tools#1"] });
+  assert.deepEqual(r.ready.map((p) => p.number), [2]);
+});
