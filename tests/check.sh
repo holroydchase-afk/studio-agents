@@ -41,9 +41,13 @@ r = pathlib.Path(sys.argv[1])
 plugin = json.loads((r / "plugins/studio/.claude-plugin/plugin.json").read_text())
 market = json.loads((r / ".claude-plugin/marketplace.json").read_text())
 json.loads((r / "templates/claude-settings.json").read_text())
-entry = next(p for p in market["plugins"] if p["name"] == plugin["name"])
-assert entry["description"] == plugin["description"], "marketplace description differs from plugin.json"
-assert (r / entry["source"]).is_dir(), "marketplace source folder missing"
+names = [p["name"] for p in market["plugins"]]
+assert plugin["name"] in names, "studio plugin missing from marketplace"
+for entry in market["plugins"]:
+    assert (r / entry["source"]).is_dir(), entry["name"] + ": marketplace source folder missing"
+    pj = json.loads((r / entry["source"] / ".claude-plugin/plugin.json").read_text())
+    assert pj["name"] == entry["name"], entry["name"] + ": plugin.json name differs from the marketplace entry"
+    assert entry["description"] == pj["description"], entry["name"] + ": marketplace description differs from plugin.json"
 PY
 
 # sync.sh: copies every agent and its preloaded skills, keeps project-only agents and skills, rejects unknown names.
@@ -202,12 +206,20 @@ check "sync-tools.sh copies all tools" bash "$root/scripts/sync-tools.sh" "$t3"
 check "sync-tools.sh: every tool present and identical" diff -r -x build.mjs "$root/tools" "$t3/scripts"
 check "sync-tools.sh keeps other scripts" grep -qx mine "$t3/scripts/build.mjs"
 check "sync-tools.sh names an unknown tool and copies nothing" bash -c "! bash '$root/scripts/sync-tools.sh' '$tmp/t4' no-such-tool 2>'$tmp/err' && grep -q 'unknown tool: no-such-tool' '$tmp/err' && ! test -e '$tmp/t4/scripts/ux-shots.mjs'"
+check "SYNCDEP-1 sync-tools of agent-guard copies its local imports transitively and the synced tool runs" bash -c "d=\$(mktemp -d); bash '$root/scripts/sync-tools.sh' \"\$d\" agent-guard >/dev/null; for t in agent-guard check-agent-run check-story-entry; do test -f \"\$d/scripts/\$t.mjs\" || { echo \"missing \$t.mjs\"; exit 1; }; done; node \"\$d/scripts/agent-guard.mjs\" kill qa-tdd --root \"\$d\""
+check "SYNCDEP-1 sync-tools of agent-memory copies ux-search, check-agent-run and check-story-entry" bash -c "d=\$(mktemp -d); bash '$root/scripts/sync-tools.sh' \"\$d\" agent-memory >/dev/null; for t in agent-memory ux-search check-agent-run check-story-entry; do test -f \"\$d/scripts/\$t.mjs\" || { echo \"missing \$t.mjs\"; exit 1; }; done"
+check "SYNCDEP-2 sync-tools names each dependency it added" bash -c "o=\$(bash '$root/scripts/sync-tools.sh' \"\$(mktemp -d)\" agent-guard); echo \"\$o\"; echo \"\$o\" | grep -qx 'synced check-agent-run (needed by agent-guard)' || { echo 'no check-agent-run needed-by line'; exit 1; }; echo \"\$o\" | grep -q 'synced check-story-entry (needed by ' || { echo 'no check-story-entry needed-by line'; exit 1; }"
+check "SYNCDEP-3 sync-tools of qa-run3 (no local imports) copies only itself" bash -c "d=\$(mktemp -d); o=\$(bash '$root/scripts/sync-tools.sh' \"\$d\" qa-run3); echo \"\$o\"; test \"\$(ls \"\$d/scripts\")\" = qa-run3.mjs || { echo \"extra files: \$(ls \"\$d/scripts\")\"; exit 1; }; ! echo \"\$o\" | grep -q needed"
+check "SYNCDEP-3 sync-tools with no names copies each tool exactly once, with no needed-by lines" bash -c "d=\$(mktemp -d); o=\$(bash '$root/scripts/sync-tools.sh' \"\$d\"); n=\$(ls '$root/tools'/*.mjs | wc -l); test \"\$(echo \"\$o\" | grep -c '^synced [a-z0-9-]*\$')\" = \"\$n\" || { echo \"expected \$n plain synced lines\"; echo \"\$o\"; exit 1; }; test \"\$(echo \"\$o\" | grep '^synced ' | sort | uniq -d | wc -l)\" = 0 || { echo duplicate; exit 1; }; ! echo \"\$o\" | grep -q needed"
 
 # Every tool is listed in the README; ux-shots passes its tests (browser cases skip without Playwright).
 for f in "$root"/tools/*.mjs; do
   check "tool $(basename "$f" .mjs): listed in the README" grep -q "\`$(basename "$f" .mjs)\`" "$root/README.md"
 done
 check "QACYC-1..7 qa-cycle tool (build-cycle ledger, verify, gate, misses, hardening caps, score)" node --test "$root/tests/qa-cycle.test.mjs"
+check "SKP-1..22 stakeholder plugin: checker, fetch script, package, README (SKP-20 is manual)" node --test "$root/tests/stakeholder.test.mjs"
+check "PRV-1..16 product-review tool (claims check, freshness, lanes, plan, report contract, merge)" node --test "$root/tests/product-review.test.mjs"
+check "STK-PS-R3..R9 stakeholder plugin hardening: fetch script, escaping, strict parser, ship rule, fences, caps, hash agreement" node --test "$root/tests/stakeholder-hardening.test.mjs"
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
 check "UXREL-1..5 ux-flows reliability and permissions tests" node --test "$root/tests/ux-reliability.test.mjs"
@@ -233,6 +245,7 @@ check "AGRUN-1 tool check-agent-run exists and is listed in the README" bash -c 
 check "AGRUN-2 check-agent-run tests" node --test "$root/tests/check-agent-run.test.mjs"
 check "SLINT-1 tool spec-lint exists and is listed in the README" bash -c "test -f '$root/tools/spec-lint.mjs' || { echo missing tools/spec-lint.mjs; exit 1; }; grep -q '\`spec-lint\`' '$root/README.md'"
 check "SLINT-2 spec-lint tests" node --test "$root/tests/spec-lint.test.mjs"
+check "PIPE-1..43 pipeline-run ledger, stop rules, merge class" node --test "$root/tests/pipeline-run.test.mjs"
 check "SLINT-3 spec-lint SL-10 and SL-11 gap tests (QA-R1..R5)" node --test "$root/tests/spec-lint-sl10-11-gaps.test.mjs"
 check "GUARD-1 tool agent-guard exists and is listed in the README" bash -c "test -f '$root/tools/agent-guard.mjs' || { echo missing tools/agent-guard.mjs; exit 1; }; grep -q '\`agent-guard\`' '$root/README.md'"
 check "GUARD-2 agent-guard tests" node --test "$root/tests/agent-guard.test.mjs"

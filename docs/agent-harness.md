@@ -9,7 +9,7 @@ bash scripts/sync-tools.sh ../my-product            # every tool, into ../my-pro
 bash scripts/sync-tools.sh ../my-product agent-guard check-agent-run check-story-entry stamp-run
 ```
 
-`sync-tools.sh` copies flat into `scripts/`, so a tool's neighbours must come with it (see "Needs" below). Re-run it to pick up fixes; it never touches other files in `scripts/`. Hooks and the run-log script come from `scripts/sync.sh` and `scripts/install-cloud.sh` (cloud threads start above the repo, so repo `.claude/` never loads; see `docs/session-rules.md`).
+`sync-tools.sh` copies flat into `scripts/` and brings along any tool the named one imports (the "Needs" column below is what that means). Re-run it to pick up fixes; it never touches other files in `scripts/`. Hooks and the run-log script come from `scripts/sync.sh` and `scripts/install-cloud.sh` (cloud threads start above the repo, so repo `.claude/` never loads; see `docs/session-rules.md`).
 
 ## What exists today
 
@@ -26,6 +26,7 @@ bash scripts/sync-tools.sh ../my-product agent-guard check-agent-run check-story
 | **Output contracts with validators** | `check-qa-report`, `check-spec`, `check-findings`, `check-story-entry` | none | Pattern to copy for a new agent: one fenced block at the end of its report plus a script that rejects a malformed one. |
 | **Memory between runs** | `tools/agent-memory.mjs` (finding lines in run logs and past eval misses), `ux-state` + `ux-search` (UX) | `ux-search.mjs`, `check-agent-run.mjs` | `node scripts/agent-memory.mjs <words> --root .` before filing a finding, to see whether it is already known. |
 | **Build-cycle ledger** (tests before and after the build, bugs found and fixed, order checked from git) | `tools/qa-cycle.mjs` (`ledger`, `verify`, `gate`, `miss add`, `ideas`, `harden-check`, `score`); spec `docs/product/SPEC-QA-CYCLE.md`; hardening runbook `docs/qa-hardening.md` | `check-qa-report.mjs`, `check-agent-run.mjs`, `check-story-entry.mjs`, `agent-guard.mjs` | Any agent that builds then verifies can tag commits and call `verify`/`gate`. Written for qa-tdd. |
+| **Pipeline ledger** (stage order, handoff-block validation, stop rules, merge class) | `tools/pipeline-run.mjs`; plan `docs/pipeline-plan.md` | `check-spec.mjs`, `check-qa-report.mjs` | A thread running the pipeline calls `init`, then `start`/`done` per stage. It records and refuses; it makes no model calls. |
 | **Scorecard** | `tools/agent-scorecard.mjs` | the eval run folders and run logs | One table per agent: eval score by phase and arm, logged-run counts. Local report only. |
 | **Evals** (cases from real misses, agent vs plain Claude) | `tools/eval-miss-cases.mjs` builds cases from a spec file; `tools/eval-miss-score.mjs` scores a run folder; examples in `evals/agent-misses/` | none | Write a case spec (`evals/agent-misses/*-cases*.mjs`), generate, run the agent and a plain session on each, record `results.json`, score. |
 | **Blind grader** | A process, not a script: `docs/agent-training-plan.md` ("Ground rules", "The loop"). A fresh Opus subagent reads only the case's `criteria.md` and the saved report and answers PASS or FAIL with one reason; it never sees how the agent got there or which arm it was. Agents run on Sonnet. | none | Follow the training plan; saved runs under `evals/agent-misses/runs/` show the shape (`results.json`, `transcripts/`). |
@@ -42,7 +43,7 @@ These are gaps, not built things. Product Studio builds them here (Chase, Nov 23
 4. **Scheduled run in CI.** The "loop that runs without a person" is Partial for UX and Missing for the others (training plan, infra table). Needs the kill switch and cost cap first.
 5. **Retry helper and context budget.** Only `ux-flows` retries; no shared helper. No written context budget for any agent.
 6. **Scorecard is local.** `agent-scorecard` prints a report; it isn't published to the Studio page yet.
-7. **`sync-tools.sh` copies flat and doesn't resolve neighbours.** Syncing one tool without its "Needs" breaks it. Sync everything, or use the Needs column above.
+7. ~~`sync-tools.sh` doesn't resolve neighbours.~~ Fixed (SYNCDEP-1..3): syncing one tool also copies the tools it imports, transitively, and prints `synced <dep> (needed by <tool>)`.
 8. **No example of a non-studio product agent using the harness end to end.** The first one (Role Radar's job-hunt agent, role-radar issue #86) is the proof; record what it had to change here.
 
 ## Rules for product repos

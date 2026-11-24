@@ -1,0 +1,427 @@
+{
+  "schemaVersion": 1,
+  "n": {
+    "prompts": 3,
+    "runsPerArm": 1,
+    "scoredPairs": 3
+  },
+  "arms": [
+    "plain",
+    "ux"
+  ],
+  "armModels": {
+    "plain": "sonnet",
+    "ux": "sonnet"
+  },
+  "graderModel": "opus",
+  "split": "heldout",
+  "changeId": "heldout-nov24",
+  "cost": 0.5522115,
+  "limits": [
+    "One Sonnet run per arm per prompt: n is small, so wins and losses are noisy.",
+    "A single Opus grader scores looks from screenshots only, and A/B order is shuffled per pair.",
+    "Grader cost is included only if the grader reports it.",
+    "Dev results are for tuning; held-out is run once per change id."
+  ],
+  "pairs": [
+    {
+      "promptId": "p6",
+      "run": 0,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 6,
+        "ux": 8
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p7",
+      "run": 0,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 7,
+        "ux": 7
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p8",
+      "run": 0,
+      "order": [
+        "plain",
+        "ux"
+      ],
+      "scores": {
+        "plain": 5,
+        "ux": 2
+      },
+      "status": "ok"
+    }
+  ],
+  "summary": {
+    "scoredPairs": 3,
+    "erroredPairs": 0,
+    "wins": {
+      "plain": 1,
+      "ux": 1
+    },
+    "ties": 1,
+    "meanPolish": {
+      "plain": 6,
+      "ux": 5.666666666666667
+    },
+    "perPrompt": {
+      "p6": {
+        "plain": 6,
+        "ux": 8,
+        "scoredPairs": 1
+      },
+      "p7": {
+        "plain": 7,
+        "ux": 7,
+        "scoredPairs": 1
+      },
+      "p8": {
+        "plain": 5,
+        "ux": 2,
+        "scoredPairs": 1
+      }
+    }
+  },
+  "scored": {
+    "p6": {
+      "plain": 6,
+      "ux": 8
+    },
+    "p7": {
+      "plain": 7,
+      "ux": 7
+    },
+    "p8": {
+      "plain": 5,
+      "ux": 2
+    }
+  },
+  "tally": {
+    "scored": {
+      "p6": {
+        "plain": 6,
+        "ux": 8
+      },
+      "p7": {
+        "plain": 7,
+        "ux": 7
+      },
+      "p8": {
+        "plain": 5,
+        "ux": 2
+      }
+    },
+    "wins": {
+      "plain": 1,
+      "ux": 1
+    },
+    "losses": {
+      "plain": 1,
+      "ux": 1
+    },
+    "ties": 1,
+    "meanPolish": {
+      "plain": 6,
+      "ux": 5.666666666666667
+    },
+    "perPrompt": {
+      "p6": {
+        "plain": 6,
+        "ux": 8,
+        "scoredPairs": 1
+      },
+      "p7": {
+        "plain": 7,
+        "ux": 7,
+        "scoredPairs": 1
+      },
+      "p8": {
+        "plain": 5,
+        "ux": 2,
+        "scoredPairs": 1
+      }
+    }
+  },
+  "mapping": {
+    "p6#0": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p6": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p7#0": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p7": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p8#0": {
+      "A": "plain",
+      "B": "ux"
+    },
+    "p8": {
+      "A": "plain",
+      "B": "ux"
+    }
+  },
+  "gradings": {
+    "p6#0": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": true
+        },
+        "polish": 6
+      }
+    },
+    "p6": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": true
+        },
+        "polish": 6
+      }
+    },
+    "p7#0": {
+      "A": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      }
+    },
+    "p7": {
+      "A": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      }
+    },
+    "p8#0": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 5
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": false
+        },
+        "polish": 2
+      }
+    },
+    "p8": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 5
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": false
+        },
+        "polish": 2
+      }
+    }
+  },
+  "runs": [
+    {
+      "promptId": "p6",
+      "arm": "ux",
+      "tokens": 3718,
+      "costUsd": 0.0602402,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-R0x24f/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-HDtdUh/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p6",
+      "arm": "plain",
+      "tokens": 3238,
+      "costUsd": 0.0530862,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-AECjpo/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-wlSGtp/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 6,
+      "cleanFailures": [
+        "CLEAN-1",
+        "CLEAN-4"
+      ]
+    },
+    {
+      "promptId": "p7",
+      "arm": "ux",
+      "tokens": 3907,
+      "costUsd": 0.0626979,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-uEgPm1/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-52eoZ3/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 7,
+      "cleanFailures": [
+        "CLEAN-1"
+      ]
+    },
+    {
+      "promptId": "p7",
+      "arm": "plain",
+      "tokens": 3695,
+      "costUsd": 0.0578597,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-s6MNYl/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-YjQ7d5/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 7,
+      "cleanFailures": [
+        "CLEAN-1",
+        "CLEAN-4"
+      ]
+    },
+    {
+      "promptId": "p8",
+      "arm": "plain",
+      "tokens": 2775,
+      "costUsd": 0.044681399999999996,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-gBIpjR/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-gy18H7/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 5,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p8",
+      "arm": "ux",
+      "tokens": 4509,
+      "costUsd": 0.0714101,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-bLFAiA/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-G4xKZp/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 2,
+      "cleanFailures": [
+        "CLEAN-1",
+        "CLEAN-4",
+        "CLEAN-5"
+      ]
+    }
+  ]
+}

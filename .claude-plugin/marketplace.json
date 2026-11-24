@@ -1,11 +1,18 @@
 {
   "name": "chase-studio",
-  "owner": { "name": "Chase Holroyd" },
+  "owner": {
+    "name": "Chase Holroyd"
+  },
   "plugins": [
     {
       "name": "studio",
       "source": "./plugins/studio",
       "description": "A one-person product studio's AI team: orchestrator, architect, release captain, staff PM, test-first QA, engineer, privacy and security, persona UX, positioning and story, and a story-keeper that logs decisions and lessons as they happen."
+    },
+    {
+      "name": "stakeholder",
+      "source": "./plugins/stakeholder",
+      "description": "Before something goes public, simulated readers (recruiter, hiring manager, staff engineer, PM peer and more) guess what they might stop at, with a quote id tied to your quote index and one fix each. Hypotheses to check with real people, not research; advisory only."
     }
   ]
 }
