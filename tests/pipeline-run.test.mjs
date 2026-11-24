@@ -759,3 +759,9 @@ test("PIPE-71 a flag with no value at the end of the line exits 2 and writes not
   assert.equal(fs.readFileSync(e.ledger, "utf8"), before);
 });
 
+
+test("PIPE-50 class C for .github written with a leading ./ or a leading slash, and with backslashes", () => {
+  const e = fresh();
+  for (const f of ["./.github/workflows/x.yml", "/.github/workflows/x.yml", ".github\\workflows\\x.yml", "./package.json", "./CLAUDE.md"]) assert.equal(letter(cls(e, `docs/a.md,${f}`)), "C", f);
+});
+
