@@ -255,6 +255,14 @@ check "SCORE-1 tool agent-scorecard exists and is listed in the README" bash -c 
 check "SCORE-2 agent-scorecard tests" node --test "$root/tests/agent-scorecard.test.mjs"
 check "STAMP-1 tool stamp-run exists and is listed in the README" bash -c "test -f '$root/tools/stamp-run.mjs' || { echo missing tools/stamp-run.mjs; exit 1; }; grep -q '\`stamp-run\`' '$root/README.md'"
 check "STAMP-2 stamp-run tests" node --test "$root/tests/stamp-run.test.mjs"
+check "FBK-1..12 feedback-guard tests" node --test "$root/tests/feedback-guard.test.mjs"
+check "FBK-13 tool check-triage exists and is listed in the README" bash -c "test -f '$root/tools/check-triage.mjs' || { echo missing tools/check-triage.mjs; exit 1; }; grep -q '\`check-triage\`' '$root/README.md'"
+check "FBK-13..15 check-triage tests" node --test "$root/tests/check-triage.test.mjs"
+check "FBK-16,17 feedback widget tests" node --test "$root/tests/feedback-widget.test.mjs"
+check "FBK-19..22 feedback gate script tests" node --test "$root/tests/feedback-gate.test.mjs"
+check "FBK-25 tool feedback-merge-check exists and is listed in the README" bash -c "test -f '$root/tools/feedback-merge-check.mjs' || { echo missing tools/feedback-merge-check.mjs; exit 1; }; grep -q '\`feedback-merge-check\`' '$root/README.md'"
+check "FBK-25 feedback-merge-check tests" node --test "$root/tests/feedback-merge-check.test.mjs"
+check "FBK-16..22 feedback issue form, workflow, docs page, README and agent-harness rows" node --test "$root/tests/feedback-templates.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
