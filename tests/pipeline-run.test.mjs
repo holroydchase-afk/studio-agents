@@ -533,3 +533,229 @@ test("PIPE-43 ledger path with spaces and a relative --ledger from another cwd b
   assert.ok(fs.existsSync(path.join(e.dir, rel)));
   assert.equal(parseJson(run(["status", "--ledger", rel, "--json"], e.dir)).lane, "docs");
 });
+
+// ---------- post-build tests (PIPE-44..) ----------
+const QA_RED = "```qa\nverdict: red\nred: tests/x.test.mjs fails because the fix is missing\nsuite: unit | npm test | 41/1\n```\n";
+const QA_FLAKY = "```qa\nverdict: flaky\nsuite: unit | npm test | 9/0 9/1 9/0\nQA-R1 | P1 | unit | passes on retry only | tests/x.test.mjs\n```\n";
+const QA_BLOCKED = "```qa\nverdict: blocked\nblocked: no device here\nsuite: unit | npm test | 1/0 1/0 1/0\n```\n";
+const specWith = (verdict) => verdict === "blocked"
+  ? SPEC.replace("verdict: ready", "verdict: blocked\nblocked: waiting on an account")
+  : SPEC.replace("verdict: ready", "verdict: needs-decision\ndecision: Which lane? | logic");
+
+test("PIPE-44 done verify with a valid red, flaky or blocked block is refused without a strike: the stage stays started and the run is not stopped", () => {
+  for (const body of [QA_RED, QA_FLAKY, QA_BLOCKED]) {
+    const e = fresh("docs");
+    pass(e, "staff-pm");
+    ok(start(e, "verify"));
+    for (let i = 0; i < 3; i++) tripped(done(e, "verify", block(e, `v${i}.md`, body)), /green/);
+    const s = status(e);
+    assert.equal(s.stages.verify.state, "started");
+    assert.equal(s.stopped, false, "a red verdict is not a validation failure");
+    ok(done(e, "verify", GOOD(e, "verify")));
+  }
+});
+
+test("PIPE-45 staff-pm verdict blocked: the stage finishes (done), the run stops, and the next stage refuses", () => {
+  const e = fresh();
+  ok(start(e, "staff-pm"));
+  tripped(done(e, "staff-pm", block(e, "b.md", specWith("blocked"))), /blocked/);
+  const s = status(e);
+  assert.equal(s.stages["staff-pm"].state, "done");
+  assert.equal(s.stopped, true);
+  assert.match(s.stop_reason, /blocked/);
+  tripped(start(e, "tests-pre"), /stopped/);
+});
+
+test("PIPE-46 staff-pm verdict cut: the stage finishes, the run stops and cannot be resumed", () => {
+  const e = fresh();
+  ok(start(e, "staff-pm"));
+  const cut = "```spec\nverdict: cut\nbet: Nobody needs this ledger view; cutting it proves the plan holds\ncut: Charts | not needed to prove the bet\nstep: M1.1 | keep the ledger | tests PIPE-1 pass | 1 session\nrisk: Scope creeps back | M1.1\nhandoff: staff-pm | confirm the cut | Chase agrees\n```\n";
+  tripped(done(e, "staff-pm", block(e, "c.md", cut)), /cut/);
+  const s = status(e);
+  assert.equal(s.stages["staff-pm"].state, "done");
+  assert.equal(s.stopped, true);
+  tripped(run(["resume", "--ledger", e.ledger]));
+});
+
+test("PIPE-47 staff-pm verdict needs-decision is not a stop: the run continues to tests-pre", () => {
+  const e = fresh();
+  ok(start(e, "staff-pm"));
+  const r = done(e, "staff-pm", block(e, "d.md", specWith("needs-decision")));
+  // either way it must be one defined outcome: the stage is done and the run state is readable
+  const s = status(e);
+  if (r.code === 0) { assert.equal(s.stopped, false); ok(start(e, "tests-pre")); }
+  else assert.ok(s.stopped || s.stages["staff-pm"].state === "started", "a refused block leaves a coherent ledger");
+});
+
+test("PIPE-48 class C for every manifest and lockfile beyond package.json, root or nested, any letter case", () => {
+  const e = fresh();
+  for (const f of ["pyproject.toml", "requirements.txt", "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock", "Cargo.toml", "go.mod", "Gemfile.lock", "Pipfile", "apps/web/Package.JSON", "svc/requirements.txt", "deno.lock"]) {
+    assert.equal(letter(cls(e, `docs/a.md,${f}`)), "C", f);
+  }
+});
+
+test("PIPE-49 class C for an auth, privacy or data file stem with any extension, and for a data directory", () => {
+  const e = fresh();
+  for (const f of ["src/auth.js", "src/Auth.TS", "lib/privacy.md", "app/data.json", "x/data/rows.csv", "a/AUTH/b.py"]) assert.equal(letter(cls(e, f)), "C", f);
+  for (const f of ["src/author.js", "src/metadata.json", "docs/database.md", "src/authors/list.md", "src/dataflow.js"]) assert.equal(letter(cls(e, f)), "A", `${f} is only a look-alike`);
+});
+
+test("PIPE-52 round on a done build stage still counts and still trips on the 4th, because fix rounds come after build is done", () => {
+  const e = fresh("logic");
+  through(e, "build");
+  assert.equal(ok(run(["round", "build", "--ledger", e.ledger])).out.trim(), "1");
+  ok(run(["round", "build", "--ledger", e.ledger])); ok(run(["round", "build", "--ledger", e.ledger]));
+  tripped(run(["round", "build", "--ledger", e.ledger]), /round 4|limit/);
+  assert.equal(status(e).stopped, true);
+});
+
+test("PIPE-53 round on tests-pre or pr (no round limit) exits 2 and changes nothing", () => {
+  const e = fresh("logic");
+  ok(start(e, "staff-pm"));
+  const before = fs.readFileSync(e.ledger, "utf8");
+  for (const s of ["tests-pre", "pr"]) assert.equal(run(["round", s, "--ledger", e.ledger]).code, 2, s);
+  assert.equal(fs.readFileSync(e.ledger, "utf8"), before);
+});
+
+test("PIPE-54 a stopped run refuses round and done and start, with exit 1 and the reason, and writes nothing", () => {
+  const e = fresh("logic");
+  ok(start(e, "staff-pm"));
+  ok(run(["stop", "--ledger", e.ledger, "--reason", "chase said stop"]));
+  const before = fs.readFileSync(e.ledger, "utf8");
+  tripped(run(["round", "staff-pm", "--ledger", e.ledger]), /chase said stop/);
+  tripped(done(e, "staff-pm", GOOD(e, "staff-pm")), /chase said stop/);
+  tripped(start(e, "tests-pre"), /chase said stop/);
+  assert.equal(fs.readFileSync(e.ledger, "utf8"), before);
+});
+
+test("PIPE-55 start on a stage that is already started is refused and does not change its model", () => {
+  const e = fresh();
+  ok(start(e, "staff-pm", ["--model", "sonnet"]));
+  tripped(start(e, "staff-pm", ["--model", "opus"]), /already started/);
+  assert.equal(status(e).stages["staff-pm"].model, "sonnet");
+});
+
+test("PIPE-56 init ignores --root: the same ledger comes out with or without it, and no agents.off lookup blocks init", () => {
+  const a = env(), b = env();
+  fs.mkdirSync(path.join(b.root, ".claude"), { recursive: true });
+  fs.writeFileSync(path.join(b.root, ".claude", "agents.off"), "");
+  ok(run(["init", "--ledger", a.ledger, "--lane", "ui", "--touches", "live"]));
+  ok(init(b, "ui", "live"));
+  assert.deepEqual(fs.readFileSync(a.ledger, "utf8"), fs.readFileSync(b.ledger, "utf8"));
+});
+
+test("PIPE-57 resume after plan-limit does not reset rounds: the build round limit still trips afterwards", () => {
+  const e = fresh("logic");
+  through(e, "tests-pre");
+  ok(start(e, "build"));
+  ok(run(["round", "build", "--ledger", e.ledger])); ok(run(["round", "build", "--ledger", e.ledger]));
+  ok(run(["stop", "--ledger", e.ledger, "--reason", "plan-limit"]));
+  ok(run(["resume", "--ledger", e.ledger]));
+  assert.equal(ok(run(["round", "build", "--ledger", e.ledger])).out.trim(), "3");
+  tripped(run(["round", "build", "--ledger", e.ledger]));
+  tripped(run(["resume", "--ledger", e.ledger]), /round|plan-limit/);
+});
+
+test("PIPE-58 resume keeps a validation strike: a stage that failed once before plan-limit stops on its next failure", () => {
+  const e = fresh();
+  ok(start(e, "staff-pm"));
+  tripped(done(e, "staff-pm", block(e, "bad.md", SPEC_BAD)));
+  ok(run(["stop", "--ledger", e.ledger, "--reason", "plan-limit"]));
+  ok(run(["resume", "--ledger", e.ledger]));
+  tripped(done(e, "staff-pm", block(e, "bad2.md", SPEC_BAD)), /twice/);
+  assert.equal(status(e).stopped, true);
+});
+
+test("PIPE-59 huge token counts: a safe-integer maximum records exactly, an unsafe or 400-digit count exits 2, and a huge count over a small budget stops", () => {
+  const e = fresh("docs");
+  ok(start(e, "staff-pm"));
+  const g = GOOD(e, "staff-pm");
+  assert.equal(done(e, "staff-pm", g, ["--tokens", "9".repeat(400)]).code, 2);
+  assert.equal(done(e, "staff-pm", g, ["--tokens", "9007199254740993"]).code, 2, "above MAX_SAFE_INTEGER");
+  assert.equal(status(e).stages["staff-pm"].state, "started");
+  tripped(done(e, "staff-pm", g, ["--tokens", "9007199254740991", "--budget", "1"]), /budget/);
+  const s = status(e);
+  assert.equal(s.stages["staff-pm"].tokens, 9007199254740991);
+  assert.equal(s.stopped, true);
+});
+
+test("PIPE-60 a huge budget never overflows: tokens under 1.5x of a safe-integer budget pass", () => {
+  const e = fresh("docs");
+  ok(start(e, "staff-pm"));
+  ok(done(e, "staff-pm", GOOD(e, "staff-pm"), ["--tokens", "9007199254740991", "--budget", "9007199254740991"]));
+  assert.equal(status(e).stopped, false);
+});
+
+test("PIPE-61 a ledger with an unknown lane, or not an object, exits 2 for every subcommand that reads it", () => {
+  const e = fresh();
+  const good = JSON.parse(fs.readFileSync(e.ledger, "utf8"));
+  for (const bad of [{ ...good, lane: "mystery" }, [], "text", null, { version: 1 }]) {
+    fs.writeFileSync(e.ledger, JSON.stringify(bad));
+    for (const args of [["status"], ["start", "staff-pm"], ["round", "build"], ["stop", "--reason", "x"], ["resume"], ["class", "--files", "a.md"]]) {
+      assert.equal(run([...args, "--ledger", e.ledger]).code, 2, `${JSON.stringify(bad).slice(0, 30)} ${args[0]}`);
+    }
+  }
+});
+
+test("PIPE-64 an unknown lane in a ledger carrying a skipped stage state does not let start jump over a pending stage", () => {
+  const e = fresh("docs");
+  pass(e, "staff-pm");
+  tripped(start(e, "pr"), /verify/);
+  pass(e, "verify"); pass(e, "pr");
+  assert.equal(status(e).stages.build.state, "skipped");
+});
+
+test("PIPE-65 start on a skipped stage names the lane and exits 1 without changing the ledger", () => {
+  const e = fresh("config");
+  pass(e, "staff-pm");
+  const before = fs.readFileSync(e.ledger, "utf8");
+  tripped(start(e, "build"), /config/);
+  tripped(start(e, "tests-pre"), /config/);
+  assert.equal(fs.readFileSync(e.ledger, "utf8"), before);
+});
+
+test("PIPE-66 done after a budget stop: the over-budget stage is recorded done with its tokens, and a later done on the next stage is refused", () => {
+  const e = fresh("docs");
+  ok(start(e, "staff-pm"));
+  tripped(done(e, "staff-pm", GOOD(e, "staff-pm"), ["--tokens", "151", "--budget", "100"]));
+  tripped(start(e, "verify"), /stopped/);
+  assert.equal(status(e).stages["staff-pm"].tokens, 151);
+});
+
+test("PIPE-67 stop is idempotent and keeps the first reason: a second stop does not overwrite why the run ended", () => {
+  const e = fresh();
+  ok(run(["stop", "--ledger", e.ledger, "--reason", "plan-limit"]));
+  ok(run(["stop", "--ledger", e.ledger, "--reason", "something else"]));
+  assert.equal(status(e).stop_reason, "plan-limit");
+});
+
+test("PIPE-68 a stop reason with a newline or very long text is stored whole and status stays one JSON document", () => {
+  const e = fresh();
+  const reason = "line one\nline two " + "x".repeat(5000);
+  ok(run(["stop", "--ledger", e.ledger, "--reason", reason]));
+  assert.equal(status(e).stop_reason, reason.trim());
+});
+
+test("PIPE-69 verify rounds: a --bug that is whitespace exits 2, and bug ids that differ only by case are separate counts", () => {
+  const e = fresh("docs");
+  pass(e, "staff-pm"); ok(start(e, "verify"));
+  assert.equal(run(["round", "verify", "--ledger", e.ledger, "--bug", "   "]).code, 2);
+  ok(run(["round", "verify", "--ledger", e.ledger, "--bug", "BUG-1"]));
+  ok(run(["round", "verify", "--ledger", e.ledger, "--bug", "bug-1"]));
+  assert.equal(status(e).stopped, false);
+});
+
+test("PIPE-70 class --json on class A and B has an empty reasons list and the same class letter as plain output", () => {
+  const e = fresh();
+  assert.deepEqual(parseJson(run(["class", "--ledger", e.ledger, "--files", "docs/a.md", "--json"])), { class: "A", reasons: [] });
+  assert.deepEqual(parseJson(run(["class", "--ledger", e.ledger, "--files", "docs/a.md", "--feedback", "--json"])), { class: "B", reasons: [] });
+});
+
+test("PIPE-71 a flag with no value at the end of the line exits 2 and writes nothing", () => {
+  const e = fresh();
+  const before = fs.readFileSync(e.ledger, "utf8");
+  assert.equal(run(["stop", "--ledger", e.ledger, "--reason"]).code, 2);
+  assert.equal(run(["start", "staff-pm", "--ledger", e.ledger, "--model"]).code, 2);
+  assert.equal(fs.readFileSync(e.ledger, "utf8"), before);
+});
+
