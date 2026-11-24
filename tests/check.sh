@@ -41,9 +41,13 @@ r = pathlib.Path(sys.argv[1])
 plugin = json.loads((r / "plugins/studio/.claude-plugin/plugin.json").read_text())
 market = json.loads((r / ".claude-plugin/marketplace.json").read_text())
 json.loads((r / "templates/claude-settings.json").read_text())
-entry = next(p for p in market["plugins"] if p["name"] == plugin["name"])
-assert entry["description"] == plugin["description"], "marketplace description differs from plugin.json"
-assert (r / entry["source"]).is_dir(), "marketplace source folder missing"
+names = [p["name"] for p in market["plugins"]]
+assert plugin["name"] in names, "studio plugin missing from marketplace"
+for entry in market["plugins"]:
+    assert (r / entry["source"]).is_dir(), entry["name"] + ": marketplace source folder missing"
+    pj = json.loads((r / entry["source"] / ".claude-plugin/plugin.json").read_text())
+    assert pj["name"] == entry["name"], entry["name"] + ": plugin.json name differs from the marketplace entry"
+    assert entry["description"] == pj["description"], entry["name"] + ": marketplace description differs from plugin.json"
 PY
 
 # sync.sh: copies every agent and its preloaded skills, keeps project-only agents and skills, rejects unknown names.
@@ -208,6 +212,7 @@ for f in "$root"/tools/*.mjs; do
   check "tool $(basename "$f" .mjs): listed in the README" grep -q "\`$(basename "$f" .mjs)\`" "$root/README.md"
 done
 check "QACYC-1..7 qa-cycle tool (build-cycle ledger, verify, gate, misses, hardening caps, score)" node --test "$root/tests/qa-cycle.test.mjs"
+check "SKP-1..22 stakeholder plugin: checker, fetch script, package, README (SKP-20 is manual)" node --test "$root/tests/stakeholder.test.mjs"
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
 check "UXREL-1..5 ux-flows reliability and permissions tests" node --test "$root/tests/ux-reliability.test.mjs"

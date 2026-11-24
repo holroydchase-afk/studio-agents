@@ -160,6 +160,8 @@ idea (one message) ─▶ SEED ─▶ STAFF PM (domain brief, then MVP cut) ─�
 
 Chase wants Stakeholder Twins evolved into a stakeholder agent that loops through personas. **Reuse, don't rebuild:** the persona set and prompts come from the Twins work (its own repo, `persona-twins`, and the portfolio prompt `prompts/stakeholder-twins.txt`: everyday user, customer, skeptic, marketing, sales, finance, product, each saying what it would push back on, ask, and what would make it say yes). I read the prompt; I did not read the `persona-twins` repo (outside this session's repo scope), so the first build step is to pull its persona text in rather than retype it.
 
+**Update (merged by another thread):** the stakeholder agent now has its own plan, `docs/stakeholder-agent-plan.md`, and an installable plugin (PR 133). Where the two differ on personas, caps or loader, that doc wins; this section only fixes where it sits in the MVP run.
+
 **Job (one sentence):** read the artifact in front of it as each chosen persona, in character, and return the few objections that would change what ships.
 
 **Where it sits in the MVP-o-matic run (two checkpoints):**
