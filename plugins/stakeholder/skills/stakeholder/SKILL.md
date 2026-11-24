@@ -17,7 +17,8 @@ Before something goes public and nobody on your side can read it first: a README
    `node plugins/stakeholder/tools/check-stakeholder.mjs review.md --index quotes.json`
    Exit 0 prints an agreement table (one row per persona, one column per quote id). Exit 1 lists every bad line; regenerate the block, do not edit around it.
 4. For round 2 (only readers who raised a P0 or P1, after your fixes) add `--prev round1.md`.
-5. Check persona data: `node plugins/stakeholder/tools/check-stakeholder.mjs --verify-hash plugins/stakeholder/data/audience.json`. Refresh it with `bash plugins/stakeholder/scripts/sync-audience.sh`.
+5. For a repo, run the local repo check first: `node plugins/stakeholder/tools/repo-check.mjs <clone-dir> --index-out repo-index.json` (outside the studio-agents repo add `--standards <file>`). Its findings are for the `staff-engineer` persona and quote facts in `repo-index.json`, so use that file as the index. It only sees the local clone: GitHub settings and history are listed as needing data, and it has not been run on a real repo yet.
+6. Check persona data: `node plugins/stakeholder/tools/check-stakeholder.mjs --verify-hash plugins/stakeholder/data/audience.json`. Refresh it with `bash plugins/stakeholder/scripts/sync-audience.sh`.
 
 ## The block format
 ```
