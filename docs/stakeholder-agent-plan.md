@@ -29,6 +29,8 @@ A new pack, `audience/`, five twins in the same file format as the existing seve
 
 The existing seven (everyday, customer, skeptic, marketing, sales, finance, product) stay as the **product-buyer lens** for products that have real users (Hearth, Crew Clock). The agent picks by artifact type (see tools), three personas by default, five at most. Persona text is data the agent reads, not instructions to it.
 
+**Weighting (from the Product School stakeholder guide Chase sent, Nov 24).** The guide sorts stakeholders on an influence and interest matrix and builds a persona per group with motivations and pain points. We borrow the matrix to rank findings, since not every audience counts the same for Chase's goals. Each audience persona carries two tags in its frontmatter: `influence` (can it change an outcome for Chase: hiring manager high, recruiter high, staff engineer medium, PM peer medium, scroller low) and `interest` (how closely it reads). Merge ranks by severity, then influence, then agreement. High influence plus low interest (the recruiter's 30 seconds) means the first screen decides; low influence plus high interest (a PM peer) means usefulness decides. The guide's advice to resolve conflicts between stakeholders, not average them, matches the trade-off rule above. The article is generic PM advice, so it informs the tags and ranking only; it is not a source for any public claim.
+
 ## The loop (why this is an agent, not a prompt)
 
 ```
