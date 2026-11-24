@@ -762,7 +762,7 @@ test("UXB-15 multi-run: tally excludes only the errored run pair and reports mea
 // ---- UXB-2 remote-URL rule: only LOADED remote resources are rejected
 test("UXB-2 a plain <a href> to a remote page is not a loaded resource and does not exclude the arm", async () => {
   const { validateArmOutput } = await load();
-  for (const href of ["https://github.com/holroydchase-afk", "http://example.com/x", "//example.com/x", "mailto:a@b.co"]) {
+  for (const href of ["https://github.com/holroydchase-afk", "http://example.com/x", "//example.com/x", "mailto:person[at]example.com"]) {
     const r = validateArmOutput(`<!doctype html><html><body><a href="${href}">link</a><p>x</p></body></html>`);
     assert.equal(r.ok, true, `${href}: ${JSON.stringify(r)}`);
   }
