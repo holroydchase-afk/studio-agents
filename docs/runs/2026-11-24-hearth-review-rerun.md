@@ -1,0 +1,27 @@
+# Hearth review rerun (2026-11-24), merged by tools/product-review.mjs
+
+From the stakeholder, grandparent-ux and qa-tdd agents, docs-only, screenshots 5 days stale. Not eval-proven. Compare with the pilot (issue 140).
+
+```review
+verdict: fix
+validation: validated
+item: 1 | P0 | inferred | stakeholder | STK-1: Staff engineer (q25): the top paragraph says "Photos are encrypted on the phone and stored in the US" and "Private by construction", but the caveat "Hearth's server holds the photo keys today" is buried mid-bullet, so a skeptic reads the lead as end-to-end. Fix: state the key-custody limit in the first paragraph beside the encryption claim.
+item: 2 | P1 | observed | qa | QA-1: No CI workflow (ci.yml, demo-site.yml, agents-check.yml, handoff-check.yml) runs any suite 3x; grep for loops/repeat/matrix found only a 20-iteration wait loop in demo-site.yml. The 3x rule is not enforced in CI.
+item: 3 | P1 | observed | qa | QA-3: Date pinning: 98 time-dependent lines in backend/tests SQL; many hard-code absolute dates (sms_test.sql:195-196 uses 2026-11-16, timeline_test.sql:158-160 uses 2024/2026 dates). These are fixed inputs rather than now()-relative, but any test that mixes them with now() or retention windows can rot as the calendar moves.
+item: 4 | P1 | viewed | ux | UX-1: Stale shots (Nov 18, 5 days behind HEAD): findings are about those images only; re-shoot before trusting them. Dark mode and the laptop demo were not reviewed.
+item: 5 | P1 | viewed | ux | UX-2: iphone-01/02/03/04/05 still show the old 4-tab bar (Photos, Share, Groups, Me) and "Help"; DEC-59/DS-7 says Gallery, Share, Feed, More. Re-shoot so the portfolio matches the shipped words.
+item: 6 | P1 | viewed | ux | UX-3: iphone-05-grandparent: the "Send" button is a pale, washed-out blue and the helper line under the reply box ("Alex and Kai will read this") is cut off at the bottom behind the tab bar. Fix: full-contrast Send (4.5:1) and keep the "who sees this" line visible above the tab bar.
+item: 7 | P1 | viewed | ux | UX-4: easy-view/more-off-vs-on: with Easy view Off the tab bar is icon-only (floating pill, no words); the Groups row vanishes when On. Icon-only is allowed only by DEC-66, so confirm a grandparent is never left in the Off state; the Easy view row shows a plain "Off" or "On" status (good), but "Light or dark" and "Theme" icons carry no hint of what they do. Confirm with a relative.
+item: 8 | P1 | inferred | stakeholder | STK-2: Recruiter skim (q1): the title "# Hearth (working name)" reads as unfinished. Fix: drop "(working name)" or put a one-line outcome directly under the title.
+item: 9 | P1 | inferred | stakeholder | STK-3: Recruiter skim (q4): "Built by Chase Holroyd, a product manager, as a working proof of concept: one person, a $20/month AI plan, and a team of Claude agents" leads with constraints, not the result. Fix: open with the role-relevant outcome (solo PM shipped a tested, private family app on iPhone and web), then the constraints.
+item: 10 | P1 | inferred | stakeholder | STK-4: Hiring manager at an AI lab (q34): "An AI team with lanes... nine specialist agents" shows structure but no evidence the agents improved anything. Fix: add one concrete example of an agent catching a real defect, with a link to the commit or decision-log entry.
+item: 11 | P1 | inferred | stakeholder | STK-5: Hiring manager (q62): "Speed on a phone hasn't been measured... No outside security review" next to "Works today" leaves real-world use unproven. Fix: say whether the grandparent beta ran and what you learned, or state plainly that it has not run yet.
+item: 12 | P2 | observed | qa | QA-2: README claims "1291 app tests" and "1199 database checks"; product-review claims output cites `bash scripts/test-totals.sh` as the source, and that script exists. I did not run it (long suite), so the counts are unverified.
+item: 13 | P2 | observed | qa | QA-4: Test inventory: 168 Jest *.test.ts(x) files, 29 backend SQL test files, 14 Playwright specs under e2e/tests, plus a PostgREST integration smoke_test.ts and Deno tests.
+item: 14 | P2 | observed | qa | QA-5: CI covers SQL on real Supabase stack, a Deno smoke test, a PostgREST contract suite, and Jest plus typecheck; each runs once per PR, so a flaky test would pass on a lucky run.
+item: 15 | P2 | viewed | ux | UX-5: iphone-02-share: group names use an en dash ("Grandparents – Dad's side") and wrap to two lines beside "3 people", so "tap the one that says" is harder to read aloud. Fix: put "3 people" on its own line under the name.
+item: 16 | P2 | viewed | ux | UX-7: Strength: iphone-feed-who-can-see shows "Alex, Grandma Jo and 2 more can see this." in plain words under each post, with Gallery, Share, Feed, More labeled under large icons and an 8-person-ready photo-first layout; this is the A1/A2 promise made visible and reads well for Grandaddy.
+item: 17 | P2 | inferred | stakeholder | STK-6: Staff engineer (q32): "1,291 app tests (Jest, 141 files), 1,199 database checks (SQL)... Counted Nov 18, 2026" can only be verified by running a script. Fix: link a CI run showing the counts.
+item: 18 | P2 | inferred | ux | UX-6: Small grey captions (the "Sent by", date line and "22 hours ago" in the shots) look near the 17pt floor and lighter grey; measure contrast (4.5:1) and test at Android 200% before the next session.
+item: 19 | P2 | inferred | qa | QA-6: Whether the Playwright e2e suite runs in ci.yml is unconfirmed (I only saw the first 40 matching lines of step names), so e2e may run only locally via test-all.sh.
+```

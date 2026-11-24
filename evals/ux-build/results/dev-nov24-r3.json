@@ -1,0 +1,1394 @@
+{
+  "schemaVersion": 1,
+  "n": {
+    "prompts": 5,
+    "runsPerArm": 3,
+    "scoredPairs": 15
+  },
+  "arms": [
+    "plain",
+    "ux"
+  ],
+  "armModels": {
+    "plain": "sonnet",
+    "ux": "sonnet"
+  },
+  "graderModel": "opus",
+  "split": "dev",
+  "changeId": "dev-nov24-r3",
+  "cost": 3.5772250000000003,
+  "limits": [
+    "One Sonnet run per arm per prompt: n is small, so wins and losses are noisy.",
+    "A single Opus grader scores looks from screenshots only, and A/B order is shuffled per pair.",
+    "Grader cost is included only if the grader reports it.",
+    "Dev results are for tuning; held-out is run once per change id."
+  ],
+  "pairs": [
+    {
+      "promptId": "p1",
+      "run": 0,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 6,
+        "ux": 8
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p1",
+      "run": 1,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 6,
+        "ux": 8
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p1",
+      "run": 2,
+      "order": [
+        "plain",
+        "ux"
+      ],
+      "scores": {
+        "plain": 7,
+        "ux": 8
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p2",
+      "run": 0,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 6,
+        "ux": 7
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p2",
+      "run": 1,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 8,
+        "ux": 7
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p2",
+      "run": 2,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 7,
+        "ux": 8
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p3",
+      "run": 0,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 6,
+        "ux": 8
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p3",
+      "run": 1,
+      "order": [
+        "plain",
+        "ux"
+      ],
+      "scores": {
+        "plain": 7,
+        "ux": 6
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p3",
+      "run": 2,
+      "order": [
+        "plain",
+        "ux"
+      ],
+      "scores": {
+        "plain": 5,
+        "ux": 8
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p4",
+      "run": 0,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 8,
+        "ux": 6
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p4",
+      "run": 1,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 9,
+        "ux": 6
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p4",
+      "run": 2,
+      "order": [
+        "plain",
+        "ux"
+      ],
+      "scores": {
+        "plain": 8,
+        "ux": 8
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p5",
+      "run": 0,
+      "order": [
+        "plain",
+        "ux"
+      ],
+      "scores": {
+        "plain": 6,
+        "ux": 8
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p5",
+      "run": 1,
+      "order": [
+        "ux",
+        "plain"
+      ],
+      "scores": {
+        "plain": 6,
+        "ux": 8
+      },
+      "status": "ok"
+    },
+    {
+      "promptId": "p5",
+      "run": 2,
+      "order": [
+        "plain",
+        "ux"
+      ],
+      "scores": {
+        "plain": 5,
+        "ux": 7
+      },
+      "status": "ok"
+    }
+  ],
+  "summary": {
+    "scoredPairs": 15,
+    "erroredPairs": 0,
+    "wins": {
+      "plain": 4,
+      "ux": 10
+    },
+    "ties": 1,
+    "meanPolish": {
+      "plain": 6.666666666666667,
+      "ux": 7.4
+    },
+    "perPrompt": {
+      "p1": {
+        "plain": 6.333333333333333,
+        "ux": 8,
+        "scoredPairs": 3
+      },
+      "p2": {
+        "plain": 7,
+        "ux": 7.333333333333333,
+        "scoredPairs": 3
+      },
+      "p3": {
+        "plain": 6,
+        "ux": 7.333333333333333,
+        "scoredPairs": 3
+      },
+      "p4": {
+        "plain": 8.333333333333334,
+        "ux": 6.666666666666667,
+        "scoredPairs": 3
+      },
+      "p5": {
+        "plain": 5.666666666666667,
+        "ux": 7.666666666666667,
+        "scoredPairs": 3
+      }
+    }
+  },
+  "scored": {
+    "p1": {
+      "plain": 6.333333333333333,
+      "ux": 8
+    },
+    "p2": {
+      "plain": 7,
+      "ux": 7.333333333333333
+    },
+    "p3": {
+      "plain": 6,
+      "ux": 7.333333333333333
+    },
+    "p4": {
+      "plain": 8.333333333333334,
+      "ux": 6.666666666666667
+    },
+    "p5": {
+      "plain": 5.666666666666667,
+      "ux": 7.666666666666667
+    }
+  },
+  "tally": {
+    "scored": {
+      "p1": {
+        "plain": 6.333333333333333,
+        "ux": 8
+      },
+      "p2": {
+        "plain": 7,
+        "ux": 7.333333333333333
+      },
+      "p3": {
+        "plain": 6,
+        "ux": 7.333333333333333
+      },
+      "p4": {
+        "plain": 8.333333333333334,
+        "ux": 6.666666666666667
+      },
+      "p5": {
+        "plain": 5.666666666666667,
+        "ux": 7.666666666666667
+      }
+    },
+    "wins": {
+      "plain": 4,
+      "ux": 10
+    },
+    "losses": {
+      "plain": 10,
+      "ux": 4
+    },
+    "ties": 1,
+    "meanPolish": {
+      "plain": 6.666666666666667,
+      "ux": 7.4
+    },
+    "perPrompt": {
+      "p1": {
+        "plain": 6.333333333333333,
+        "ux": 8,
+        "scoredPairs": 3
+      },
+      "p2": {
+        "plain": 7,
+        "ux": 7.333333333333333,
+        "scoredPairs": 3
+      },
+      "p3": {
+        "plain": 6,
+        "ux": 7.333333333333333,
+        "scoredPairs": 3
+      },
+      "p4": {
+        "plain": 8.333333333333334,
+        "ux": 6.666666666666667,
+        "scoredPairs": 3
+      },
+      "p5": {
+        "plain": 5.666666666666667,
+        "ux": 7.666666666666667,
+        "scoredPairs": 3
+      }
+    }
+  },
+  "mapping": {
+    "p1#0": {
+      "A": "plain",
+      "B": "ux"
+    },
+    "p1": {
+      "A": "plain",
+      "B": "ux"
+    },
+    "p1#1": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p1#2": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p2#0": {
+      "A": "plain",
+      "B": "ux"
+    },
+    "p2": {
+      "A": "plain",
+      "B": "ux"
+    },
+    "p2#1": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p2#2": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p3#0": {
+      "A": "plain",
+      "B": "ux"
+    },
+    "p3": {
+      "A": "plain",
+      "B": "ux"
+    },
+    "p3#1": {
+      "A": "plain",
+      "B": "ux"
+    },
+    "p3#2": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p4#0": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p4": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p4#1": {
+      "A": "plain",
+      "B": "ux"
+    },
+    "p4#2": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p5#0": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p5": {
+      "A": "ux",
+      "B": "plain"
+    },
+    "p5#1": {
+      "A": "plain",
+      "B": "ux"
+    },
+    "p5#2": {
+      "A": "ux",
+      "B": "plain"
+    }
+  },
+  "gradings": {
+    "p1#0": {
+      "A": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 6
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      }
+    },
+    "p1": {
+      "A": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 6
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      }
+    },
+    "p1#1": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 6
+      }
+    },
+    "p1#2": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": false,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      }
+    },
+    "p2#0": {
+      "A": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": false
+        },
+        "polish": 6
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      }
+    },
+    "p2": {
+      "A": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": false
+        },
+        "polish": 6
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      }
+    },
+    "p2#1": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": false,
+          "CLEAN-4": true,
+          "CLEAN-5": false
+        },
+        "polish": 8
+      }
+    },
+    "p2#2": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": false,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      }
+    },
+    "p3#0": {
+      "A": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 6
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      }
+    },
+    "p3": {
+      "A": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 6
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      }
+    },
+    "p3#1": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": false,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 6
+      }
+    },
+    "p3#2": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": false,
+          "CLEAN-4": false,
+          "CLEAN-5": false
+        },
+        "polish": 5
+      }
+    },
+    "p4#0": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": false,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": false
+        },
+        "polish": 6
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      }
+    },
+    "p4": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": false,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": false
+        },
+        "polish": 6
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      }
+    },
+    "p4#1": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 9
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": false
+        },
+        "polish": 6
+      }
+    },
+    "p4#2": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      }
+    },
+    "p5#0": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": false
+        },
+        "polish": 6
+      }
+    },
+    "p5": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": false
+        },
+        "polish": 6
+      }
+    },
+    "p5#1": {
+      "A": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": true
+        },
+        "polish": 6
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 8
+      }
+    },
+    "p5#2": {
+      "A": {
+        "clean": {
+          "CLEAN-1": true,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": true,
+          "CLEAN-5": true
+        },
+        "polish": 7
+      },
+      "B": {
+        "clean": {
+          "CLEAN-1": false,
+          "CLEAN-2": true,
+          "CLEAN-3": true,
+          "CLEAN-4": false,
+          "CLEAN-5": true
+        },
+        "polish": 5
+      }
+    }
+  },
+  "runs": [
+    {
+      "promptId": "p1",
+      "arm": "ux",
+      "tokens": 5355,
+      "costUsd": 0.0819196,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-htvKkO/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-NXpljx/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p1",
+      "arm": "plain",
+      "tokens": 6858,
+      "costUsd": 0.10119410000000001,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-7G1xcB/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-V54wE8/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 6,
+      "cleanFailures": [
+        "CLEAN-1"
+      ]
+    },
+    {
+      "promptId": "p1",
+      "arm": "ux",
+      "tokens": 5288,
+      "costUsd": 0.0786627,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-tucIuN/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-IVblJN/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 1,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p1",
+      "arm": "plain",
+      "tokens": 5897,
+      "costUsd": 0.0870119,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-YEbio7/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-WI00SL/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 1,
+      "polish": 6,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p1",
+      "arm": "plain",
+      "tokens": 5717,
+      "costUsd": 0.0849511,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-m3VDOb/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-eUrwJm/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 2,
+      "polish": 7,
+      "cleanFailures": [
+        "CLEAN-3"
+      ]
+    },
+    {
+      "promptId": "p1",
+      "arm": "ux",
+      "tokens": 6668,
+      "costUsd": 0.09777939999999999,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-kiLYgb/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-Pbtaoe/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 2,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p2",
+      "arm": "ux",
+      "tokens": 3832,
+      "costUsd": 0.05659840000000001,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-0VBz7U/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-pGNrQZ/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 7,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p2",
+      "arm": "plain",
+      "tokens": 4772,
+      "costUsd": 0.07014469999999999,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-2zXBY2/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-GlP6wW/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 6,
+      "cleanFailures": [
+        "CLEAN-1",
+        "CLEAN-5"
+      ]
+    },
+    {
+      "promptId": "p2",
+      "arm": "ux",
+      "tokens": 3941,
+      "costUsd": 0.05923439999999999,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-59IInt/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-8jCMUf/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 1,
+      "polish": 7,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p2",
+      "arm": "plain",
+      "tokens": 5328,
+      "costUsd": 0.0794923,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-A32F5H/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-NUQQMQ/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 1,
+      "polish": 8,
+      "cleanFailures": [
+        "CLEAN-3",
+        "CLEAN-5"
+      ]
+    },
+    {
+      "promptId": "p2",
+      "arm": "ux",
+      "tokens": 3461,
+      "costUsd": 0.0525609,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-hNGMX2/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-UrcA0Z/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 2,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p2",
+      "arm": "plain",
+      "tokens": 3910,
+      "costUsd": 0.0599084,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-orOFGg/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-cWXrD1/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 2,
+      "polish": 7,
+      "cleanFailures": [
+        "CLEAN-3"
+      ]
+    },
+    {
+      "promptId": "p3",
+      "arm": "ux",
+      "tokens": 5097,
+      "costUsd": 0.0739794,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-qf1QWy/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-lMSyjL/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p3",
+      "arm": "plain",
+      "tokens": 4912,
+      "costUsd": 0.0714516,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-fYOL5H/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-H5zhBk/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 6,
+      "cleanFailures": [
+        "CLEAN-1"
+      ]
+    },
+    {
+      "promptId": "p3",
+      "arm": "plain",
+      "tokens": 3941,
+      "costUsd": 0.0580053,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-bb7GkN/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-1nuAv0/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 1,
+      "polish": 7,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p3",
+      "arm": "ux",
+      "tokens": 4134,
+      "costUsd": 0.062283399999999996,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-PXJDOo/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-CZXgJN/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 1,
+      "polish": 6,
+      "cleanFailures": [
+        "CLEAN-1",
+        "CLEAN-3"
+      ]
+    },
+    {
+      "promptId": "p3",
+      "arm": "plain",
+      "tokens": 4152,
+      "costUsd": 0.0614441,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-KSS706/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-55uw2v/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 2,
+      "polish": 5,
+      "cleanFailures": [
+        "CLEAN-1",
+        "CLEAN-3",
+        "CLEAN-4",
+        "CLEAN-5"
+      ]
+    },
+    {
+      "promptId": "p3",
+      "arm": "ux",
+      "tokens": 4567,
+      "costUsd": 0.0683153,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-8b5hZP/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-baC5TH/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 2,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p4",
+      "arm": "ux",
+      "tokens": 6689,
+      "costUsd": 0.0987218,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-rHA3mI/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-Bryl1K/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 6,
+      "cleanFailures": [
+        "CLEAN-2",
+        "CLEAN-4",
+        "CLEAN-5"
+      ]
+    },
+    {
+      "promptId": "p4",
+      "arm": "plain",
+      "tokens": 5864,
+      "costUsd": 0.08507880000000001,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-nLYqLh/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-3gzx5K/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p4",
+      "arm": "ux",
+      "tokens": 5770,
+      "costUsd": 0.0849993,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-7KPMO2/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-T2Kfee/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 1,
+      "polish": 6,
+      "cleanFailures": [
+        "CLEAN-4",
+        "CLEAN-5"
+      ]
+    },
+    {
+      "promptId": "p4",
+      "arm": "plain",
+      "tokens": 6172,
+      "costUsd": 0.08943069999999999,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-T0nxNr/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-By4PbJ/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 1,
+      "polish": 9,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p4",
+      "arm": "plain",
+      "tokens": 5564,
+      "costUsd": 0.08109459999999999,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-nFU4AC/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-HNPzK9/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 2,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p4",
+      "arm": "ux",
+      "tokens": 5904,
+      "costUsd": 0.0875755,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-8735iJ/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-OEy32w/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 2,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p5",
+      "arm": "plain",
+      "tokens": 8760,
+      "costUsd": 0.13159669999999998,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-Ltixt3/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-6k8q2j/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 6,
+      "cleanFailures": [
+        "CLEAN-1",
+        "CLEAN-4",
+        "CLEAN-5"
+      ]
+    },
+    {
+      "promptId": "p5",
+      "arm": "ux",
+      "tokens": 5603,
+      "costUsd": 0.0874172,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-qyHGJO/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-97HZ9F/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 0,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p5",
+      "arm": "ux",
+      "tokens": 5489,
+      "costUsd": 0.08677320000000001,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-66K5Za/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-7S0QZN/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 1,
+      "polish": 8,
+      "cleanFailures": []
+    },
+    {
+      "promptId": "p5",
+      "arm": "plain",
+      "tokens": 5342,
+      "costUsd": 0.0810337,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-4BXcYO/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-b4Tulo/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 1,
+      "polish": 6,
+      "cleanFailures": [
+        "CLEAN-1",
+        "CLEAN-4"
+      ]
+    },
+    {
+      "promptId": "p5",
+      "arm": "plain",
+      "tokens": 5013,
+      "costUsd": 0.0774168,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-CY7kEM/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-oBnAJn/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 2,
+      "polish": 5,
+      "cleanFailures": [
+        "CLEAN-1",
+        "CLEAN-4"
+      ]
+    },
+    {
+      "promptId": "p5",
+      "arm": "ux",
+      "tokens": 5790,
+      "costUsd": 0.0904853,
+      "status": "ok",
+      "excluded": false,
+      "shots": [
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-LGYlEx/shot-390x844.png",
+        "/home/user/studio-agents/evals/ux-build/results/.shots/r-cRq4qp/shot-1280x800.png"
+      ],
+      "consoleErrors": 0,
+      "run": 2,
+      "polish": 7,
+      "cleanFailures": []
+    }
+  ]
+}
