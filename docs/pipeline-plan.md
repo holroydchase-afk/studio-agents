@@ -15,6 +15,13 @@ Chase, Nov 24: "Plan a full pipeline with the agents." This is a plan only. Noth
 | Harness (run log, stamp, kill switch, cost cap, memory, scorecard) | Built | `docs/agent-harness.md` |
 | Nightly hardening | Designed in `docs/qa-hardening.md`; **disabled** (Chase paused it Nov 23) | |
 
+## Design principles (from Anthropic's Claude Code expertise research, via a sibling thread)
+
+1. **Bigger, less chatty handoffs.** Staff PM writes one full spec and the build runs end to end with no check-ins between stages; stages talk through blocks, not questions.
+2. **Chase's attention is the limit.** He gets one batched card per stage group with a `go | fix | kill` verdict, never raw output. Agents review each other first (QA, privacy gate, stakeholders) so the card carries only what survived.
+3. **Chase owns the what; agents own the how.** He decides the idea, the user and what good looks like. If a card asks him to approve implementation details, the pipeline is asking too much and that is a bug to fix.
+4. **Every idea starts with a short domain brief** (who has this problem, what exists, what good looks like, 1 page max, sources cited) written by Staff PM before the MVP cut, so the cut isn't built on guesses. It is reused as the stakeholder agent's context.
+
 ## The pipeline
 
 ```
@@ -130,7 +137,7 @@ Not needed now: release-captain (nothing is released), orchestrator (no coordina
 **Overnight run shape (zero input from Chase)**
 
 ```
-idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ STAKEHOLDERS (cut) ─▶ ARCHITECT (stack, scaffold) ─▶ QA pre ─▶ BUILD (UX for UI, plain Claude for logic)
+idea (one message) ─▶ SEED ─▶ STAFF PM (domain brief, then MVP cut) ─▶ STAKEHOLDERS (cut) ─▶ ARCHITECT (stack, scaffold) ─▶ QA pre ─▶ BUILD (UX for UI, plain Claude for logic)
    ─▶ QA post, green 3x ─▶ PRIVACY GATE ─▶ POSITIONING (README, first screen) ─▶ PREVIEW ─▶ STAKEHOLDERS (preview) ─▶ MORNING CARD
 ```
 
