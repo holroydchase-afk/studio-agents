@@ -206,6 +206,11 @@ check "sync-tools.sh copies all tools" bash "$root/scripts/sync-tools.sh" "$t3"
 check "sync-tools.sh: every tool present and identical" diff -r -x build.mjs "$root/tools" "$t3/scripts"
 check "sync-tools.sh keeps other scripts" grep -qx mine "$t3/scripts/build.mjs"
 check "sync-tools.sh names an unknown tool and copies nothing" bash -c "! bash '$root/scripts/sync-tools.sh' '$tmp/t4' no-such-tool 2>'$tmp/err' && grep -q 'unknown tool: no-such-tool' '$tmp/err' && ! test -e '$tmp/t4/scripts/ux-shots.mjs'"
+check "SYNCDEP-1 sync-tools of agent-guard copies its local imports transitively and the synced tool runs" bash -c "d=\$(mktemp -d); bash '$root/scripts/sync-tools.sh' \"\$d\" agent-guard >/dev/null; for t in agent-guard check-agent-run check-story-entry; do test -f \"\$d/scripts/\$t.mjs\" || { echo \"missing \$t.mjs\"; exit 1; }; done; node \"\$d/scripts/agent-guard.mjs\" kill qa-tdd --root \"\$d\""
+check "SYNCDEP-1 sync-tools of agent-memory copies ux-search, check-agent-run and check-story-entry" bash -c "d=\$(mktemp -d); bash '$root/scripts/sync-tools.sh' \"\$d\" agent-memory >/dev/null; for t in agent-memory ux-search check-agent-run check-story-entry; do test -f \"\$d/scripts/\$t.mjs\" || { echo \"missing \$t.mjs\"; exit 1; }; done"
+check "SYNCDEP-2 sync-tools names each dependency it added" bash -c "o=\$(bash '$root/scripts/sync-tools.sh' \"\$(mktemp -d)\" agent-guard); echo \"\$o\"; echo \"\$o\" | grep -qx 'synced check-agent-run (needed by agent-guard)' || { echo 'no check-agent-run needed-by line'; exit 1; }; echo \"\$o\" | grep -q 'synced check-story-entry (needed by ' || { echo 'no check-story-entry needed-by line'; exit 1; }"
+check "SYNCDEP-3 sync-tools of qa-run3 (no local imports) copies only itself" bash -c "d=\$(mktemp -d); o=\$(bash '$root/scripts/sync-tools.sh' \"\$d\" qa-run3); echo \"\$o\"; test \"\$(ls \"\$d/scripts\")\" = qa-run3.mjs || { echo \"extra files: \$(ls \"\$d/scripts\")\"; exit 1; }; ! echo \"\$o\" | grep -q needed"
+check "SYNCDEP-3 sync-tools with no names copies each tool exactly once, with no needed-by lines" bash -c "d=\$(mktemp -d); o=\$(bash '$root/scripts/sync-tools.sh' \"\$d\"); n=\$(ls '$root/tools'/*.mjs | wc -l); test \"\$(echo \"\$o\" | grep -c '^synced [a-z0-9-]*\$')\" = \"\$n\" || { echo \"expected \$n plain synced lines\"; echo \"\$o\"; exit 1; }; test \"\$(echo \"\$o\" | grep '^synced ' | sort | uniq -d | wc -l)\" = 0 || { echo duplicate; exit 1; }; ! echo \"\$o\" | grep -q needed"
 
 # Every tool is listed in the README; ux-shots passes its tests (browser cases skip without Playwright).
 for f in "$root"/tools/*.mjs; do
@@ -213,7 +218,9 @@ for f in "$root"/tools/*.mjs; do
 done
 check "QACYC-1..7 qa-cycle tool (build-cycle ledger, verify, gate, misses, hardening caps, score)" node --test "$root/tests/qa-cycle.test.mjs"
 check "SKP-1..22 stakeholder plugin: checker, fetch script, package, README (SKP-20 is manual)" node --test "$root/tests/stakeholder.test.mjs"
+check "PRV-1..16 product-review tool (claims check, freshness, lanes, plan, report contract, merge)" node --test "$root/tests/product-review.test.mjs"
 check "STK-PS-R3..R9 stakeholder plugin hardening: fetch script, escaping, strict parser, ship rule, fences, caps, hash agreement" node --test "$root/tests/stakeholder-hardening.test.mjs"
+check "PDRIFT-1..6 TRAIN-1..9 portfolio drift check and nightly release train logic" node --test "$root/tests/portfolio-drift.test.mjs"
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
 check "UXREL-1..5 ux-flows reliability and permissions tests" node --test "$root/tests/ux-reliability.test.mjs"
@@ -239,6 +246,7 @@ check "AGRUN-1 tool check-agent-run exists and is listed in the README" bash -c 
 check "AGRUN-2 check-agent-run tests" node --test "$root/tests/check-agent-run.test.mjs"
 check "SLINT-1 tool spec-lint exists and is listed in the README" bash -c "test -f '$root/tools/spec-lint.mjs' || { echo missing tools/spec-lint.mjs; exit 1; }; grep -q '\`spec-lint\`' '$root/README.md'"
 check "SLINT-2 spec-lint tests" node --test "$root/tests/spec-lint.test.mjs"
+check "PIPE-1..43 pipeline-run ledger, stop rules, merge class" node --test "$root/tests/pipeline-run.test.mjs"
 check "SLINT-3 spec-lint SL-10 and SL-11 gap tests (QA-R1..R5)" node --test "$root/tests/spec-lint-sl10-11-gaps.test.mjs"
 check "GUARD-1 tool agent-guard exists and is listed in the README" bash -c "test -f '$root/tools/agent-guard.mjs' || { echo missing tools/agent-guard.mjs; exit 1; }; grep -q '\`agent-guard\`' '$root/README.md'"
 check "GUARD-2 agent-guard tests" node --test "$root/tests/agent-guard.test.mjs"
@@ -248,6 +256,14 @@ check "SCORE-1 tool agent-scorecard exists and is listed in the README" bash -c 
 check "SCORE-2 agent-scorecard tests" node --test "$root/tests/agent-scorecard.test.mjs"
 check "STAMP-1 tool stamp-run exists and is listed in the README" bash -c "test -f '$root/tools/stamp-run.mjs' || { echo missing tools/stamp-run.mjs; exit 1; }; grep -q '\`stamp-run\`' '$root/README.md'"
 check "STAMP-2 stamp-run tests" node --test "$root/tests/stamp-run.test.mjs"
+check "FBK-1..12 feedback-guard tests" node --test "$root/tests/feedback-guard.test.mjs"
+check "FBK-13 tool check-triage exists and is listed in the README" bash -c "test -f '$root/tools/check-triage.mjs' || { echo missing tools/check-triage.mjs; exit 1; }; grep -q '\`check-triage\`' '$root/README.md'"
+check "FBK-13..15 check-triage tests" node --test "$root/tests/check-triage.test.mjs"
+check "FBK-16,17 feedback widget tests" node --test "$root/tests/feedback-widget.test.mjs"
+check "FBK-19..22 feedback gate script tests" node --test "$root/tests/feedback-gate.test.mjs"
+check "FBK-25 tool feedback-merge-check exists and is listed in the README" bash -c "test -f '$root/tools/feedback-merge-check.mjs' || { echo missing tools/feedback-merge-check.mjs; exit 1; }; grep -q '\`feedback-merge-check\`' '$root/README.md'"
+check "FBK-25 feedback-merge-check tests" node --test "$root/tests/feedback-merge-check.test.mjs"
+check "FBK-16..22 feedback issue form, workflow, docs page, README and agent-harness rows" node --test "$root/tests/feedback-templates.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
