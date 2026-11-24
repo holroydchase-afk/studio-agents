@@ -43,7 +43,7 @@ night shift (hardening, later) ─┘
 - **Stop:** a criterion that can't be tested goes back to Staff PM once, not argued with.
 
 ### Stage 3. Build
-- `lane: logic` goes to the **engineer**. `lane: ui` goes to the **UX agent in its build-grade-revise loop** (UX builds the screen against CLEAN-1..5, DARK/CONTRAST rules and the Anthropic frontend-design skill; the engineer only wires logic).
+- `lane: logic` goes to **plain Claude as the builder, inside QA-TDD's gates** (no separate engineer agent, Chase Nov 24). `lane: ui` goes to the **UX agent in its build-grade-revise loop** (UX builds the screen against CLEAN-1..5, DARK/CONTRAST rules and the Anthropic frontend-design skill; plain Claude wires the logic).
 - **UX loop:** build, capture shots (`ux-shots`), grade with `ux-rules` and `check-findings`, revise. **Limit: 3 rounds.** Done is no open P0/P1 and the `Hard rules checked:` line present. Round 3 with a P0 left stops the run and reports it; it never ships "close enough".
 - **Handoff out:** diff on the branch plus a `uxrun` block (UI lane only).
 
@@ -93,7 +93,7 @@ Agents run on **Sonnet**. **Opus** is for blind graders in evals and for review 
 
 ## Token cost controls (Chase just hit heavy use)
 - One lane at a time; no parallel agent fan-out by default.
-- Subagent only where a fresh context pays off: QA pre-build, graders, UX capture. Staff PM and the engineer run inline when the main session already holds the context.
+- Subagent only where a fresh context pays off: QA pre-build, graders, UX capture. Staff PM and the builder run inline when the main session already holds the context.
 - Stage skipping by lane (docs and config skip UX and the QA build cycle).
 - Context budget per stage: handoff **blocks**, not transcripts, move between stages. A stage reads the spec and the block before it, not the history.
 - Reports short: the spec shows only the recommended option and the rejected one.
@@ -112,25 +112,25 @@ Same lazy prompt, two arms, **plain Claude vs the pipeline**, graded blind by Op
 
 Goal: Chase drops an idea at night and wakes up to an MVP or v1. This is a fourth door into the same pipeline, not a new one, with two extra stages around it (a Stage 0 "seed" and a Stage 7 "preview"). Chase's input is one message; the run asks him nothing.
 
-**Do we need an engineer? Yes, but a better one.** Staff PM, UX and QA-TDD can't replace it: UX builds screens, QA writes tests and fixes the bugs tests find, and nobody else writes the logic, data and wiring that make an MVP work. Today `engineer.md` is a 2 KB prompt with no output contract, no scaffold, and a "stack is fixed" rule that assumes an existing repo. For a blank repo it needs a stack to start from and a way to prove what it built. It stays a full agent (Chase, Nov 23: no downgrades).
+**Do we need an engineer? No (Chase, Nov 24).** Plain Claude already writes code well; what went wrong before was shortcuts and uneven testing and merging, and QA-TDD's tests-first order and fixed gates fix that. An engineer agent would be plain Claude plus a starter scaffold, and we couldn't show it beats plain Claude. So **plain Claude is the builder inside QA-TDD's gates**: tests first, build, post-build tests and fixes, green 3x. The scaffold moves to the architect and the build-report contract to QA-TDD. The existing `engineer.md` is left alone for now and the pipeline doesn't call it; retiring it is a separate, later call.
 
 **What to mature, in order of need for this pipeline:**
 
 | Agent | Today | What it needs for MVP-o-matic |
 |---|---|---|
-| **engineer** | 2 KB prompt, no validator | A ```build block (files, commands run, tests it made green, deps added with reason), validated by a new `check-build`. A greenfield mode: start from a studio scaffold, not an empty folder. Stack ladder from `architect`. |
-| **architect** | Stack and dependency gate | Picks the stack for a new repo once, from a short list (static page with no build step first; the same patterns Hearth, ccwatts and Charlie already use). Owns the scaffold templates. |
+| **qa-tdd** | Mature | Owns the ```build block (files changed, commands run, tests made green, deps added with reason) and a `check-build` validator; its gates are what make plain Claude's build trustworthy. |
+| **architect** | Stack and dependency gate | Picks the stack for a new repo once, from a short list (static page with no build step first; the same patterns Hearth, ccwatts and Charlie already use). Owns the scaffold templates the builder starts from. |
 | **privacy-security** | Reviews changes | A fixed pre-preview gate: no secrets, no personal data, no third-party calls, repo visibility check. Output block validated like `qa`. Blocks the preview, never the build. |
 | **positioning** | Copy and claims | Writes the README and the preview's first screen from the claims register, so v1 doesn't overclaim (the AGENT BAR rule). Runs once, at the end. |
 | **preview (new, thin)** | Doesn't exist | Takes the finished branch, builds the static output, publishes it as a private preview, checks the link loads, writes the morning card. Never publishes publicly, never merges, never touches a live site. Not an agent with judgment; mostly a script plus a short checklist. |
-| staff-pm, qa-tdd, ux-reviewer | Already mature | Staff PM gets an **MVP cut** mode: one persona, one job, 3 to 5 features, everything else on a "v2" list. No change to QA or UX beyond the pipeline's limits. |
+| staff-pm, ux-reviewer | Already mature | Staff PM gets an **MVP cut** mode: one persona, one job, 3 to 5 features, everything else on a "v2" list. No change to QA or UX beyond the pipeline's limits. |
 
 Not needed now: release-captain (nothing is released), orchestrator (no coordination across repos), a second builder.
 
 **Overnight run shape (zero input from Chase)**
 
 ```
-idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ ARCHITECT (stack, scaffold) ─▶ QA pre ─▶ BUILD (UX for UI, engineer for logic)
+idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ ARCHITECT (stack, scaffold) ─▶ QA pre ─▶ BUILD (UX for UI, plain Claude for logic)
    ─▶ QA post, green 3x ─▶ PRIVACY GATE ─▶ POSITIONING (README, first screen) ─▶ PREVIEW ─▶ MORNING CARD
 ```
 
@@ -155,12 +155,12 @@ idea (one message) ─▶ SEED ─▶ STAFF PM (MVP cut) ─▶ ARCHITECT (stack
 3. The runbook as a skill so a thread follows it without rereading this doc.
 4. Dry run on one real non-live task (suggest a studio-agents docs fix), end to end, cost logged.
 5. Outcome eval on the 4 dev prompts, then held-out once.
-6. MVP-o-matic pieces, one PR each: `check-build` and the engineer's ```build block; scaffold templates and the architect's stack list; the privacy-security pre-preview gate; the preview script and morning card; Staff PM's MVP cut mode. Then one supervised daytime dry run on a throwaway idea.
+6. MVP-o-matic pieces, one PR each: `check-build` and qa-tdd's ```build block; scaffold templates and the architect's stack list; the privacy-security pre-preview gate; the preview script and morning card; Staff PM's MVP cut mode. Then one supervised daytime dry run on a throwaway idea.
 7. Open the doors: feedback on Energy Scanner (after PR 126 merges), nightly hardening and the first overnight MVP run only on Chase's resume.
 
 ## Decisions for Chase
 1. **Approve this plan?** Recommend yes.
-2. **Who builds UI in the UI lane?** Recommend the UX agent builds, the engineer wires logic (matches your Nov 23 design). Alternative: the engineer builds and UX only grades.
+2. **Who builds UI in the UI lane?** **Decided Nov 24:** the UX agent builds UI screens and plain Claude builds logic, both inside QA-TDD's gates; no engineer agent.
 3. **Per-run cost cap and weekly token ceiling.** Recommend $1.00 per run and a weekly ceiling you set when usage recovers.
 4. **First dry-run task.** Recommend a small studio-agents docs fix, not a product.
 5. **Merge order of the open PRs.** PR 121 and 126 both touch HANDOFF.md and the harness doc; recommend merging 121, then 126, before build step 1.
