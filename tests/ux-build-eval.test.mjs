@@ -123,6 +123,33 @@ test("UXB-6 a prompt must name product, user and job; lorem ipsum is rejected", 
   assert.equal(checkPrompts(ps, { bannedWords: banned() }).ok, false);
 });
 
+// ---- UXB-4/5/6 against the REAL evals/ux-build/prompts.json (no fixtures for the prompts)
+const realPrompts = () => JSON.parse(readFileSync(join(root, "evals", "ux-build", "prompts.json"), "utf8"));
+test("UXB-4 real prompts.json covers app home, list, settings, form, landing, dashboard, empty state, dialog with id/type/split/text", () => {
+  const ps = realPrompts();
+  assert.ok(ps.length >= 8);
+  for (const t of ["app home", "list", "settings", "form", "landing", "dashboard", "empty state", "dialog"]) {
+    assert.ok(ps.some((p) => p.type === t), `missing type ${t}`);
+  }
+  for (const p of ps) for (const k of ["id", "type", "split", "text"]) {
+    assert.equal(typeof p[k], "string", `${p.id} missing ${k}`);
+    assert.ok(p[k].trim().length > 0, `${p.id} empty ${k}`);
+  }
+});
+test("UXB-5 real prompts.json has exactly 3 heldout and 5 dev", () => {
+  const ps = realPrompts();
+  assert.equal(ps.filter((p) => p.split === "heldout").length, 3);
+  assert.equal(ps.filter((p) => p.split === "dev").length, 5);
+  assert.equal(ps.length, 8);
+});
+test("UXB-6 real prompts.json passes checkPrompts with the banned-words fixture and has no lorem ipsum", async () => {
+  const { checkPrompts } = await load();
+  const ps = realPrompts();
+  const r = checkPrompts(ps, { bannedWords: banned() });
+  assert.equal(r.ok, true, JSON.stringify(r));
+  for (const p of ps) assert.ok(!/lorem ipsum/i.test(p.text), `${p.id} has lorem ipsum`);
+});
+
 // ---- UXB-7
 test("UXB-7 grader input is exactly four screenshots plus the one-line job, nothing else", async () => {
   const { graderInput, shuffleAndMap } = await load();

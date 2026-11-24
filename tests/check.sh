@@ -213,6 +213,7 @@ for f in "$root"/tools/*.mjs; do
 done
 check "QACYC-1..7 qa-cycle tool (build-cycle ledger, verify, gate, misses, hardening caps, score)" node --test "$root/tests/qa-cycle.test.mjs"
 check "SKP-1..22 stakeholder plugin: checker, fetch script, package, README (SKP-20 is manual)" node --test "$root/tests/stakeholder.test.mjs"
+check "STK-PS-R3..R9 stakeholder plugin hardening: fetch script, escaping, strict parser, ship rule, fences, caps, hash agreement" node --test "$root/tests/stakeholder-hardening.test.mjs"
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
 check "UXREL-1..5 ux-flows reliability and permissions tests" node --test "$root/tests/ux-reliability.test.mjs"
