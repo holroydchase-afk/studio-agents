@@ -4,7 +4,7 @@
 // entry at the bottom; `--dry-run` there uses fakes. Tests never execute the CLI.
 // Usage: node tools/ux-build-eval.mjs --dry-run [--prompts prompts.json]
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, existsSync, copyFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
@@ -32,19 +32,32 @@ export function classifyRun(run) {
   return { status: "ok", excluded: false };
 }
 
-// UXB-2
+// UXB-2: only resources the page would LOAD are rejected. A plain <a href> to a remote page is fine.
 export function validateArmOutput(html) {
   const reasons = [];
   if (typeof html !== "string" || html.trim() === "") return { ok: false, status: "error", reasons: ["empty output"] };
   if (!/<html[\s>]|<!doctype html/i.test(html) || !/<body[\s>]/i.test(html)) reasons.push("not an HTML document");
   const remote = (v) => /^\s*(https?:|\/\/)/i.test(v);
-  for (const m of html.matchAll(/\b(?:src|srcset|href)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)) {
-    const v = m[1] ?? m[2] ?? m[3] ?? "";
-    // srcset may hold several urls
-    for (const part of v.split(",")) if (remote(part)) { reasons.push(`remote reference: ${part.trim().slice(0, 60)}`); break; }
+  const attrsOf = (str) => {
+    const out = {};
+    for (const m of str.matchAll(/([^\s=\/"']+)\s*(?:=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g)) out[m[1].toLowerCase()] = m[2] ?? m[3] ?? m[4] ?? "";
+    return out;
+  };
+  for (const m of html.matchAll(/<([a-zA-Z][\w:-]*)\b([^>]*)>/g)) {
+    const tag = m[1].toLowerCase();
+    const at = attrsOf(m[2]);
+    const hit = (v, what) => reasons.push(`remote reference: ${what} ${String(v).trim().slice(0, 60)}`);
+    if (at.src !== undefined && remote(at.src)) hit(at.src, `${tag} src`);
+    if (at.poster !== undefined && remote(at.poster)) hit(at.poster, `${tag} poster`);
+    if (at.srcset !== undefined) for (const part of at.srcset.split(",")) if (remote(part)) { hit(part, `${tag} srcset`); break; }
+    if (tag === "link" && at.href !== undefined && remote(at.href) && /\b(stylesheet|preload|modulepreload|prefetch)\b/i.test(at.rel || "")) hit(at.href, "link");
+    if ((tag === "image" || tag === "use") && at.href !== undefined && remote(at.href)) hit(at.href, tag);
+    if (tag === "object" && at.data !== undefined && remote(at.data)) hit(at.data, "object data");
   }
   for (const m of html.matchAll(/url\(\s*(["']?)([^)"']*)\1\s*\)/gi)) if (remote(m[2])) reasons.push(`remote css url(): ${m[2].slice(0, 60)}`);
   for (const m of html.matchAll(/@import\s+(?:url\(\s*)?["']?([^"')\s;]+)/gi)) if (remote(m[1])) reasons.push(`remote @import: ${m[1].slice(0, 60)}`);
+  for (const m of html.matchAll(/\b(?:fetch|WebSocket|EventSource|importScripts|import)\s*\(\s*["'`]\s*((?:https?:|\/\/)[^"'`]*)/g)) reasons.push(`remote script request: ${m[1].slice(0, 60)}`);
+  for (const m of html.matchAll(/\.(?:open|sendBeacon)\s*\(\s*(?:["'`][A-Za-z]+["'`]\s*,\s*)?["'`]\s*((?:https?:|\/\/)[^"'`]*)/g)) reasons.push(`remote script request: ${m[1].slice(0, 60)}`);
   return reasons.length ? { ok: false, status: "error", reasons } : { ok: true, status: "ok", reasons: [] };
 }
 
@@ -61,17 +74,18 @@ export async function renderArm({ html, renderer }) {
 }
 
 // UXB-1, UXB-14: sequential, one at a time
-export async function runArms({ prompt, runner, renderer, model }) {
+export async function runArms({ prompt, runner, renderer, model, order = ARMS }) {
   assertSameInputs({ plain: { prompt: prompt.text, model }, ux: { prompt: prompt.text, model } });
   const runs = [];
-  for (const arm of ARMS) {
+  for (const arm of order) {
     let raw;
     try { raw = await runner({ arm, prompt, model }); } catch (e) { raw = { error: { kind: /timeout/i.test(e.message) ? "timeout" : "error" } }; }
     const run = { promptId: prompt.id, arm, tokens: raw.tokens ?? 0, costUsd: raw.costUsd ?? 0 };
     const c = classifyRun(raw);
     const v = c.status === "ok" ? validateArmOutput(raw.html) : { ok: false, reasons: [c.reason] };
     if (!v.ok) { runs.push({ ...run, status: "error", excluded: true, reasons: v.reasons }); continue; }
-    const r = await renderArm({ html: raw.html, renderer });
+    let r;
+    try { r = await renderArm({ html: raw.html, renderer }); } catch { runs.push({ ...run, status: "error", excluded: true, reasons: ["render failed"] }); continue; }
     runs.push({ ...run, status: "ok", excluded: false, ...r });
   }
   return { runs };
@@ -189,15 +203,26 @@ export function checkResults(res) {
 // wins: pairs where the arm scored higher. losses: pairs where it scored lower. A pair with an errored arm is
 // excluded, so an error is never a loss for either arm (UXB-15).
 export function tally(runs) {
-  const byPrompt = {};
-  for (const r of runs) (byPrompt[r.promptId] ??= {})[r.arm] = r;
-  const out = { scored: {}, wins: { plain: 0, ux: 0 }, losses: { plain: 0, ux: 0 }, ties: 0 };
-  for (const [id, a] of Object.entries(byPrompt)) {
-    if (a.plain?.status !== "ok" || a.ux?.status !== "ok") continue;
-    out.scored[id] = { plain: a.plain.polish, ux: a.ux.polish };
-    if (a.plain.polish === a.ux.polish) out.ties++;
-    else { const w = a.ux.polish > a.plain.polish ? "ux" : "plain"; out.wins[w]++; out.losses[w === "ux" ? "plain" : "ux"]++; }
+  const byPair = {};
+  for (const r of runs) ((byPair[r.promptId] ??= {})[r.run ?? 0] ??= {})[r.arm] = r;
+  const out = { scored: {}, wins: { plain: 0, ux: 0 }, losses: { plain: 0, ux: 0 }, ties: 0, meanPolish: { plain: 0, ux: 0 }, perPrompt: {} };
+  const sum = { plain: 0, ux: 0 };
+  let n = 0;
+  for (const [id, byRun] of Object.entries(byPair)) {
+    const pp = { plain: 0, ux: 0, scoredPairs: 0 };
+    for (const a of Object.values(byRun)) {
+      if (a.plain?.status !== "ok" || a.ux?.status !== "ok") continue;
+      pp.plain += a.plain.polish; pp.ux += a.ux.polish; pp.scoredPairs++;
+      if (a.plain.polish === a.ux.polish) out.ties++;
+      else { const w = a.ux.polish > a.plain.polish ? "ux" : "plain"; out.wins[w]++; out.losses[w === "ux" ? "plain" : "ux"]++; }
+    }
+    if (!pp.scoredPairs) continue;
+    sum.plain += pp.plain; sum.ux += pp.ux; n += pp.scoredPairs;
+    pp.plain /= pp.scoredPairs; pp.ux /= pp.scoredPairs;
+    out.perPrompt[id] = pp;
+    out.scored[id] = { plain: pp.plain, ux: pp.ux };
   }
+  if (n) out.meanPolish = { plain: sum.plain / n, ux: sum.ux / n };
   return out;
 }
 export function resumePoint(promptIds, runs) {
@@ -320,40 +345,93 @@ const limits = [
   "Dev results are for tuning; held-out is run once per change id.",
 ];
 
-export async function runDevSet({ prompts, split = "dev", ledger, runner, renderer, grader, changeId, model = "sonnet", graderModel = "opus", outFile }) {
+// Grader spawn lives here so it can be tested with a fake spawn. Returns {text, costUsd} or {error:{kind}}.
+export async function runClaudeGrader({ job, pairShotsAB, spawn = defaultSpawn, mkdtemp = defaultMkdtemp, timeout = 600000 }) {
+  try {
+    const dirs = [...new Set([...pairShotsAB.A, ...pairShotsAB.B].map((f) => dirname(f)))];
+    const args = ["-p", "--model", "opus", "--output-format", "json", "--tools", "Read", "--permission-mode", "acceptEdits", ...dirs.flatMap((d) => ["--add-dir", d]), "--", buildGraderPrompt({ job, pairShotsAB })];
+    const cwd = await mkdtemp("uxb-grade-");
+    const r = await spawn("claude", args, { cwd, timeout });
+    if (!r || r.error || r.status !== 0) return { error: { kind: failKind(r || {}) } };
+    let j;
+    try { j = JSON.parse(r.stdout); } catch { return { error: { kind: "bad_json" } }; }
+    return { text: String(j.result ?? ""), costUsd: j.total_cost_usd ?? 0 };
+  } catch (e) {
+    return { error: { kind: /timeout|ETIMEDOUT/i.test(e.message) ? "timeout" : "error" } };
+  }
+}
+
+// Copy shots to neutral dirs (shotsRoot/s1, s2, ...) so the grader never sees arm names, the change id or --out.
+function stageShots(shots, root, next) {
+  const dir = join(root, `s${next()}`);
+  mkdirSync(dir, { recursive: true });
+  return shots.map((src, i) => {
+    const dst = join(dir, `v${i + 1}.png`);
+    copyFileSync(src, dst);
+    return dst;
+  });
+}
+
+export async function runDevSet({ prompts, split = "dev", ledger, runner, renderer, grader, changeId, model = "sonnet", graderModel = "opus", outFile, runs: runsPerArm = 1, shotsRoot }) {
   const set = prompts.filter((p) => p.split === split);
   if (split === "heldout") (ledger ??= createHeldoutLedger()).record(changeId);
-  const runs = [], mapping = {}, gradings = {};
+  const root = resolve(shotsRoot ?? defaultMkdtemp("uxb-shots-"));
+  let counter = 0;
+  const nextDir = () => ++counter;
+  const runs = [], pairs = [], mapping = {}, gradings = {};
   let cost = 0;
   for (const p of set) {
-    const { runs: pr } = await runArms({ prompt: p, runner, renderer, model });
-    const byArm = Object.fromEntries(pr.map((r) => [r.arm, r]));
-    cost += pr.reduce((a, r) => a + (r.costUsd || 0), 0);
-    if (byArm.plain.status === "ok" && byArm.ux.status === "ok") {
-      const pair = { promptId: p.id, job: jobOf(p), arms: { plain: { shots: byArm.plain.shots }, ux: { shots: byArm.ux.shots } } };
-      const { presented, mapping: m } = shuffleAndMap([pair], seedOf(`${changeId}:${p.id}`));
-      const raw = await grader({ job: pair.job, pairShotsAB: { A: presented[0].arms.A.shots, B: presented[0].arms.B.shots } });
-      const text = typeof raw === "string" ? raw : raw?.text;
-      cost += typeof raw === "object" ? raw?.costUsd || 0 : 0;
-      const g = parseGrade(text);
-      const toRec = (x) => ({ clean: Object.fromEntries(CLEAN_IDS.map((id, i) => [id, x.clean[i]])), polish: x.polish });
-      const ok = !g.error && scoreRecord({ graderModel, A: toRec(g.grade.A), B: toRec(g.grade.B) }, { armModel: model }).ok;
-      if (ok) {
-        mapping[p.id] = m[p.id];
-        gradings[p.id] = { A: toRec(g.grade.A), B: toRec(g.grade.B) };
-        for (const label of ["A", "B"]) {
-          const run = byArm[m[p.id][label]];
-          run.polish = g.grade[label].polish;
-          run.cleanFailures = CLEAN_IDS.filter((id, i) => !g.grade[label].clean[i]);
+    for (let run = 0; run < runsPerArm; run++) {
+      const order = seedOf(`${changeId}:${p.id}:${run}:order`) % 2 ? ["ux", "plain"] : ["plain", "ux"];
+      const { runs: pr } = await runArms({ prompt: p, runner, renderer, model, order });
+      for (const r of pr) r.run = run;
+      const byArm = Object.fromEntries(pr.map((r) => [r.arm, r]));
+      cost += pr.reduce((a, r) => a + (r.costUsd || 0), 0);
+      let reason;
+      if (byArm.plain.status === "ok" && byArm.ux.status === "ok" && ![...byArm.plain.shots, ...byArm.ux.shots].every((s) => s && existsSync(s))) {
+        reason = "no screenshot";
+        for (const r of pr) { r.status = "error"; r.excluded = true; r.reasons = [reason]; }
+      } else if (byArm.plain.status === "ok" && byArm.ux.status === "ok") {
+        const pair = { promptId: p.id, job: jobOf(p), arms: { plain: { shots: byArm.plain.shots }, ux: { shots: byArm.ux.shots } } };
+        const { presented, mapping: m } = shuffleAndMap([pair], seedOf(`${changeId}:${p.id}:${run}`));
+        const pairShotsAB = { A: stageShots(presented[0].arms.A.shots, root, nextDir), B: stageShots(presented[0].arms.B.shots, root, nextDir) };
+        const raw = await grader({ job: pair.job, pairShotsAB });
+        const text = typeof raw === "string" ? raw : raw?.text;
+        cost += typeof raw === "object" ? raw?.costUsd || 0 : 0;
+        const g = raw?.error ? { error: raw.error } : parseGrade(text);
+        const toRec = (x) => ({ clean: Object.fromEntries(CLEAN_IDS.map((id, i) => [id, x.clean[i]])), polish: x.polish });
+        const ok = !g.error && scoreRecord({ graderModel, A: toRec(g.grade.A), B: toRec(g.grade.B) }, { armModel: model }).ok;
+        if (ok) {
+          mapping[`${p.id}#${run}`] = m[p.id];
+          if (run === 0) mapping[p.id] = m[p.id];
+          gradings[`${p.id}#${run}`] = { A: toRec(g.grade.A), B: toRec(g.grade.B) };
+          if (run === 0) gradings[p.id] = gradings[`${p.id}#${run}`];
+          for (const label of ["A", "B"]) {
+            const r = byArm[m[p.id][label]];
+            r.polish = g.grade[label].polish;
+            r.cleanFailures = CLEAN_IDS.filter((id, i) => !g.grade[label].clean[i]);
+          }
+        } else {
+          reason = `grader: ${g.error?.kind || "invalid grading"}`;
+          for (const r of pr) { r.status = "error"; r.excluded = true; r.reasons = [reason]; }
         }
-      } else for (const r of pr) { r.status = "error"; r.excluded = true; r.reasons = [`grader: ${g.error?.kind || "invalid grading"}`]; }
+      } else reason = pr.filter((r) => r.status !== "ok").flatMap((r) => r.reasons || []).join("; ") || "arm error";
+      const okPair = byArm.plain.status === "ok" && byArm.ux.status === "ok";
+      pairs.push({
+        promptId: p.id, run, order: pr.map((r) => r.arm),
+        scores: okPair ? { plain: byArm.plain.polish, ux: byArm.ux.polish } : { plain: null, ux: null },
+        status: okPair ? "ok" : "error", ...(okPair ? {} : { reason }),
+      });
+      runs.push(...pr);
     }
-    runs.push(...pr);
   }
   const t = tally(runs);
+  const summary = { scoredPairs: pairs.filter((x) => x.status === "ok").length, erroredPairs: pairs.filter((x) => x.status === "error").length, wins: t.wins, ties: t.ties, meanPolish: t.meanPolish, perPrompt: t.perPrompt };
   const res = {
-    n: { prompts: set.length, runsPerArm: 1, scoredPairs: Object.keys(t.scored).length },
+    schemaVersion: 1,
+    n: { prompts: set.length, runsPerArm, scoredPairs: summary.scoredPairs },
     arms: ARMS, armModels: { plain: model, ux: model }, graderModel, split, changeId, cost, limits,
+    pairs, summary,
     scored: t.scored, tally: t, mapping, gradings,
     runs,
   };
@@ -362,12 +440,27 @@ export async function runDevSet({ prompts, split = "dev", ledger, runner, render
 }
 
 // ---- CLI (never run by tests). --dry-run uses fakes; otherwise real `claude -p` arms, Playwright and an Opus grader.
+const REPO_ROOT = resolve(HERE, "..");
+export function cliPaths({ changeId, root = REPO_ROOT }) {
+  const dir = join(root, "evals", "ux-build", "results");
+  return { outFile: join(dir, `${changeId}.json`), shotsRoot: join(dir, ".shots") };
+}
 function flag(argv, name, dflt) { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : dflt; }
+export function parseCliArgs(argv) {
+  const rawRuns = flag(argv, "--runs", "1");
+  if (!/^\d+$/.test(String(rawRuns)) || Number(rawRuns) < 1) throw new Error(`--runs must be a positive integer, got ${rawRuns}`);
+  const changeId = flag(argv, "--change-id");
+  return {
+    dryRun: argv.includes("--dry-run"), runs: Number(rawRuns), changeId, split: flag(argv, "--split", "dev"),
+    prompts: flag(argv, "--prompts"), pluginDir: flag(argv, "--plugin-dir", DEFAULT_PLUGIN_DIR),
+    out: flag(argv, "--out") ?? (changeId ? cliPaths({ changeId }).outFile : undefined),
+  };
+}
 
 async function main(argv) {
-  const dry = argv.includes("--dry-run");
-  const prompts = argv.includes("--prompts") ? JSON.parse(readFileSync(flag(argv, "--prompts"), "utf8")) : [{ id: "dry", type: "app home", split: "dev", text: "Dry run." }];
-  if (dry) {
+  const args = parseCliArgs(argv);
+  const prompts = args.prompts ? JSON.parse(readFileSync(args.prompts, "utf8")) : [{ id: "dry", type: "app home", split: "dev", text: "Dry run." }];
+  if (args.dryRun) {
     const goodHtml = '<!doctype html><html><body><p>dry run</p></body></html>';
     const renderer = async ({ width, height }) => ({ png: `shot-${width}x${height}.png`, consoleErrors: 0 });
     for (const p of prompts) {
@@ -376,28 +469,18 @@ async function main(argv) {
     }
     return;
   }
-  const split = flag(argv, "--split", "dev");
-  const changeId = flag(argv, "--change-id");
-  const outFile = flag(argv, "--out");
-  if (!changeId || !outFile) throw new Error("real run needs --change-id <id> and --out <file> (or use --dry-run)");
-  const pluginDir = flag(argv, "--plugin-dir", DEFAULT_PLUGIN_DIR);
-  const ledger = createHeldoutLedger({ file: `${outFile}.heldout-ledger.json` });
-  const shotsRoot = `${outFile}.shots`;
+  const { changeId, split, pluginDir, out: outFile } = args;
+  if (!changeId) throw new Error("real run needs --change-id <id> (or use --dry-run)");
+  const shotsRoot = cliPaths({ changeId }).shotsRoot;
   mkdirSync(shotsRoot, { recursive: true });
+  const ledger = createHeldoutLedger({ file: join(dirname(resolve(outFile)), ".heldout-ledger.json") });
   const runner = (a) => runClaudeArm({ ...a, pluginDir });
   const renderer = async ({ html, width, height }) => {
-    const r = await renderShots({ html, widths: [width], outDir: mkdtempSync(join(resolve(shotsRoot), "r-")) });
+    const r = await renderShots({ html, widths: [width], outDir: mkdtempSync(join(shotsRoot, "r-")) });
+    if (!r.shots[0] || !existsSync(r.shots[0])) throw new Error("render produced no screenshot");
     return { png: r.shots[0], consoleErrors: r.consoleErrors };
   };
-  const grader = async ({ job, pairShotsAB }) => {
-    const dirs = [...new Set([...pairShotsAB.A, ...pairShotsAB.B].map((f) => dirname(f)))];
-    const args = ["-p", "--model", "opus", "--output-format", "json", "--tools", "Read", "--permission-mode", "acceptEdits", ...dirs.flatMap((d) => ["--add-dir", d]), "--", buildGraderPrompt({ job, pairShotsAB })];
-    const r = spawnSync("claude", args, { encoding: "utf8", timeout: 600000, cwd: mkdtempSync(join(tmpdir(), "uxb-grade-")), maxBuffer: 64 * 1024 * 1024 });
-    if (r.error || r.status !== 0) return { text: "", costUsd: 0 };
-    const j = JSON.parse(r.stdout);
-    return { text: String(j.result ?? ""), costUsd: j.total_cost_usd ?? 0 };
-  };
-  const res = await runDevSet({ prompts, split, ledger, runner, renderer, grader, changeId, model: "sonnet", outFile });
+  const res = await runDevSet({ prompts, split, ledger, runner, renderer, grader: runClaudeGrader, changeId, model: "sonnet", outFile, runs: args.runs, shotsRoot });
   console.log(JSON.stringify({ outFile, split, changeId, n: res.n, wins: res.tally.wins, ties: res.tally.ties, cost: res.cost }));
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

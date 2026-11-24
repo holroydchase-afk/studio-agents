@@ -326,7 +326,7 @@ test("UXB-12 MANUAL: frontend-design skill reachability recorded with source and
 //     {result, usage:{input_tokens, output_tokens}, total_cost_usd}
 //   grader({job, pairShotsAB}) -> raw text (parseGrade turns it into scores); pairShotsAB = {A:[p,p], B:[p,p]}
 // =====================================================================================================
-import { mkdtempSync, writeFileSync, existsSync, statSync, readFileSync as readFile } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync, statSync, readFileSync as readFile } from "node:fs";
 import { tmpdir } from "node:os";
 
 const SUFFIX_RE = /index\.html/;
@@ -495,7 +495,10 @@ function devFakes() {
     if (prompt.id === "p2" && arm === "plain") return { error: { kind: "rate_limit" } };
     return { html: fx("html-good.html"), tokens: 100, costUsd: 0.5 };
   };
-  const renderer = async ({ width, height }) => ({ png: `/s/shot-${width}x${height}.png`, consoleErrors: 0 });
+  // Fake updated: it used to return nonexistent paths; it now writes a tiny real file so a missing shot means a real failure.
+  const shotDir = mkdtempSync(join(tmpdir(), "uxb-dev-shots-"));
+  let shotN = 0;
+  const renderer = async ({ width, height }) => { const png = join(shotDir, `shot-${width}x${height}-${shotN++}.png`); writeFileSync(png, "png"); return { png, consoleErrors: 0 }; };
   const grader = async ({ job, pairShotsAB }) => { log.grader.push({ job, pairShotsAB }); return JSON.stringify({ A: { clean: [true, true, true, true, true], polish: 5 }, B: { clean: [true, true, true, true, true], polish: 9 } }); };
   return { log, runner, renderer, grader };
 }
@@ -565,4 +568,302 @@ test("UXB-5 real runner: a heldout run uses only the 3 heldout prompts; dev may 
   const g = devFakes();
   const ledger = m.createHeldoutLedger();
   for (let i = 0; i < 2; i++) await m.runDevSet({ prompts: prompts(), split: "dev", ledger, runner: g.runner, renderer: g.renderer, grader: g.grader, changeId: "same", model: "sonnet", outFile: outPath("d.json") });
+});
+
+// =====================================================================================================
+// Round 2 (QA-R1, QA-R2, QA-R3, multi-run, remote-URL rule, scorecard-ready results). Fakes are TEST-ONLY.
+// Contracts chosen here (change them only with the test):
+//   runDevSet({..., runs = 1, shotsRoot})  runs = runs per arm per prompt; shotsRoot = where neutral shot dirs go
+//     (default: a fresh temp dir). Shots are COPIED to shotsRoot/<s1|s2...>/..., so the grader never sees the
+//     renderer's paths, --out, change id or any arm name.
+//   grader(...) may return a string, {text, costUsd} or {error:{kind}} (a failed spawn).
+//   runClaudeGrader({job, pairShotsAB, spawn, mkdtemp, timeout}) -> {text, costUsd} | {error:{kind}}
+//   results file: {schemaVersion:1, pairs:[{promptId, run, order:[arm,arm], scores:{plain,ux}, status, reason?}],
+//     summary:{scoredPairs, erroredPairs, wins:{plain,ux}, ties, meanPolish:{plain,ux}, perPrompt:{id:{plain,ux,scoredPairs}}}}
+//   parseCliArgs(argv) -> {runs (default 1), changeId, out, split, ...}; cliPaths({changeId, root}) -> {outFile, shotsRoot}
+// =====================================================================================================
+import { spawnSync } from "node:child_process";
+import { sep, basename } from "node:path";
+
+const armHtml = (arm, id) => `<!doctype html><html><head><title>t</title></head><body><p>ARM:${arm} PROMPT:${id}</p></body></html>`;
+const POLISH = { p1: { ux: 9, plain: 5 }, p3: { ux: 7, plain: 7 }, p4: { ux: 6, plain: 8 }, p5: { ux: 9, plain: 5 } };
+function r2Fakes({ changeId, errorPlainFor = ["p2"], polish = (id) => POLISH[id] ?? { ux: 9, plain: 5 }, graderReply } = {}) {
+  const log = { order: {}, active: 0, maxActive: 0, grader: [], labels: [] };
+  const runner = async ({ arm, prompt }) => {
+    log.active++; log.maxActive = Math.max(log.maxActive, log.active);
+    (log.order[prompt.id] ??= []).push(arm);
+    await new Promise((r) => setTimeout(r, 1));
+    log.active--;
+    if (arm === "plain" && errorPlainFor.includes(prompt.id)) return { error: { kind: "rate_limit" } };
+    return { html: armHtml(arm, prompt.id), tokens: 10, costUsd: 0.1 };
+  };
+  let n = 0;
+  const renderer = async ({ html, width, height }) => {
+    const [, arm, id] = html.match(/ARM:(\w+) PROMPT:(\w+)/);
+    // deliberately arm- and change-revealing paths: the harness must not hand these to the grader
+    const dir = join(mkdtempSync(join(tmpdir(), "uxb-r-")), `${changeId ?? "c"}-out-${arm}`);
+    mkdirSync(dir, { recursive: true });
+    const file = join(dir, `shot-${arm}-${width}x${height}-${n++}.png`);
+    writeFileSync(file, `${arm}:${id}`);
+    return { png: file, consoleErrors: 0 };
+  };
+  const grader = async ({ job, pairShotsAB }) => {
+    log.grader.push({ job, pairShotsAB });
+    if (graderReply) return graderReply;
+    const [a, b] = ["A", "B"].map((l) => readFile(pairShotsAB[l][0], "utf8").split(":"));
+    log.labels.push(a[0]);
+    const sc = polish(a[1]);
+    const g = (arm) => ({ clean: [true, true, true, true, true], polish: sc[arm] });
+    return JSON.stringify({ A: g(a[0]), B: g(b[0]) });
+  };
+  return { log, runner, renderer, grader };
+}
+async function r2Run(over = {}) {
+  const m = await load();
+  const changeId = over.changeId ?? "chg-r2";
+  const f = r2Fakes({ changeId, ...over.fake });
+  const outFile = outPath("res.json");
+  const set = over.prompts ?? prompts();
+  await m.runDevSet({ prompts: set, split: "dev", runner: f.runner, renderer: f.renderer, grader: f.grader, changeId, model: "sonnet", outFile, ...over.opts });
+  return { f, outFile, res: JSON.parse(readFile(outFile, "utf8")), m };
+}
+const eight = () => Array.from({ length: 8 }, (_, i) => ({ ...prompts()[i % 5], id: `q${i + 1}`, split: "dev" }));
+
+// ---- QA-R2 arm order
+test("QA-R2 arm order is randomized per prompt: across 8 prompt ids both orders occur", async () => {
+  const { f } = await r2Run({ prompts: eight(), fake: { errorPlainFor: [] } });
+  const firsts = new Set(Object.values(f.log.order).map((o) => o[0]));
+  assert.deepEqual([...firsts].sort(), ["plain", "ux"], JSON.stringify(f.log.order));
+  assert.ok(Object.values(f.log.order).every((o) => o.length === 2 && new Set(o).size === 2));
+});
+test("QA-R2 the order is repeatable (seeded from changeId:promptId) and arms still run one at a time", async () => {
+  const a = await r2Run({ prompts: eight(), fake: { errorPlainFor: [] } });
+  const b = await r2Run({ prompts: eight(), fake: { errorPlainFor: [] } });
+  assert.deepEqual(a.f.log.order, b.f.log.order);
+  assert.equal(a.f.log.maxActive, 1);
+});
+test("QA-R2 the results file lists the order used per prompt, matching what actually ran", async () => {
+  const { f, res } = await r2Run({ prompts: eight(), fake: { errorPlainFor: [] } });
+  assert.equal(res.pairs.length, 8);
+  for (const p of res.pairs) assert.deepEqual(p.order, f.log.order[p.promptId], p.promptId);
+});
+
+// ---- QA-R1 neutral shot paths
+test("QA-R1 the grader sees only neutral s1/s2-style paths under shotsRoot, never --out, change id or arm names", async () => {
+  const root = mkdtempSync(join(tmpdir(), "neutral-root-"));
+  const changeId = "chg-ux-plain-leak";
+  const { f, outFile } = await r2Run({ changeId, opts: { shotsRoot: root } });
+  assert.ok(f.log.grader.length > 0);
+  const outDirName = basename(dirname(outFile)).toLowerCase();
+  for (const { pairShotsAB } of f.log.grader) {
+    const aDirs = new Set(), bDirs = new Set();
+    for (const [label, set] of [["A", aDirs], ["B", bDirs]]) for (const p of pairShotsAB[label]) {
+      assert.ok(p.startsWith(root + sep), `${p} is not under shotsRoot`);
+      assert.ok(existsSync(p), `${p} must exist (copied)`);
+      const rel = p.slice(root.length + 1).toLowerCase();
+      for (const bad of ["ux", "plain", changeId.toLowerCase(), outDirName]) assert.ok(!rel.includes(bad), `${rel} leaks "${bad}"`);
+      assert.match(rel.split(sep)[0], /^s\d+$/, `${rel}: first segment should be s1/s2 style`);
+      set.add(rel.split(sep)[0]);
+    }
+    assert.equal(aDirs.size, 1); assert.equal(bDirs.size, 1);
+    assert.notDeepEqual([...aDirs], [...bDirs], "A and B live in different neutral dirs");
+  }
+});
+test("QA-R1 with the default shots root the grader paths still carry no change id, out dir or arm name from us", async () => {
+  const changeId = "chg-leakcheck-plain";
+  const { f, outFile } = await r2Run({ changeId });
+  for (const { pairShotsAB } of f.log.grader) for (const p of [...pairShotsAB.A, ...pairShotsAB.B]) {
+    assert.ok(existsSync(p));
+    assert.ok(!p.includes(changeId), p);
+    assert.ok(!p.includes(basename(dirname(outFile))), p);
+    assert.ok(!/plain/i.test(p), p);
+    assert.match(basename(dirname(p)), /^s\d+$/, p);
+  }
+});
+
+// ---- QA-R3 grader failure kinds
+for (const kind of ["timeout", "exit_nonzero", "rate_limit"]) {
+  test(`QA-R3 a failed grader (${kind}) records that kind on the errored pair, not 'unparseable'`, async () => {
+    const { res } = await r2Run({ fake: { errorPlainFor: [], graderReply: { error: { kind } } } });
+    assert.ok(res.pairs.length > 0 && res.pairs.every((p) => p.status === "error"), JSON.stringify(res.pairs[0]));
+    for (const p of res.pairs) { assert.match(String(p.reason), new RegExp(kind)); assert.ok(!/unparseable/.test(String(p.reason))); }
+    assert.ok(!JSON.stringify(res).includes("unparseable"));
+    assert.equal(res.summary.scoredPairs, 0);
+    assert.equal(res.summary.wins.ux + res.summary.wins.plain + res.summary.ties, 0, "errors are never wins, losses or ties");
+  });
+}
+test("QA-R3 runClaudeGrader maps a failed spawn to {error:{kind}} and a good one to text and cost", async () => {
+  const { runClaudeGrader } = await load();
+  const call = (r) => runClaudeGrader({ job: "A grandparent sees photos.", pairShotsAB: SHOTS, mkdtemp: tmpMk(), spawn: async () => r });
+  assert.equal((await call({ status: null, signal: "SIGTERM", error: Object.assign(new Error("ETIMEDOUT"), { code: "ETIMEDOUT" }) })).error.kind, "timeout");
+  assert.equal((await call({ status: 1, stdout: "", stderr: "429 rate limit" })).error.kind, "rate_limit");
+  assert.equal((await call({ status: 2, stdout: "", stderr: "boom" })).error.kind, "exit_nonzero");
+  const ok = await call({ status: 0, stdout: JSON.stringify({ result: "{}", total_cost_usd: 0.3 }) });
+  assert.equal(ok.error, undefined); assert.equal(ok.text, "{}"); assert.equal(ok.costUsd, 0.3);
+});
+
+// ---- multi-run
+test("UXB-14 multi-run: --runs N runs N times per arm per prompt and records n.runsPerArm", async () => {
+  const { f, res } = await r2Run({ opts: { runs: 3 }, fake: { errorPlainFor: [] } });
+  for (const id of ["p1", "p2", "p3", "p4", "p5"]) assert.equal(f.log.order[id].length, 6, id);
+  assert.equal(res.n.runsPerArm, 3);
+  assert.equal(res.n.prompts, 5);
+  assert.equal(f.log.maxActive, 1);
+  assert.equal(res.pairs.length, 15);
+  assert.deepEqual(res.pairs.filter((p) => p.promptId === "p1").map((p) => p.run).sort(), [0, 1, 2]);
+});
+test("UXB-14 multi-run: default is one run per arm", async () => {
+  const { f, res } = await r2Run({ fake: { errorPlainFor: [] } });
+  assert.equal(res.n.runsPerArm, 1);
+  assert.equal(f.log.order.p1.length, 2);
+});
+test("UXB-7 multi-run: every run pair is graded separately, blind and shuffled, and scores map back to the right arm", async () => {
+  const { f, res } = await r2Run({ prompts: eight(), opts: { runs: 2 }, fake: { errorPlainFor: [] } });
+  assert.equal(f.log.grader.length, 16, "one grader call per run pair");
+  assert.equal(res.pairs.length, 16);
+  assert.deepEqual([...new Set(f.log.labels)].sort(), ["plain", "ux"], "A is sometimes plain, sometimes ux");
+  for (const p of res.pairs) { assert.equal(p.scores.ux, 9, p.promptId); assert.equal(p.scores.plain, 5, p.promptId); assert.equal(p.status, "ok"); }
+});
+test("UXB-15 multi-run: an errored pair is excluded, not a loss; summary has wins, ties, mean polish and per-prompt means", async () => {
+  const { f, res } = await r2Run({ opts: { runs: 3 } });
+  assert.equal(f.log.grader.length, 12, "p2 plain errored in all 3 runs: 3 pairs never graded");
+  const p2 = res.pairs.filter((p) => p.promptId === "p2");
+  assert.equal(p2.length, 3);
+  for (const p of p2) { assert.equal(p.status, "error"); assert.match(String(p.reason), /rate_limit/); assert.ok(!Number.isFinite(p.scores?.plain) && !Number.isFinite(p.scores?.ux)); }
+  const s = res.summary;
+  assert.equal(s.scoredPairs, 12);
+  assert.equal(s.erroredPairs, 3);
+  assert.deepEqual(s.wins, { plain: 3, ux: 6 });
+  assert.equal(s.ties, 3);
+  assert.equal(s.meanPolish.ux, 7.75);
+  assert.equal(s.meanPolish.plain, 6.25);
+  assert.equal(s.perPrompt.p1.ux, 9); assert.equal(s.perPrompt.p1.plain, 5);
+  assert.equal(s.perPrompt.p3.ux, 7); assert.equal(s.perPrompt.p3.plain, 7);
+  assert.equal(s.perPrompt.p4.ux, 6); assert.equal(s.perPrompt.p4.plain, 8);
+  assert.equal(s.perPrompt.p2?.scoredPairs ?? 0, 0);
+  const p1 = res.pairs.filter((p) => p.promptId === "p1");
+  assert.equal(p1.length, 3);
+  assert.ok(p1.every((p) => p.scores.ux === 9 && p.scores.plain === 5), "per-run scores kept");
+});
+test("UXB-15 multi-run: tally excludes only the errored run pair and reports means", async () => {
+  const { tally } = await load();
+  const t = tally([
+    { promptId: "p1", run: 0, arm: "plain", status: "ok", polish: 4 }, { promptId: "p1", run: 0, arm: "ux", status: "ok", polish: 8 },
+    { promptId: "p1", run: 1, arm: "plain", status: "error", polish: null }, { promptId: "p1", run: 1, arm: "ux", status: "ok", polish: 9 },
+    { promptId: "p1", run: 2, arm: "plain", status: "ok", polish: 6 }, { promptId: "p1", run: 2, arm: "ux", status: "ok", polish: 6 },
+  ]);
+  assert.deepEqual(t.wins, { plain: 0, ux: 1 });
+  assert.equal(t.ties, 1);
+  assert.deepEqual(t.losses, { plain: 1, ux: 0 });
+  assert.deepEqual(t.meanPolish, { plain: 5, ux: 7 });
+  assert.deepEqual(t.perPrompt.p1, { plain: 5, ux: 7, scoredPairs: 2 });
+});
+
+// ---- UXB-2 remote-URL rule: only LOADED remote resources are rejected
+test("UXB-2 a plain <a href> to a remote page is not a loaded resource and does not exclude the arm", async () => {
+  const { validateArmOutput } = await load();
+  for (const href of ["https://github.com/holroydchase-afk", "http://example.com/x", "//example.com/x", "mailto:person[at]example.com"]) {
+    const r = validateArmOutput(`<!doctype html><html><body><a href="${href}">link</a><p>x</p></body></html>`);
+    assert.equal(r.ok, true, `${href}: ${JSON.stringify(r)}`);
+  }
+});
+for (const [why, html] of [
+  ["img src", '<img src="https://x.example.com/a.png" alt="">'],
+  ["iframe src", '<iframe src="https://x.example.com/"></iframe>'],
+  ["link rel=stylesheet", '<link rel="stylesheet" href="https://x.example.com/a.css">'],
+  ["link rel=stylesheet, href first, single quotes", "<link href='https://x.example.com/a.css' rel='stylesheet'>"],
+  ["script src", '<script src="//x.example.com/a.js"></script>'],
+  ["inline fetch", '<script>fetch("https://api.example.com/data")</script>'],
+  ["css url()", '<style>body{background:url(https://x.example.com/a.png)}</style>'],
+  ["css @import", '<style>@import url("https://x.example.com/a.css");</style>'],
+  ["srcset", '<img srcset="a.png 1x, https://x.example.com/b.png 2x" alt="">'],
+]) {
+  test(`UXB-2 a loaded remote resource is still rejected (${why})`, async () => {
+    const { validateArmOutput } = await load();
+    const r = validateArmOutput(`<!doctype html><html><body>${html}</body></html>`);
+    assert.equal(r.ok, false);
+    assert.equal(r.status, "error");
+    assert.ok(r.reasons.length > 0);
+  });
+}
+test("UXB-2 a non-stylesheet <link> (icon, canonical) is not a loaded remote resource", async () => {
+  const { validateArmOutput } = await load();
+  const r = validateArmOutput('<!doctype html><html><head><link rel="canonical" href="https://example.com/"></head><body>x</body></html>');
+  assert.equal(r.ok, true, JSON.stringify(r));
+});
+
+// ---- scorecard-ready results, CLI defaults, gitignore
+test("QA-R6 results file has schemaVersion 1, a flat pairs array and a summary, and still passes checkResults", async () => {
+  const { res, m } = await r2Run({ fake: { errorPlainFor: [] } });
+  assert.equal(res.schemaVersion, 1);
+  assert.ok(Array.isArray(res.pairs) && res.pairs.length === 5);
+  for (const p of res.pairs) {
+    assert.deepEqual(Object.keys(p).filter((k) => ["promptId", "run", "order", "scores", "status"].includes(k)).sort(), ["order", "promptId", "run", "scores", "status"]);
+    assert.equal(typeof p.promptId, "string"); assert.equal(typeof p.run, "number");
+    assert.deepEqual([...p.order].sort(), ["plain", "ux"]);
+    assert.deepEqual(Object.keys(p.scores).sort(), ["plain", "ux"]);
+  }
+  for (const k of ["scoredPairs", "erroredPairs", "wins", "ties", "meanPolish", "perPrompt"]) assert.ok(k in res.summary, `summary.${k}`);
+  assert.equal(m.checkResults(res).ok, true);
+});
+test("QA-R6 parseCliArgs: --runs N defaults to 1 and rejects non-positive or non-integer values", async () => {
+  const { parseCliArgs } = await load();
+  assert.equal(parseCliArgs(["--change-id", "c1"]).runs, 1);
+  assert.equal(parseCliArgs(["--change-id", "c1", "--runs", "3"]).runs, 3);
+  assert.equal(parseCliArgs(["--change-id", "c1"]).changeId, "c1");
+  for (const bad of ["0", "-1", "x", "1.5"]) assert.throws(() => parseCliArgs(["--change-id", "c1", "--runs", bad]), /runs/i, bad);
+});
+test("QA-R6 default output is evals/ux-build/results/<changeId>.json, shots in results/.shots, not /tmp", async () => {
+  const { cliPaths } = await load();
+  const p = cliPaths({ changeId: "c1", root: "/repo" });
+  assert.equal(p.outFile, join("/repo", "evals", "ux-build", "results", "c1.json"));
+  assert.equal(p.shotsRoot, join("/repo", "evals", "ux-build", "results", ".shots"));
+  assert.ok(!p.outFile.startsWith(tmpdir()) && !p.shotsRoot.startsWith(tmpdir()));
+  const real = cliPaths({ changeId: "c1" });
+  assert.ok(real.outFile.startsWith(join(root, "evals", "ux-build", "results") + sep), "default root is the repo");
+});
+test("QA-R6 .gitignore ignores results/.shots/ but not the committed results json", () => {
+  const ign = (p) => spawnSync("git", ["check-ignore", "-q", p], { cwd: root }).status === 0;
+  assert.equal(ign("evals/ux-build/results/.shots/r-abc/s1/shot.png"), true, ".shots must be ignored");
+  assert.equal(ign("evals/ux-build/results/change-1.json"), false, "results json must stay committable");
+});
+
+// ---- QA-R1 a missing or failed screenshot never silently grades
+const forPrompt = (renderer, id, bad) => async (a) => (a.html.includes(`PROMPT:${id}`) ? bad(a) : renderer(a));
+
+test("QA-R1 a screenshot path that does not exist errors the pair with reason 'no screenshot', skips the grader, counts no win or loss", async () => {
+  const m = await load();
+  const f = r2Fakes({ changeId: "chg-ns", errorPlainFor: [] });
+  const renderer = forPrompt(f.renderer, "p3", async ({ width }) => ({ png: join(tmpdir(), "uxb-does-not-exist", `s-${width}.png`), consoleErrors: 0 }));
+  const outFile = outPath("ns.json");
+  await m.runDevSet({ prompts: prompts(), split: "dev", runner: f.runner, renderer, grader: f.grader, changeId: "chg-ns", model: "sonnet", outFile });
+  const res = JSON.parse(readFile(outFile, "utf8"));
+  const pair = res.pairs.find((x) => x.promptId === "p3");
+  assert.equal(pair.status, "error");
+  assert.match(pair.reason, /no screenshot/);
+  assert.deepEqual(pair.scores, { plain: null, ux: null });
+  assert.equal(f.log.grader.length, 4, "the grader saw only the 4 pairs that have real screenshots");
+  for (const g of f.log.grader) for (const p of [...g.pairShotsAB.A, ...g.pairShotsAB.B]) assert.ok(statSync(p).size > 0, "no empty placeholder is graded");
+  assert.equal(res.scored.p3, undefined);
+  const t = res.tally;
+  assert.equal(t.wins.plain + t.wins.ux + t.ties, 4, "the missing-shot pair is no win, loss or tie");
+  assert.equal(t.losses.plain + t.losses.ux, t.wins.plain + t.wins.ux);
+});
+
+test("QA-R1 a renderer that throws errors that run with reason 'render failed', excludes the pair and the set continues", async () => {
+  const m = await load();
+  const f = r2Fakes({ changeId: "chg-rt", errorPlainFor: [] });
+  const renderer = forPrompt(f.renderer, "p2", async () => { throw new Error("browser crashed"); });
+  const outFile = outPath("rt.json");
+  await m.runDevSet({ prompts: prompts(), split: "dev", runner: f.runner, renderer, grader: f.grader, changeId: "chg-rt", model: "sonnet", outFile });
+  const res = JSON.parse(readFile(outFile, "utf8"));
+  const pair = res.pairs.find((x) => x.promptId === "p2");
+  assert.equal(pair.status, "error");
+  assert.match(pair.reason, /render failed/);
+  assert.ok(res.runs.filter((r) => r.promptId === "p2").every((r) => r.status === "error" && r.excluded), "the throwing runs are errored and excluded");
+  assert.equal(res.pairs.length, 5, "later prompts still ran");
+  assert.equal(f.log.grader.length, 4);
+  assert.equal(res.summary.scoredPairs, 4);
+  const t = res.tally;
+  assert.equal(t.wins.plain + t.wins.ux + t.ties, 4, "an error is never a loss");
 });
