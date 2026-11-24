@@ -70,6 +70,7 @@ Small repos can keep DECISIONS, LESSONS and MARKETING as sections of one `docs/p
 ## 5. Shipping and the queue (Product Studio's rules; replace Hearth's older "merge only on Chase's word")
 - **One task per PR, small.** Body: the project-thread line, a `Merge after:` line, the `Agents:` line.
 - **Merge your own PRs on green, oldest first, without asking.** The one gate: a merge that changes a live demo or live product (a Pages deploy, a store, npm or TestFlight release, a live app page or its data) waits for Chase's go, with the repo's open PRs listed in merge order.
+- **Live-site PRs ride the nightly release train** ([release-train.md](release-train.md)): label them `release-train` and keep going. One routine merges every green one late at night in a safe order, verifies the deploys and posts one note, so Chase approves the batch, not each PR.
 - **Merge commits, no force-push, no history rewrites, no branch deletes.** A merge that breaks `main` gets a revert PR, never a direct push. Merging is not deploying: say when a deploy step is still owed.
 - Details: [session-rules.md](session-rules.md), "Pull requests".
 
