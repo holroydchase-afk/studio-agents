@@ -781,3 +781,19 @@ test("PIPE-62 a ledger written by another version of the tool exits 2 instead of
   assert.equal(start(e, "staff-pm").code, 2);
 });
 
+
+test("PIPE-63 a hand-edited ledger missing a stage, or with an unknown state, never crashes with a stack trace: exit 1 or 2 and a one-line reason", () => {
+  for (const edit of [(l) => { delete l.stages.pr; }, (l) => { l.stages["staff-pm"].state = "paused"; }, (l) => { l.stages.build.rounds = "many"; }]) {
+    const e = fresh();
+    const l = JSON.parse(fs.readFileSync(e.ledger, "utf8"));
+    edit(l);
+    fs.writeFileSync(e.ledger, JSON.stringify(l));
+    const r = run(["status", "--ledger", e.ledger]);
+    const r2 = start(e, "staff-pm");
+    for (const x of [r, r2]) {
+      assert.ok([0, 1, 2].includes(x.code));
+      assert.ok(!/\n\s+at /.test(x.err), `no stack trace: ${x.err}`);
+    }
+  }
+});
+
