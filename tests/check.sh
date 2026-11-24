@@ -224,6 +224,8 @@ check "SKT-1..8 repo-check (SKT-28..30 parts): standards by id and hash, local v
 check "STK-PS-R10..R16 repo-check hardening: fail-closed scan, JWT time bound, safe writes, name/ref scan, caps" node --test "$root/tests/stakeholder-repo-check-hardening.test.mjs"
 check "SKT-9..16 claim-check (SKT-17 manual; SKT-28..30 parts): register formats, number and word claims, contradicted and unproven, ignore file, determinism, fail-closed, safe writes" node --test "$root/tests/stakeholder-claim-check.test.mjs"
 check "STK-PS-R20..R24,R27 claim-check hardening: quadratic hang and caps, hedge clauses, Unicode phones, list caps, closed stdout, data-not-instructions docs" node --test "$root/tests/stakeholder-claim-check-hardening.test.mjs"
+check "SKT-18..26 stakeholder-intake (SKT-27 manual; SKT-28..30 parts): classify, index through the checker, splitting, caps, secrets stop, allow-email, data not instructions, repo facts, hardening" node --test "$root/tests/stakeholder-intake.test.mjs"
+check "STK-PS-R30..R38 stakeholder-intake hardening: tag-stripped and unescaped scans, entities, --out inside the folder, empty comments, untrusted flag, total-bytes cap, known limits" node --test "$root/tests/stakeholder-intake-hardening.test.mjs"
 check "PDRIFT-1..6 TRAIN-1..9 portfolio drift check and nightly release train logic" node --test "$root/tests/portfolio-drift.test.mjs"
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"

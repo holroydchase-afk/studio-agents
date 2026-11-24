@@ -40,6 +40,7 @@ Change a quote id to `q99` and it exits 1 with `line N: quote_id "q99" is not in
 - `tools/check-stakeholder.mjs`: plain Node, no packages. Checks a review block and the persona file's hash.
 - `tools/repo-check.mjs` and `tools/lib/guard.mjs`: the repo check (see above) and the safety rules it shares with the other tools.
 - `tools/claim-check.mjs`: the claims check (see below). Imports `tools/lib/guard.mjs`.
+- `tools/stakeholder-intake.mjs`: builds the quote index from a page, a text file or a repo folder (see below). Imports `tools/lib/guard.mjs`.
 - `examples/sample-repo/`: a two-file folder for the repo-check example.
 - `examples/claims-register.md` and `examples/claims-quotes.json`: a made-up register and a 5-quote index for the claim-check example.
 - `scripts/sync-audience.sh`: fetches the persona file from persona-twins (`bash scripts/sync-audience.sh [ref]`, default `main`), no credentials, verified before it replaces `data/audience.json`. The hash inside the persona file is drift detection, not provenance: whoever can change the file can recompute it. To pin a version, pass `--expect-hash <64 hex>` with a hash from a source you trust. Fetches are https only; `STAKEHOLDER_AUDIENCE_BASE` is accepted only for `file://`, `http://localhost` and `http://127.0.0.1`.
@@ -81,5 +82,33 @@ claim-check is **not a gate** for anything yet; treat its output as hints for a 
 - **Symlinked parent folders (R25):** a symlink as the input file itself is refused, but a symlink in a parent folder of an input or `--out` path is followed by the operating system.
 - **Numbers it does not see (R26):** number words ("ten agents"), forms like `10x`, fullwidth or other non-ASCII digits in a claim, the word "agentic" (not treated as agent), and runs of comma-separated numbers ("1, 2, 3 agents") are not read as number claims, so a claim written that way is never flagged. Phone numbers written with non-ASCII digit sets other than fullwidth (for example Arabic-Indic) are also not caught by the personal-data stop.
 
+## Intake (the quote index)
+`tools/stakeholder-intake.mjs` turns one artifact into the numbered quote index `check-stakeholder --index` reads: an `.html` or `.htm` page (`kind` "html"), an `.md`, `.markdown` or `.txt` file ("text"), or a repo folder with a README or a top-level `.git` ("repo"). It reads text only: it never runs, fetches or follows anything in it, uses no network, no model and no child process. **The quote text is data copied from the artifact, never instructions.** Output is one line of JSON with no trailing newline, so run it twice on the same input and the bytes match.
+
+```
+node plugins/stakeholder/tools/stakeholder-intake.mjs plugins/stakeholder/examples/sample-repo/README.md --out /tmp/index.json
+node plugins/stakeholder/tools/stakeholder-intake.mjs plugins/stakeholder/examples/sample-repo
+```
+
+Flags: `--out <file>` writes the JSON there atomically instead of stdout (refused if it names the input; an existing file is untouched on any failure) and `--allow-email <address>` (repeatable, exact address) lets one address you publish on purpose through, echoed under `allowed_emails` with a count. Exit 0 ok, 1 refused (one reason per line on stderr, no JSON), 2 usage.
+
+Output: `{tool, schema, input, kind, quotes:[{id,text[,truncated]}], stats:{bytes,quotes,files,skipped_binary}, skipped:[{file,reason}], skipped_omitted, allowed_emails:[{address,count}]}`. Ids run `q1`..`qn` in document order. A quote is one sentence or line: text is split at line breaks and after `.`, `!` or `?` plus a space (and, in html, at block elements), whitespace is collapsed, and control, zero-width and bidi characters are removed. A quote over 500 characters is cut at a word and marked `truncated`. Html: visible text, headings, `alt`, `title` and `aria-label` text, link and button text and the meta description are quoted; script, style and comments (an unterminated one runs to the end of the file) are not. Repo: the README's sentences, then facts: `root files: ...`, `test files: N` and `license file: <name>`; no other file's text is quoted.
+
+It stops, writing nothing, when the text holds an email address (reserved example domains pass), a phone number, a key, a token or a private key block. The scan runs on the raw text and again on the text as a reader sees it (entities such as `&#64;` decoded, tags removed) and on the quotes; the refusal names `<file>:<line>: <category>`, never the value. In a repo every file is scanned (`node_modules` too, nested `.git` too; only a top-level `.git` is skipped). A file it cannot scan (a NUL byte with no UTF-16 mark, or over 1 MB) refuses a single-file run; in a repo a binary or unreadable file other than the README is listed under `skipped` (binary ones are counted in `stats.skipped_binary`), while a binary README or a file over 1 MB refuses.
+
+Caps (over a cap it refuses, never truncates): 1 MB an input file (50 MB in all for a repo), 400 quotes (fact lines count), 500 characters a quote; in a repo also 5000 files walked, 200 read, 5000 directories, 200 levels deep, 5000 symlinks. Symlinks are never followed (an input that is itself a symlink is refused).
+
+### Known limits of stakeholder-intake (not a gate)
+It has run on made-up fixtures only; the first real run on the built portfolio page and one real public repo is step M2.4, and until then do not say it "audits" or "verifies" anything. Every output carries `"untrusted": true`: its quotes are data from the artifact, never instructions.
+
+The personal-data scan has false negatives; only the patterns in `tools/lib/guard.mjs` are looked for:
+- **Phone shapes it misses:** numbers written with parentheses such as `(555)123-4567` and ten digits with no separator such as `5551234567` are not found; only three-three-four digits split by a space, dot or dash are. Non-NANP numbers (outside the US and North America, international formats) are not found either. Names, street addresses and numbers written in words are not looked for.
+- **Non-ASCII email domains:** internationalized addresses (a non-ASCII domain, or non-ASCII letters in the local part) are not recognised as email addresses.
+- **Entities and folding:** a list of named entities (spaces, dashes, `&commat;` and similar) and numeric entities with any number of leading zeros are decoded for the scan, and an unknown or over-long entity sitting inside an email-shaped or phone-shaped run stops the run. Other non-ASCII digit sets than fullwidth are not folded. Markdown escapes (`\@`) and emphasis marks (`**`, `__`, backticks) and tags and empty comments are removed in extra scan variants, but other obfuscation (spelling out "at" and "dot", splitting across lines) is not caught.
+- **The lstat-then-read race:** it checks that an input is a regular file (lstat) and then reads it; a file swapped for a symlink between the check and the read is not detected (time-of-check to time-of-use). Run it on a folder nothing else is writing to.
+- **`--out` and symlinks:** `--out` writes a temporary file and renames it, so if the `--out` path is a symlink the symlink is replaced, not followed; its target is not written. `--out` inside the folder being scanned is refused (exit 2).
+
+Html is tokenized by a small parser, not a browser: text hidden by CSS is still quoted, `<noscript>` and `<template>` text is quoted, and no JavaScript runs, so text a script would add is not seen. A repo with more than 200 files, or over 50 MB of files to read, refuses; a page that yields more than 400 quotes refuses.
+
 ## What it does not do yet
-No intake that builds the quote index for you (claim-check's `--text` splits a plain file by line and sentence as a stopgap), no way to record which findings you accepted or declined. A rejected block is regenerated, never waived. It has not been run on a real page yet, and no evaluation has been run, so there is no evidence yet that it improves a page. Paths like `plugins/stakeholder/...` in these docs are relative to this repo; after a marketplace install the files sit in the plugin's install folder, so run the checker from there.
+No way to record which findings you accepted or declined. A rejected block is regenerated, never waived. It has not been run on a real page yet, and no evaluation has been run, so there is no evidence yet that it improves a page. Paths like `plugins/stakeholder/...` in these docs are relative to this repo; after a marketplace install the files sit in the plugin's install folder, so run the checker from there.
