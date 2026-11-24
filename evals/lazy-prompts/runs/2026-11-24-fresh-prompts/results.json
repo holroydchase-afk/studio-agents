@@ -1,0 +1,101 @@
+{
+ "date": "2026-11-24",
+ "agent": "staff-pm.md with the job block, 3 runs per prompt",
+ "plain": "plain, 3 runs per prompt",
+ "grader": "opus, one per pair (run r pairs agent r with plain r), blind, spec blocks stripped",
+ "prompts": {
+  "site-golive": "Start a new thread. What do we need to wrap up on the site redesign etc and go live",
+  "everyone-like-hearth": "hearth is different and i want everyone to behave the same. \n\nhearth uses tdd\nhearth does stuff like Building it now. First the staff PM writes up the spec, then tests, then the build. I\u2019ll post the PR when it\u2019s ready.\n\nhearth always starts with the chief of staff in the beginning ish of the thread..Hi Chase, I\u2019m Hearth\u2019s chief of staff for the Share redo.",
+  "verify-claims": "We will need to go deeper on all claims and facts, teach me gaps, and walk me through every bit of what we\u2019ve built",
+  "user-feedback-loop": "I also like a way for them to receive feedback from users in the product and act on it autonomously.",
+  "full-pipeline": "Plan a full pipeline with the agents"
+ },
+ "tally": {
+  "agent": 10,
+  "plain": 5
+ },
+ "per_prompt": {
+  "site-golive": {
+   "agent": 3,
+   "plain": 0
+  },
+  "everyone-like-hearth": {
+   "agent": 1,
+   "plain": 2
+  },
+  "verify-claims": {
+   "agent": 1,
+   "plain": 2
+  },
+  "user-feedback-loop": {
+   "agent": 3,
+   "plain": 0
+  },
+  "full-pipeline": {
+   "agent": 2,
+   "plain": 1
+  }
+ },
+ "results": [
+  {
+   "id": "site-golive-r1",
+   "winner": "agent"
+  },
+  {
+   "id": "site-golive-r2",
+   "winner": "agent"
+  },
+  {
+   "id": "site-golive-r3",
+   "winner": "agent"
+  },
+  {
+   "id": "everyone-like-hearth-r1",
+   "winner": "plain"
+  },
+  {
+   "id": "everyone-like-hearth-r2",
+   "winner": "agent"
+  },
+  {
+   "id": "everyone-like-hearth-r3",
+   "winner": "plain"
+  },
+  {
+   "id": "verify-claims-r1",
+   "winner": "agent"
+  },
+  {
+   "id": "verify-claims-r2",
+   "winner": "plain"
+  },
+  {
+   "id": "verify-claims-r3",
+   "winner": "plain"
+  },
+  {
+   "id": "user-feedback-loop-r1",
+   "winner": "agent"
+  },
+  {
+   "id": "user-feedback-loop-r2",
+   "winner": "agent"
+  },
+  {
+   "id": "user-feedback-loop-r3",
+   "winner": "agent"
+  },
+  {
+   "id": "full-pipeline-r1",
+   "winner": "agent"
+  },
+  {
+   "id": "full-pipeline-r2",
+   "winner": "plain"
+  },
+  {
+   "id": "full-pipeline-r3",
+   "winner": "agent"
+  }
+ ]
+}
