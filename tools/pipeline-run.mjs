@@ -235,7 +235,7 @@ export function classify(files, touches, feedback = false) {
     const base = parts[parts.length - 1] || "";
     const lower = parts.map((p) => p.toLowerCase());
     if (lower[0] === ".github") reasons.push(`${f}: under .github/`);
-    else if (base === "CLAUDE.md") reasons.push(`${f}: CLAUDE.md`);
+    else if (base.toLowerCase() === "claude.md") reasons.push(`${f}: CLAUDE.md`);
     else if (MANIFESTS.has(base.toLowerCase())) reasons.push(`${f}: package manifest or lockfile`);
     else {
       const stem = base.replace(/\.[^.]*$/, "").toLowerCase();
