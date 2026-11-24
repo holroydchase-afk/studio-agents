@@ -24,6 +24,7 @@ import { checkQaReport } from "./check-qa-report.mjs";
 export const STAGES = ["staff-pm", "tests-pre", "build", "verify", "pr"];
 export const LANES = ["ui", "logic", "docs", "config"];
 export const TOUCHES = ["live", "non-live", "hearth"];
+export const STATES = ["pending", "started", "done", "skipped"];
 export const MODELS = ["sonnet", "opus", "haiku"];
 export const SKIPPED_BY_LANE = { docs: ["tests-pre", "build"], config: ["tests-pre", "build"] };
 export const ROUND_LIMITS = { "staff-pm": 1, build: 3, verify: 2 }; // verify is per bug
@@ -70,8 +71,16 @@ function loadLedger(flags) {
   if (!existsSync(p)) throw new Usage(`no ledger at ${flags.ledger}: run init first`);
   let l;
   try { l = JSON.parse(readFileSync(p, "utf8")); } catch { throw new Usage(`ledger ${flags.ledger} is not valid JSON`); }
-  if (!l || typeof l !== "object" || !l.stages || !LANES.includes(l.lane)) throw new Usage(`ledger ${flags.ledger} is not a pipeline ledger`);
-  if (l.version !== 1) throw new Usage(`ledger ${flags.ledger} has version ${JSON.stringify(l.version)}; this tool reads version 1`);
+  const bad = (why) => new Usage(`ledger ${flags.ledger} is not a usable pipeline ledger: ${why}`);
+  if (!l || typeof l !== "object" || !l.stages || typeof l.stages !== "object") throw bad("no stages");
+  if (l.version !== 1) throw bad(`version ${JSON.stringify(l.version)}, this tool reads version 1`);
+  if (!LANES.includes(l.lane) || !TOUCHES.includes(l.touches) || typeof l.stopped !== "boolean") throw bad("lane, touches or stopped is wrong");
+  for (const s of STAGES) {
+    const x = l.stages[s];
+    if (!x || !STATES.includes(x.state) || !Number.isSafeInteger(x.tokens) || !Number.isSafeInteger(x.rounds) || !Number.isSafeInteger(x.failures ?? 0) ||
+      (x.model !== null && !MODELS.includes(x.model)) || (x.bugs !== undefined && (typeof x.bugs !== "object" || x.bugs === null))) throw bad(`stage ${s} is missing or has a bad field`);
+    x.failures ??= 0; x.bugs ??= {};
+  }
   return { path: p, ledger: l };
 }
 
