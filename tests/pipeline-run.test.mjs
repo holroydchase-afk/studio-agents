@@ -765,3 +765,9 @@ test("PIPE-50 class C for .github written with a leading ./ or a leading slash, 
   for (const f of ["./.github/workflows/x.yml", "/.github/workflows/x.yml", ".github\\workflows\\x.yml", "./package.json", "./CLAUDE.md"]) assert.equal(letter(cls(e, `docs/a.md,${f}`)), "C", f);
 });
 
+
+test("PIPE-51 class C for a lower-case claude.md (a case-insensitive filesystem treats it as CLAUDE.md)", () => {
+  const e = fresh();
+  assert.equal(letter(cls(e, "claude.md")), "C");
+});
+
