@@ -167,6 +167,8 @@ function cmdDone({ flags, pos }) {
   const stage = stageArg(pos);
   const blockPath = need(flags, "block");
   if (!existsSync(blockPath)) throw new Usage(`block file not found: ${blockPath}`);
+  let blockText;
+  try { blockText = readFileSync(blockPath, "utf8"); } catch { throw new Usage(`block file cannot be read as text: ${blockPath}`); }
   const tokens = intFlag(flags, "tokens", { min: 0 });
   const budget = intFlag(flags, "budget", { min: 1 });
   if (budget !== undefined && tokens === undefined) throw new Usage("--budget needs --tokens");
@@ -174,7 +176,7 @@ function cmdDone({ flags, pos }) {
   if (ledger.stopped) throw new Tripped(`run is stopped (${ledger.stop_reason})`);
   const st = ledger.stages[stage];
   if (st.state !== "started") throw new Tripped(`${stage} is ${st.state}, not started`);
-  const { errors, note } = validateBlock(stage, readFileSync(blockPath, "utf8"));
+  const { errors, note } = validateBlock(stage, blockText);
   if (errors.length) {
     if (stage !== "staff-pm" && stage !== "verify") throw new Tripped(errors.join("\n")); // presence check, not a validator: no strike
     st.failures += 1;
