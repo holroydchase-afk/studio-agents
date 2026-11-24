@@ -1,0 +1,6 @@
+{
+  "product": "REPLACE-with-product-name",
+  "portfolioPage": "REPLACE.html",
+  "watch": ["REPLACE-demo-or-web-folder/**", "docs/product/MARKETING.md", "README.md"],
+  "ignore": ["**/*.test.*", "docs/internal/**"]
+}
