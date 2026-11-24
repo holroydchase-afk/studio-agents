@@ -1,0 +1,2 @@
+A
+Both give the same rule (product name, lowercase, hyphenated, no suffix) and honestly say they cannot tell which project is meant, asking for one word back. A is slightly tighter and adds the more useful warning: settle the product name before creating the repo, since renaming a public repo later breaks links. B ties the pattern to recruiters matching demos, which is nice, but its suffix and rename advice is a bit muddled and adds clutter for a one-line ask.

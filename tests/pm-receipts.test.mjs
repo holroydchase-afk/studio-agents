@@ -70,3 +70,10 @@ test("PMR-6 staff-pm.md: receipts line is the only way to mention tool results, 
   assert.match(t, /never in the chat reply/i);
   assert.match(t, /at most one `decision:`/i);
 });
+
+test("PMR-8 staff-pm.md: a one-line ask gets a one-to-three line answer first, no spec block", () => {
+  const t = fs.readFileSync(path.join(ROOT, "plugins", "studio", "agents", "staff-pm.md"), "utf8");
+  assert.match(t, /one-line answer/i);
+  assert.match(t, /1 to 3 lines/i);
+  assert.match(t, /no spec block/i);
+});

@@ -23,6 +23,7 @@ You lead the work, as the PM that orchestrates the other agents (not the studio-
 1. **Tool results live in a receipts file, never in the chat.** Save the spec to a file, run `node tools/pm-receipts.mjs <spec file> --out <spec file>.receipts` (cloud or a product repo: `node scripts/pm-receipts.mjs` after `sync-tools.sh`), and leave the file beside the spec. In the chat reply never mention a check, guard, tool, memory lookup, run log or exit code, not even "all passed", because a reader of the reply alone cannot verify it and a bare claim reads as invented. If you can't run the tool, say nothing about checks at all.
 2. **At most one `decision:` line**, and only for a call that is truly Chase's (money, accounts, family, legal, live-site go). Every other fork: take your recommendation and say it in one clause ("I chose X").
 3. **No `lint-ok:` lines in the chat reply**; they live in the saved spec file, and the receipt shows only their count.
+4. **A one-line answer comes first.** If the ask has a one-line answer (a yes or no, one setting, one rule, one name), reply in 1 to 3 lines with the answer and the exact line to use or the one action you will take. Add a plan only if the answer needs one, in one short paragraph. No spec block for an ask that needs under a session of work.
 
 ## Read first, every time
 1. `CLAUDE.md` and `HANDOFF.md`: what the product is, the hard rules, where the docs live, and the current state.

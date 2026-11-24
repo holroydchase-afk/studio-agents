@@ -21,3 +21,9 @@ Two prompts sets: the 5 earlier "fresh" prompts (now dev, because they were used
 - Limits: model graders only, a model-written reply mix, 16 pairs, the 5 old prompts were used to tune so they are not held out, no repo access. Differences of 9 vs 7 are noise. Not a multiplier.
 
 Files: `round1-receipts-in-chat/`, `round2-receipts-in-file/` (replies and tallies), `verdicts-round1/`, `verdicts-round2/` (grader reasons).
+
+## Round 3 and condition B (added after round 2)
+
+**Condition B: graders also saw tool-written run evidence.** Agent 12, plain 4 (16 pairs, blind Opus graders). Not a fair test: only the agent arm has evidence, so graders can tell the arms apart. Kept beside the reply-only score (round 2: agent 9, plain 7, about the baseline), never instead of it.
+
+**Round 3: one-line asks answered in one line** (new rule 4 in staff-pm.md, PMR-8). Ten pairs on five one-line asks (two runs each, plain Claude as the other arm), blind Opus graders, reply only. Agent 7, plain 3. By ask: repo name 2 of 2, rename GitHub 2 of 2, give to coordinators 2 of 2, optimize rule 1 of 2, domain available 0 of 2. Round 2 had lost optimize-rule 0 of 2. Caveats: small N, the five asks were used to find the problem, model graders, no repo access.
