@@ -14,7 +14,7 @@ const toolPath = join(dirname(fileURLToPath(import.meta.url)), "..", "tools", "a
 const KEY = "fakekey" + "-Qq1w2e3r4t5y6u7i8o9p0";
 const PRICES = { "test-model": { input_per_mtok: 1, output_per_mtok: 2, source: "example price list", as_of: "2026-11-25" } };
 const LOOKUP = { name: "lookup", description: "d", parameters: { type: "object", properties: { city: { type: "string" } }, required: ["city"], additionalProperties: false } };
-const cfg = (over = {}) => ({ agent: "runner-demo", product: "Example Product", provider: "example-host", weights: "open", base_url: "https://api.example.invalid/v1", api_key_env: "OWR_TEST_KEY", model: "test-model", max_steps: 10, max_cost_usd: 1, tools: [LOOKUP], ...over });
+const cfg = (over = {}) => ({ agent: "runner-demo", product: "Example Product", provider: "example-host", weights: "open", base_url: "https://api.example.invalid/v1", api_key_env: "OWR_TEST_API_KEY", model: "test-model", max_steps: 10, max_cost_usd: 1, tools: [LOOKUP], ...over });
 const U = { prompt_tokens: 10, completion_tokens: 5 };
 const chat = (content, calls) => ({ status: 200, body: { choices: [{ message: { role: "assistant", content, ...(calls ? { tool_calls: calls } : {}) } }], usage: U } });
 const call = (id, args) => ({ id, type: "function", function: { name: "lookup", arguments: JSON.stringify(args) } });
@@ -47,7 +47,7 @@ function run({ replies, config = {}, prep } = {}) {
   writeFileSync(join(dir, "scenario.json"), JSON.stringify({ replies }));
   if (prep) prep({ dir, out });
   const p = spawnSync("node", [harness, toolPath, join(dir, "scenario.json"), join(dir, "req.json"), "--config", join(dir, "config.json"), "--task", join(dir, "task.md"), "--out", out, "--tools", join(dir, "tools.mjs")],
-    { encoding: "utf8", env: { PATH: process.env.PATH, OWR_TEST_KEY: KEY } });
+    { encoding: "utf8", env: { PATH: process.env.PATH, OWR_TEST_API_KEY: KEY } });
   const rd = (f) => (existsSync(join(out, f)) ? readFileSync(join(out, f), "utf8") : null);
   const req = JSON.parse(readFileSync(join(dir, "req.json"), "utf8"));
   return { status: p.status, stdout: p.stdout, stderr: p.stderr, dir, out, requests: req.seen ?? [], sleeps: req.sleeps ?? 0, runMd: rd("run.md"), transcript: rd("transcript.jsonl") };

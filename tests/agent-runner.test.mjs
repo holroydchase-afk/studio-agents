@@ -50,7 +50,7 @@ globalThis.fetch = (...a) => {
 
 // Built at run time so no tracked file holds a key-shaped string.
 const KEY = "fakekey" + "-Zz9y8x7w6v5u4t3s2r1q0";
-process.env.OWR_TEST_KEY = KEY;
+process.env.OWR_TEST_API_KEY = KEY;
 const LEAKME = "LEAK" + "ME-value-9f8e7d";
 
 const LOOKUP = {
@@ -65,7 +65,7 @@ const LOOKUP = {
 };
 const baseConfig = (over = {}) => ({
   agent: "runner-demo", product: "Example Product", provider: "example-host", weights: "open",
-  base_url: "https://api.example.invalid/v1", api_key_env: "OWR_TEST_KEY", model: "test-model",
+  base_url: "https://api.example.invalid/v1", api_key_env: "OWR_TEST_API_KEY", model: "test-model",
   max_steps: 10, max_cost_usd: 1, tools: [LOOKUP], ...over,
 });
 const PRICES = { "test-model": { input_per_mtok: 1, output_per_mtok: 2, source: "example price list", as_of: "2026-11-25" } };
@@ -150,7 +150,7 @@ function runCli({ replies = [], config = {}, prices = PRICES, task = "Find the a
   writeFileSync(join(dir, "scenario.json"), JSON.stringify({ replies }));
   const args = ["--config", join(dir, "config.json"), "--task", join(dir, "task.md"), ...(noOut ? [] : ["--out", out]), "--tools", join(dir, "tools.mjs")];
   const p = spawnSync("node", [harnessPath, toolPath, join(dir, "scenario.json"), join(dir, "requests.json"), ...args], {
-    cwd, encoding: "utf8", env: { PATH: process.env.PATH, OWR_TEST_KEY: KEY, ...env },
+    cwd, encoding: "utf8", env: { PATH: process.env.PATH, OWR_TEST_API_KEY: KEY, ...env },
   });
   const read = (f) => (existsSync(join(out, f)) ? readFileSync(join(out, f), "utf8") : null);
   return { status: p.status, stdout: p.stdout, stderr: p.stderr, out, cwd, requests: JSON.parse(readFileSync(join(dir, "requests.json"), "utf8")), runMd: read("run.md"), transcript: read("transcript.jsonl") };

@@ -55,6 +55,12 @@ Format: ID, type, Given/When/Then. All `auto` unless marked; qa-tdd writes each 
 - OWR-27 (auto, QA-R4): Given a config string (product, model, ...) with a control character or line break, then exit 2 before any request, so run.md can't gain forged lines.
 - OWR-28 (auto, QA-R5): Given a provider reply with a null or non-object entry in `tool_calls`, then the run ends `failed` with run.md and transcript written, not a crash.
 - OWR-29 (auto, QA-R6): Given `--out/run.md` or `transcript.jsonl` is a symlink (or not a regular file), then exit 2 before any request, and writes use O_NOFOLLOW; nothing is written outside `--out`.
+- PS-R1 (auto): Given `base_url` that is not https, has credentials, or is an IP literal, localhost, `.local` or private/link-local host, or an `api_key_env` that does not end in `_API_KEY` or is `ANTHROPIC_API_KEY`, then exit 2 before any request; the host and the env var name (never the key) are printed to stderr before the first request.
+- PS-R2 (auto): Given the default transport, then fetch gets `redirect: "error"` and `AbortSignal.timeout` (default 120 s, `timeout_ms` in the config); a timeout ends the run `failed` with logs written.
+- PS-R3 (auto): Given usage, `--help` and the harness doc row, then a "What leaves the machine" note says the system prompt, task, tool results and history go to the provider host, the transcript and run.md stay local, and only synthetic or public tasks are used until vendor terms are cited with date and URL.
+- PS-R4 (auto): Given `--out` inside a git work tree, then exit 2 before any request unless `--allow-repo-out`, which writes a `.gitignore` of `*` into `--out`.
+- PS-R6 (auto): Given `docs/agent-harness.md`, then the runner row cites `tools/agent-runner.mjs` and the synced command `node scripts/agent-runner.mjs`.
+- PS-R7 (auto): Given an `api_key_env` that fails the allowed pattern, then the error does not echo it.
 - OWR-22 (manual): Given Chase's go and a real key in his own environment, one live call on the cheapest model with a 10-cent cap returns `done` and a log that passes the checker. Not run by CI; first real use of #172.
 
 ## Measure

@@ -2,11 +2,17 @@
 // agent-runner: runs ONE agent task on any hosted OpenAI-compatible chat-completions API, inside a dollar cap, and
 // leaves a run log that tools/check-agent-run.mjs accepts. Zero dependencies. Spec: docs/product/SPEC-OPEN-WEIGHT-RUNNER.md.
 //
-// Usage: node tools/agent-runner.mjs --config FILE --task FILE --out DIR [--tools FILE.mjs]
+// Usage: node tools/agent-runner.mjs --config FILE --task FILE --out DIR [--tools FILE.mjs] [--allow-repo-out]
+//   What leaves the machine: see NOTE below (also printed by --help).
 //   Writes DIR/transcript.jsonl (one JSON record per line) and DIR/run.md (one ```agentrun block). Nothing else is
 //   written anywhere. Exit 0 the run finished (any stop reason except failed), 1 the run failed, 2 usage or config
 //   error (no call made).
 //
+// Privacy: base_url must be https with no credentials and a real DNS host (no IP literal, localhost, .local or
+//   private host); api_key_env must be a *_API_KEY name and never ANTHROPIC_API_KEY; the provider host and the env var
+//   NAME (never the key) are printed to stderr before the first request; redirects are refused; each request times out
+//   (config.timeout_ms, default 120000). --out inside a git work tree is refused unless --allow-repo-out, which writes
+//   a .gitignore of "*" into --out.
 // Config (JSON): agent (kebab name, NOT qa-tdd, staff-pm or ux-reviewer: their verdict lists are fixed; use e.g.
 //   open-weight-staff-pm), product, provider, weights (open | closed-api), base_url, api_key_env (the NAME of an env
 //   var; a literal api_key field is refused), model, prices_file, max_steps, max_cost_usd, system_prompt_file, tools
@@ -17,13 +23,16 @@
 //
 // Stop reasons: done, step-limit, cost-cap, no-usage, invalid-args, failed. Secrets: the key is read from the env at
 // request time and goes only into the request header; error bodies and transport errors are never written anywhere.
-import { readFileSync, writeFileSync, mkdirSync, lstatSync, constants as fsc } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, lstatSync, existsSync, constants as fsc } from "node:fs";
 import { dirname, resolve, isAbsolute } from "node:path";
+import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { LEAKS } from "./check-story-entry.mjs";
 import { VERDICTS, SLUG } from "./check-agent-run.mjs";
 
-const USAGE = "usage: agent-runner.mjs --config FILE --task FILE --out DIR [--tools FILE.mjs]";
+const NOTE = "What leaves the machine: the system prompt, the task, tool results and the message history are sent to the provider host named in base_url. The transcript and run.md stay local. Use only synthetic or public tasks until the vendor's terms are cited (with date and URL).";
+const USAGE = `usage: agent-runner.mjs --config FILE --task FILE --out DIR [--tools FILE.mjs] [--allow-repo-out]\n${NOTE}`;
+const DEFAULT_TIMEOUT_MS = 120000;
 const MAX_TRANSPORT_RETRIES = 2;
 const CLIP = 2000;
 
@@ -33,10 +42,23 @@ const bad = (msg) => { throw new ConfigError(msg); };
 const defaultSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // A thin wrapper over global fetch; the key only ever travels in req.headers.
 async function defaultTransport(req) {
-  const res = await fetch(req.url, { method: req.method, headers: req.headers, body: JSON.stringify(req.body) });
+  // redirect:"error" so the key is never re-sent to a redirect target; the timeout ends a hung provider.
+  const res = await fetch(req.url, { method: req.method, headers: req.headers, body: JSON.stringify(req.body), redirect: "error", signal: AbortSignal.timeout(req.timeout_ms || DEFAULT_TIMEOUT_MS) });
   let body = null;
   try { body = await res.json(); } catch { body = null; }
   return { status: res.status, body };
+}
+
+// A real DNS name only: no IP literal, localhost, .local or .internal host, no credentials, https only. Never echoes the URL.
+function checkBaseUrl(raw) {
+  let u;
+  try { u = new URL(raw); } catch { bad("config.base_url must be a valid URL"); }
+  if (u.protocol !== "https:") bad("config.base_url must use https");
+  if (u.username || u.password) bad("config.base_url must not contain credentials");
+  const h = u.hostname.toLowerCase().replace(/\.+$/, "");
+  if (!h || h.startsWith("[") || /^[\d.]+$/.test(h) || /^0x[0-9a-f]+$/i.test(h)) bad("config.base_url must use a host name, not an IP address");
+  if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") || h.endsWith(".internal") || !h.includes(".")) bad("config.base_url must be a public host name (not localhost, .local or a private host)");
+  return u.hostname;
 }
 
 function checkConfig(config, prices) {
@@ -49,7 +71,10 @@ function checkConfig(config, prices) {
   if (Object.keys(VERDICTS).includes(config.agent)) bad(`config.agent "${config.agent}" has a fixed verdict list the runner's verdicts break: use a runner-named agent such as open-weight-${config.agent}`);
   if (/\s/.test(config.provider)) bad("config.provider must be one token");
   if (!["open", "closed-api"].includes(config.weights)) bad("config.weights must be open or closed-api");
-  if (!/^[A-Z][A-Z0-9_]*$/.test(config.api_key_env)) bad("config.api_key_env must be the NAME of an environment variable");
+  if (!/^[A-Z][A-Z0-9_]*_API_KEY$/.test(config.api_key_env)) bad("config.api_key_env must be the NAME of an environment variable ending in _API_KEY");
+  if (config.api_key_env === "ANTHROPIC_API_KEY") bad("config.api_key_env must not be ANTHROPIC_API_KEY: use a key made for this provider");
+  checkBaseUrl(config.base_url);
+  if (config.timeout_ms !== undefined && (!Number.isInteger(config.timeout_ms) || config.timeout_ms < 1)) bad("config.timeout_ms must be a positive integer (milliseconds)");
   if (!Number.isInteger(config.max_steps) || config.max_steps < 1) bad("config.max_steps must be a positive integer");
   if (typeof config.max_cost_usd !== "number" || !(config.max_cost_usd > 0)) bad("config.max_cost_usd must be a positive number");
   if (config.tools !== undefined && !Array.isArray(config.tools)) bad("config.tools must be a list");
@@ -123,7 +148,7 @@ export async function runAgent({ config, prices, task, tools = {}, transport = d
     log({ step: steps, kind: "request", model: config.model, messages: messages.length });
     const body = { model: config.model, messages };
     if (toolSpecs.length) body.tools = toolSpecs;
-    const req = { url, method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` }, body };
+    const req = { url, method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` }, body, timeout_ms: config.timeout_ms || DEFAULT_TIMEOUT_MS };
 
     let res;
     for (let attempt = 0; ; attempt++) {
@@ -202,6 +227,7 @@ function parseFlags(argv) {
   const f = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
+    if (a === "--allow-repo-out") { f.allowRepoOut = true; continue; }
     if (!["--config", "--task", "--out", "--tools"].includes(a) || i + 1 >= argv.length || argv[i + 1].startsWith("--")) return null;
     f[a.slice(2)] = argv[++i];
   }
@@ -226,7 +252,16 @@ export function runLog({ config, result, task, date, key }) {
   ].join("\n");
 }
 
+// Is dir (or its nearest existing parent) inside a git work tree? No git, or an error, counts as no.
+function inGitWorkTree(dir) {
+  let d = dir;
+  while (!existsSync(d)) { const up = dirname(d); if (up === d) return false; d = up; }
+  const r = spawnSync("git", ["rev-parse", "--is-inside-work-tree"], { cwd: d, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  return r.status === 0 && r.stdout.trim() === "true";
+}
+
 export async function main(argv, { transport, sleep, now = () => new Date(), env = process.env } = {}) {
+  if (argv.includes("--help") || argv.includes("-h")) { console.log(USAGE); return 0; }
   const flags = parseFlags(argv);
   if (!flags) { console.error(USAGE); return 2; }
   try {
@@ -255,8 +290,12 @@ export async function main(argv, { transport, sleep, now = () => new Date(), env
       try { st = lstatSync(resolve(out, f)); } catch { /* absent is fine */ }
       if (st && !st.isFile()) bad(`--out/${f} exists and is not a regular file`);
     }
+    const repoOut = inGitWorkTree(out);
+    if (repoOut && !flags.allowRepoOut) bad("--out is inside a git work tree: pick a folder outside it, or pass --allow-repo-out (a .gitignore of * is written into --out)");
+    console.error(`agent-runner: sending to host ${new URL(config.base_url).hostname} using the key from env var ${config.api_key_env}. ${NOTE}`);
     const result = await runAgent({ config, prices, task, tools, transport, sleep, now, env });
     mkdirSync(out, { recursive: true });
+    if (repoOut) writeFileSync(resolve(out, ".gitignore"), "*\n");
     const flag = fsc.O_WRONLY | fsc.O_CREAT | fsc.O_TRUNC | (fsc.O_NOFOLLOW || 0);
     writeFileSync(resolve(out, "transcript.jsonl"), result.transcript.map((r) => JSON.stringify(r)).join("\n") + "\n", { flag });
     writeFileSync(resolve(out, "run.md"), runLog({ config, result, task, date: now().toISOString().slice(0, 10), key: env[config.api_key_env] }), { flag });
