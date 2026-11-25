@@ -69,3 +69,14 @@ Beyond what sections 1 to 5 already cover, the report recommends:
 - Docs the report lists that the studio lacks: governance, release cadence, roadmap and FAQ (the README or docs/ is enough for small repos); organisation-level default community health files (needs a `.github` repo, so a settings-level change for Chase).
 - Run Repolinter (TODO Group) as a quick automated check of the community files.
 - English for all public content.
+
+### Added from Syracuse University OSPO "Best Practices for Open Source Software Development"
+- AI disclosure: say in the README (or source comments) which AI tools were used and for what (code, tests, docs), and that a human reviewed it. Studio repos are mostly AI-built, so every public README carries this line; claim only what the run logs show.
+- Commit and branch hygiene: one logical change per commit, a branch per piece of work, branches merged within one to two weeks, never commit straight to the default branch, commit daily.
+- PRs small enough to review in one sitting (under about 500 changed lines), with what changed, why and how to test it.
+- CHANGELOG.md (Added, Changed, Deprecated, Removed, Fixed, Security) and Semantic Versioning starting at 0.1.0, once a repo ships releases.
+- Issue labels `good first issue`, `help wanted` and `documentation` on repos that want outside contributors.
+- README: a one-paragraph summary and a quick-start example that works in 60 seconds; document every install method.
+- Tests: edge cases and failure modes (service down, corrupt file), not only happy paths; realistic messy sample data; a CI matrix over the versions users run.
+- Function docs say what and why (docstrings, JSDoc), and are reviewed whenever the function changes.
+- Declare every dependency explicitly with version constraints; keep unneeded files (stray csv or pdf) out of git.
