@@ -60,6 +60,8 @@ night shift (hardening, later) ─┘
 - **Handoff out:** the ```qa block pasted verbatim (never summarized), QA-R IDs, ledger.
 - **Stop:** red or flaky after 2 fix attempts per bug, or a guard trip, stops the run and reports; no skipped, deleted or weakened tests.
 
+**Review lane.** For a run that reviews a codebase and cannot build or run its suites (the Hearth run: no Postgres in the cloud), lane `review` skips tests-pre and build, and verify accepts any valid qa verdict (green, red, flaky, blocked). The verdict is recorded in the ledger and shown in `status`; it does not stop the run, so the PR can carry a `blocked` verdict honestly. Before reviewers report, they search past findings with `agent-memory` so repeats are dropped.
+
 ### Stage 5. PR and merge class
 PR body has the attribution lines, the `Agents:` line (only agents that really ran), the qa block, and `HANDOFF.md` updated in the same PR. Then one of three classes, set by `feedback-merge-check` path rules, not by the agent's opinion:
 

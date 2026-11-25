@@ -98,7 +98,7 @@ test("LANE-8 KEYS lists lane and touches, and the value lists equal pipeline-run
   // check-spec must export the lists it validates against; they must be the very same values pipeline-run uses.
   assert.deepEqual(cs.LANES, pr.LANES);
   assert.deepEqual(cs.TOUCHES, pr.TOUCHES);
-  assert.deepEqual(pr.LANES, ["ui", "logic", "docs", "config"]);
+  assert.deepEqual(pr.LANES, ["ui", "logic", "docs", "config", "review"]); // review added by REVIEW-1
   assert.deepEqual(pr.TOUCHES, ["live", "non-live", "hearth"]);
 });
 
