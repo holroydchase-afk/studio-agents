@@ -1,0 +1,22 @@
+{
+  "agent": "ux-reviewer",
+  "kind": "cases",
+  "tasks": "evals/suites/ux-reviewer.tasks.json",
+  "rubric": "evals/suites/ux-reviewer.rubric.md",
+  "split": {
+    "dev": 8,
+    "heldout": 15
+  },
+  "arms": [
+    "agent",
+    "plain",
+    "plain-rules"
+  ],
+  "runs": 3,
+  "votes": 3,
+  "key": "evals/suites/ux-reviewer.key.json",
+  "grader_model": "claude-opus-5-5",
+  "agent_model": "claude-sonnet-5-5",
+  "direct": false,
+  "strip": []
+}

@@ -1,0 +1,163 @@
+[
+ {
+  "id": "ux-47",
+  "split": "heldout",
+  "issue": 47,
+  "text": "Review this screen as the studio's UX reviewer: Charlie, main navigation (top section tabs) at 390 and 1280, restyle PR https://github.com/holroydchase-afk/charlie/pull/49 (Nov 21, 2026).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The owner opened it the same day and said the tabs \"read like a website, not an app.\" A re-review of navigation against the design system scored it 5/10 (\"a marketing site with an app stapled under it\"): the section links are underlined text that scroll away, the pinned brand bar has no navigation on it, and there is no bottom bar on phones or sidebar on laptops. The reviewer judged the restyle's visuals but never asked whether the app felt like an app."
+ },
+ {
+  "id": "ux-48",
+  "split": "dev",
+  "issue": 48,
+  "text": "Review this screen as the studio's UX reviewer: Charlie, Today tab, first viewport at 390x844 (live demo and the Nov 21 restyle).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: A phone's first screen shows no idea. The Nov 17 live-demo review found the first idea card about 785px down (UX-L3, P2), and the Nov 21 navigation re-review measured it at 808px, behind the fixed footer, because Today opens like a landing page (hero pitch first). Fix proposed: a plain \"Today\" title and no hero, which brings the first card to about 470px. A jump link to content that isn't visible was graded as solving \"ideas above the fold\"."
+ },
+ {
+  "id": "ux-49",
+  "split": "heldout",
+  "issue": 49,
+  "text": "Review this screen as the studio's UX reviewer: Charlie, Chat tab in the public demo (rule-based replies), phone 390.\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The Nov 17 live-demo review scored chat 5/10 and found a P1 (UX-L2): every trade is listed twice (raw ticket text, then cards) and the disclaimer shows 5 times on one phone screen. A P2 (R12): demo replies tell recruiters \"Set ANTHROPIC_API_KEY…\", developer text in a public demo. The earlier reviews checked that the disclaimer was present, not what the reply looked like to a reader."
+ },
+ {
+  "id": "ux-50",
+  "split": "heldout",
+  "issue": 50,
+  "text": "Review this screen as the studio's UX reviewer: Charlie, studio demo bar plus the main tabs in the public demo, PR https://github.com/holroydchase-afk/charlie/pull/38 (Oct 31, 2026).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: \"← Portfolio\" (back to the owner's portfolio site) sits right above the \"Portfolio\" tab (paper trades), so one word means two places. Found later by the Nov 17 live-demo review (UX-L5, P2) and again by the Nov 21 navigation re-review, which renamed the tab \"Trades\". The reviewer looked at the bar alone, not next to the screen it sits on."
+ },
+ {
+  "id": "ux-51",
+  "split": "dev",
+  "issue": 51,
+  "text": "Review this screen as the studio's UX reviewer: Charlie, README.md on the public repo (the front door for recruiters).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The README still said the demo was \"coming soon\" after it was live, said live adapters \"couldn't be exercised\", and used \"broker-ready order ticket\", a don't-say claim for a paper-only app. Found by positioning on Nov 1 and again by the Nov 17 review (README scored 3/10) and the Nov 18 portfolio review. Showcase mode checked the screenshot, not the words around it."
+ },
+ {
+  "id": "ux-52",
+  "split": "heldout",
+  "issue": 52,
+  "text": "Review this screen as the studio's UX reviewer: Charlie, Learn tab (local app and public demo).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The Nov 17 live-demo review found Learn is \"a wall of text\" (UX-L7, P2, scored 6.5) and recommended moving it behind a \"More\" menu. Learn hadn't changed since it passed. The reviewer checked words one at a time, not the shape and length of the page."
+ },
+ {
+  "id": "ux-53",
+  "split": "heldout",
+  "issue": 53,
+  "text": "Review this screen as the studio's UX reviewer: ccwatts playground, whole page at 390px and 1280px (Oct 22 and Oct 24, 2026 recruiter-ready rounds).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: Four days later (Oct 28) the next ux-reviewer baseline scored the same page 6.5/10 and found P1s that were already there: whole paragraphs set in monospace, a 6,251px phone page because method cards and the post preview were always open, file errors shown only below the fold with no aria-live, the \"Try it\" box splitting the result from its chart, and share-card preview text at about 4px on a phone."
+ },
+ {
+  "id": "ux-54",
+  "split": "dev",
+  "issue": 54,
+  "text": "Review this screen as the studio's UX reviewer: ccwatts playground, Pace section (weekly work-rhythm chart), phone and laptop. Shipped Oct 31, 2026 (CCW-M4.5).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: On Nov 21 Chase said he had never seen what Pace looks like. On phone it started collapsed, so most visitors never saw the chart. The \"this week so far\" bar, drawn at half opacity, read as muddy, washed-out colors that looked like an error."
+ },
+ {
+  "id": "ux-55",
+  "split": "heldout",
+  "issue": 55,
+  "text": "Review this screen as the studio's UX reviewer: ccwatts playground, the single scrolling page (hero, chart, breakdowns, What if, Share, Pace, Method), phone and laptop.\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: On Nov 21 Chase found it too much: \"the amount of information on one flowing page is too much / it's not broken up. the level of large chunky text is too much. the little light grey text everywhere.\" When asked, the reviewer then counted 14 font sizes and 6 corner styles (\"reads as one long PDF\"), but its scores had never flagged information density, oversized text or too much grey fine print."
+ },
+ {
+  "id": "ux-56",
+  "split": "heldout",
+  "issue": 56,
+  "text": "Review this screen as the studio's UX reviewer: ccwatts playground, first tabbed version (statement card, then Breakdown, Pace, What if, Share, Method and Your logs tabs). ccwatts PR #102, first round, Nov 21, 2026.\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: Later the same day Chase said the demo still felt overwhelming even with tabs. He asked for a high-level overview first, with one summary per area linking to its detail. Splitting the page into tabs did not fix the density; it only moved it around."
+ },
+ {
+  "id": "ux-57",
+  "split": "dev",
+  "issue": 57,
+  "text": "Review this screen as the studio's UX reviewer: ccwatts playground Overview roll-up and its detail tabs (Electricity, Pace, Share, Method) on the studio design system. ccwatts PR #102 final round, merged and live Nov 22, 2026.\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: A few hours after it went live, Chase called the product \"very busy\", with high information density and the most important points and CTAs hard to find. The next ux-reviewer showcase pass scored it 5/10 on phone and 6/10 on laptop for main point and CTA. It found no main button in the first viewport at either width, an Overview that was a five-row menu repeating the tabs, a header with four layers (about 270 of 844px) and the privacy promise stated twice on laptop, an Electricity tab with seven equal-weight sections (2,294px tall on phone), four equal buttons on Share with receipt text at about 4px, and numbers with no range or method version (64%, 28 miles, 5.7 days, model percentages), which breaks a ccwatts hard rule."
+ },
+ {
+  "id": "ux-58",
+  "split": "heldout",
+  "issue": 58,
+  "text": "Review this screen as the studio's UX reviewer: ccwatts playground, opening a tab straight from its link (for example /ccwatts/#pace or #share) on a phone. ccwatts PR #102, live Nov 22, 2026.\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The tab opens, but the sticky tab bar covers the tab's heading, so the view starts mid-section with its title hidden. There was also a blank gap above Pace's tabs. Found the next day in the focus review and confirmed on the live page. The reviewer first called it \"probably a capture artifact\" before it was confirmed."
+ },
+ {
+  "id": "ux-59",
+  "split": "heldout",
+  "issue": 59,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, public web demo (all screens, light and dark), Oct 28 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: Four days later the founder found the colors \"rough\" on his own iPhone: cold system greys, pure black and see-through disabled buttons. The palette was replaced (DEC-45)."
+ },
+ {
+  "id": "ux-60",
+  "split": "dev",
+  "issue": 60,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, public web demo opening on \"New for you\" with a row of toolbar buttons above the title, Nov 13 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The next day the founder called the live demo \"rough\" and \"dated\" on his iPhone: heavy icons and weights, a row of buttons above the title, not like the phone's own apps. It led to a full redesign (DEC-59)."
+ },
+ {
+  "id": "ux-61",
+  "split": "heldout",
+  "issue": 61,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, redesign mockups of the Gallery opening screen with a full-width \"See the new photos\" button, Nov 15 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The founder liked the mockups except that button: \"no giant buttons anywhere unless it's intentional, like a big delete\", it \"looks dated\". It became a small \"4 new\" chip on the photo, and the design system rule was overridden."
+ },
+ {
+  "id": "ux-62",
+  "split": "heldout",
+  "issue": 62,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, redesigned Gallery, Feed and Share (Apple-style look), post cards and rows on grey fills, Nov 15-16 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The founder disliked grey \"everywhere\". Apple's guidelines keep grey for grouped settings lists and dividers, so content cards went to plain white/black (RD-34)."
+ },
+ {
+  "id": "ux-63",
+  "split": "dev",
+  "issue": 63,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, Gallery \"New for you\" row with a \"Tap a photo to start\" line, plus the demo's numbered \"Try this\" steps, Nov 13-16 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The founder: \"get rid of the tap a photo to start and the steps below. that is messy.\" Both were removed (DEC-61)."
+ },
+ {
+  "id": "ux-64",
+  "split": "heldout",
+  "issue": 64,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, Feed post comment field on iPhone (web demo), Nov 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: On a real iPhone the keyboard covered the comment box while typing. Fixed as a P0 (RD-35: tab bar hides and the field stays above the keyboard)."
+ },
+ {
+  "id": "ux-65",
+  "split": "heldout",
+  "issue": 65,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, Gallery's pinned \"Search photos\" bar and month title while scrolling, Nov 17 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: On the founder's iPhone the bar's backing stopped short of the right edge so photos showed through beside it, and after the fix the sticky month title still pulled away from the search bar, leaving a strip of photo between them when scrolling back down."
+ },
+ {
+  "id": "ux-66",
+  "split": "dev",
+  "issue": 66,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, Share (post a photo) screen: title, caption and group fields on one page, Nov 17 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The founder rated Share 2/10: \"a form vs experience\", dated and overly complicated. It was rebuilt photo-first as a postcard (DEC-73)."
+ },
+ {
+  "id": "ux-67",
+  "split": "heldout",
+  "issue": 67,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, whole app after the Apple-style redesign (Gallery, Feed, More), Nov 17 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The founder found the UI \"a little too clean\" and sterile, with no warmth or personality. It took a warmth round (page color, photo shadows, reaction pop) and later themes."
+ },
+ {
+  "id": "ux-68",
+  "split": "heldout",
+  "issue": 68,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, Feed post reactions: the emoji you picked, Nov 18 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The founder: \"I don't like the background on the emojis (the lighter oval)\". It looked heavy, a blob behind the emoji. Replaced by a thin accent outline with no fill (DEC-76)."
+ },
+ {
+  "id": "ux-69",
+  "split": "dev",
+  "issue": 69,
+  "text": "Review this screen as the studio's UX reviewer: Hearth, the first screen after tapping Share (before picking photos), Nov 19-21 2026\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "rubric": "Pass only if the reply raises this problem, which a past review missed: The founder: \"This looks subpar compared to the rest of the app.\" It was a page of instructions, two small text links and a big empty area, nothing like the postcard that follows."
+ }
+]
