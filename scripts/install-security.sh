@@ -3,7 +3,8 @@
 # Usage: scripts/install-security.sh /path/to/repo
 # Adds: .github/workflows/security.yml (gitleaks, privacy scan, dependency review),
 # .github/workflows/codeql.yml (languages detected), .github/dependabot.yml
-# (ecosystems detected), .github/privacy-scan.py and SECURITY.md.
+# (ecosystems detected), .github/workflows/dependabot-automerge.yml (auto-merge for
+# Dependabot patch and minor PRs), .github/privacy-scan.py and SECURITY.md.
 # Existing files are left alone, so a repo's own config is never overwritten.
 set -euo pipefail
 repo="${1:?usage: install-security.sh /path/to/repo}"
@@ -50,6 +51,7 @@ dirs_of() { printf '%s\n' "$files" | grep -E "$1" | grep -v node_modules | xargs
 
 sed "s/\[LANGUAGES\]/[$langs]/" "$kit/codeql.yml" | write_one .github/workflows/codeql.yml
 write_one .github/workflows/security.yml <"$kit/security.yml"
+write_one .github/workflows/dependabot-automerge.yml <"$kit/dependabot-automerge.yml"
 write_one .github/privacy-scan.py <"$kit/privacy-scan.py"
 write_one SECURITY.md <"$kit/SECURITY.md"
 echo "Next: run 'python3 .github/privacy-scan.py' and fix or allow (.privacy-allow) anything it finds, then open a PR."
