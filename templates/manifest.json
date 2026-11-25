@@ -1,0 +1,258 @@
+{
+  "_comment": "managed: follows the source; seed: created once, never overwritten. ignore: sources deliberately not synced (feedback-gate is installed by scripts/add-feedback.sh). Local ./x.mjs imports are followed automatically.",
+  "entries": [
+    {
+      "src": "tools/agent-guard.mjs",
+      "dest": "scripts/agent-guard.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/agent-memory.mjs",
+      "dest": "scripts/agent-memory.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/agent-scorecard.mjs",
+      "dest": "scripts/agent-scorecard.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/check-agent-run.mjs",
+      "dest": "scripts/check-agent-run.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/check-findings.mjs",
+      "dest": "scripts/check-findings.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/check-qa-report.mjs",
+      "dest": "scripts/check-qa-report.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/check-spec.mjs",
+      "dest": "scripts/check-spec.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/check-story-entry.mjs",
+      "dest": "scripts/check-story-entry.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/check-triage.mjs",
+      "dest": "scripts/check-triage.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/check-ux-run.mjs",
+      "dest": "scripts/check-ux-run.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/eval-miss-cases.mjs",
+      "dest": "scripts/eval-miss-cases.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/eval-miss-score.mjs",
+      "dest": "scripts/eval-miss-score.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/eval-pipeline.mjs",
+      "dest": "scripts/eval-pipeline.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/eval-protocol.mjs",
+      "dest": "scripts/eval-protocol.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/feedback-guard.mjs",
+      "dest": "scripts/feedback-guard.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/feedback-merge-check.mjs",
+      "dest": "scripts/feedback-merge-check.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/pipeline-run.mjs",
+      "dest": "scripts/pipeline-run.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/portfolio-drift.mjs",
+      "dest": "scripts/portfolio-drift.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/product-review.mjs",
+      "dest": "scripts/product-review.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/qa-cycle.mjs",
+      "dest": "scripts/qa-cycle.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/qa-run3.mjs",
+      "dest": "scripts/qa-run3.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/release-train.mjs",
+      "dest": "scripts/release-train.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/spec-lint.mjs",
+      "dest": "scripts/spec-lint.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/stamp-run.mjs",
+      "dest": "scripts/stamp-run.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/studio-scorecard.mjs",
+      "dest": "scripts/studio-scorecard.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/studio-sync.mjs",
+      "dest": "scripts/studio-sync.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/triage-report.mjs",
+      "dest": "scripts/triage-report.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/ux-build-eval.mjs",
+      "dest": "scripts/ux-build-eval.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/ux-flows.mjs",
+      "dest": "scripts/ux-flows.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/ux-issues.mjs",
+      "dest": "scripts/ux-issues.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/ux-recheck.mjs",
+      "dest": "scripts/ux-recheck.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/ux-refs.mjs",
+      "dest": "scripts/ux-refs.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/ux-rules.mjs",
+      "dest": "scripts/ux-rules.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/ux-search.mjs",
+      "dest": "scripts/ux-search.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/ux-shots.mjs",
+      "dest": "scripts/ux-shots.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "tools/ux-state.mjs",
+      "dest": "scripts/ux-state.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/scripts/agent-prompt.sh",
+      "dest": "scripts/agent-prompt.sh",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/scripts/check-agent-runs.sh",
+      "dest": "scripts/check-agent-runs.sh",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/scripts/check-agents.sh",
+      "dest": "scripts/check-agents.sh",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/scripts/check-handoff-status.sh",
+      "dest": "scripts/check-handoff-status.sh",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/scripts/check-logs.mjs",
+      "dest": "scripts/check-logs.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/scripts/log-agent-run.sh",
+      "dest": "scripts/log-agent-run.sh",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/handoff-check.yml",
+      "dest": ".github/workflows/handoff-check.yml",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/agents-check.yml",
+      "dest": ".github/workflows/agents-check.yml",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/claude-settings.json",
+      "dest": ".claude/settings.json",
+      "policy": "seed"
+    },
+    {
+      "src": "templates/studio-checks.json",
+      "dest": "studio-checks.json",
+      "policy": "seed"
+    },
+    {
+      "src": "docs/references/ux/README.md",
+      "dest": "docs/references/ux/README.md",
+      "policy": "managed"
+    },
+    {
+      "src": "docs/references/ux/clean-ui.md",
+      "dest": "docs/references/ux/clean-ui.md",
+      "policy": "managed"
+    },
+    {
+      "src": "docs/references/ux/contrast.md",
+      "dest": "docs/references/ux/contrast.md",
+      "policy": "managed"
+    },
+    {
+      "src": "docs/references/ux/dark-mode.md",
+      "dest": "docs/references/ux/dark-mode.md",
+      "policy": "managed"
+    }
+  ],
+  "ignore": [
+    "templates/scripts/feedback-gate.mjs"
+  ]
+}
