@@ -17,7 +17,7 @@
 //
 // Stop reasons: done, step-limit, cost-cap, no-usage, invalid-args, failed. Secrets: the key is read from the env at
 // request time and goes only into the request header; error bodies and transport errors are never written anywhere.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, lstatSync, constants as fsc } from "node:fs";
 import { dirname, resolve, isAbsolute } from "node:path";
 import { pathToFileURL } from "node:url";
 import { LEAKS } from "./check-story-entry.mjs";
@@ -44,6 +44,7 @@ function checkConfig(config, prices) {
   if ("api_key" in config) bad("config has an api_key field: put the NAME of an env var in api_key_env instead");
   const str = (k) => { if (typeof config[k] !== "string" || !config[k].trim()) bad(`config.${k} is required (a non-empty string)`); };
   for (const k of ["agent", "product", "provider", "base_url", "api_key_env", "model"]) str(k);
+  for (const k of ["agent", "product", "provider", "base_url", "api_key_env", "model"]) if (/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(config[k])) bad(`config.${k} must not contain control characters or line breaks`);
   if (!SLUG.test(config.agent)) bad("config.agent must be a lowercase kebab-case name");
   if (Object.keys(VERDICTS).includes(config.agent)) bad(`config.agent "${config.agent}" has a fixed verdict list the runner's verdicts break: use a runner-named agent such as open-weight-${config.agent}`);
   if (/\s/.test(config.provider)) bad("config.provider must be one token");
@@ -152,6 +153,7 @@ export async function runAgent({ config, prices, task, tools = {}, transport = d
     const msg = res.body.choices && res.body.choices[0] && res.body.choices[0].message;
     if (!msg) { log({ step: steps, kind: "response", usage: { input: u.prompt_tokens, output: u.completion_tokens }, cost_usd: cost, error: "no message" }); finish("failed"); break; }
     const calls = Array.isArray(msg.tool_calls) ? msg.tool_calls : [];
+    if (calls.some((c) => !c || typeof c !== "object")) { log({ step: steps, kind: "response", usage: { input: u.prompt_tokens, output: u.completion_tokens }, cost_usd: cost, error: "malformed tool call" }); finish("failed"); break; }
     log({
       step: steps, kind: "response", usage: { input: u.prompt_tokens, output: u.completion_tokens }, cost_usd: cost,
       content: msg.content == null ? null : redact(msg.content).slice(0, CLIP), tool_calls: calls.map((c) => label(c.function && c.function.name)),
@@ -247,11 +249,17 @@ export async function main(argv, { transport, sleep, now = () => new Date(), env
     checkConfig(config, prices); // before the output folder exists and before any request
     if (!env[config.api_key_env]) bad(`environment variable ${config.api_key_env} is not set`);
 
-    const result = await runAgent({ config, prices, task, tools, transport, sleep, now, env });
     const out = resolve(flags.out);
+    for (const f of ["run.md", "transcript.jsonl"]) { // never follow a planted symlink out of --out
+      let st = null;
+      try { st = lstatSync(resolve(out, f)); } catch { /* absent is fine */ }
+      if (st && !st.isFile()) bad(`--out/${f} exists and is not a regular file`);
+    }
+    const result = await runAgent({ config, prices, task, tools, transport, sleep, now, env });
     mkdirSync(out, { recursive: true });
-    writeFileSync(resolve(out, "transcript.jsonl"), result.transcript.map((r) => JSON.stringify(r)).join("\n") + "\n");
-    writeFileSync(resolve(out, "run.md"), runLog({ config, result, task, date: now().toISOString().slice(0, 10), key: env[config.api_key_env] }));
+    const flag = fsc.O_WRONLY | fsc.O_CREAT | fsc.O_TRUNC | (fsc.O_NOFOLLOW || 0);
+    writeFileSync(resolve(out, "transcript.jsonl"), result.transcript.map((r) => JSON.stringify(r)).join("\n") + "\n", { flag });
+    writeFileSync(resolve(out, "run.md"), runLog({ config, result, task, date: now().toISOString().slice(0, 10), key: env[config.api_key_env] }), { flag });
     console.log(`${result.stop}: ${result.steps} steps, $${result.cost_usd.toFixed(4)}`);
     if (result.stop === "failed") { console.error("the run failed: see transcript.jsonl in --out"); return 1; }
     return 0;

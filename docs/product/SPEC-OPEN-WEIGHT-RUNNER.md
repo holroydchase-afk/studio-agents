@@ -52,6 +52,9 @@ Format: ID, type, Given/When/Then. All `auto` unless marked; qa-tdd writes each 
 **No network, no secrets**
 - OWR-20 (auto): Given the test suite, then a global `fetch` stub that throws proves no test reaches the network; the default transport is only exercised against it.
 - OWR-21 (auto): Given the repo, then `tests/check.sh` finds no key pattern or literal key in the config examples, and a config with a `api_key` field (not `api_key_env`) exits 2.
+- OWR-27 (auto, QA-R4): Given a config string (product, model, ...) with a control character or line break, then exit 2 before any request, so run.md can't gain forged lines.
+- OWR-28 (auto, QA-R5): Given a provider reply with a null or non-object entry in `tool_calls`, then the run ends `failed` with run.md and transcript written, not a crash.
+- OWR-29 (auto, QA-R6): Given `--out/run.md` or `transcript.jsonl` is a symlink (or not a regular file), then exit 2 before any request, and writes use O_NOFOLLOW; nothing is written outside `--out`.
 - OWR-22 (manual): Given Chase's go and a real key in his own environment, one live call on the cheapest model with a 10-cent cap returns `done` and a log that passes the checker. Not run by CI; first real use of #172.
 
 ## Measure
