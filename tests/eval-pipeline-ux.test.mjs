@@ -19,10 +19,25 @@ test("EVPL-23 ux-reviewer.json passes check-suite and has one task per miss issu
   assert.ok(cfg.split.dev > 0 && cfg.split.heldout > cfg.split.dev);
 });
 
-test("EVPL-23 the agent never sees what was wrong: task text holds the screen only, the rubric holds the miss", () => {
+const words = (t) => t.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter(Boolean);
+const sharesRun = (miss, text, n) => {
+  const m = words(miss), t = words(text).join(" ");
+  for (let i = 0; i + n <= m.length; i++) if (t.includes(m.slice(i, i + n).join(" "))) return true;
+  return false;
+};
+test("EVPL-23 the agent never sees what was wrong: no run of 6 words from the miss appears in the task text, and every miss is real text", () => {
   for (const x of rd("evals/suites/ux-reviewer.tasks.json")) {
     assert.ok(x.rubric.startsWith("Pass only if the reply raises"), x.id);
-    assert.ok(!x.text.includes(x.rubric.slice(60, 140)), `${x.id}: the miss leaked into the task text`);
+    const miss = x.rubric.slice(x.rubric.indexOf(":") + 1).trim();
+    assert.ok(words(miss).length >= 12, `${x.id}: the miss is empty or too short`);
+    assert.ok(!sharesRun(miss, x.text, 6), `${x.id}: the miss leaked into the task text`);
     assert.ok(/Review this screen/.test(x.text));
   }
+});
+
+test("EVPL-23 the leak check itself catches a partial and a late leak (QA-R1)", () => {
+  const miss = "the section links are underlined text that scroll away and the pinned brand bar has no navigation on it at all";
+  assert.ok(sharesRun(miss, "intro the pinned brand bar has no navigation on it", 6));
+  assert.ok(sharesRun(miss, "x brand bar has no navigation on it at all", 6));
+  assert.ok(!sharesRun(miss, "Charlie, main navigation tabs at 390", 6));
 });
