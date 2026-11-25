@@ -1,0 +1,3 @@
+A
+A matches the rules: it flags the risk in a literal "always optimize for efficiency" rule, gives exact text to paste, and puts it in the user-level CLAUDE.md so there's no copying it into each repo. It claims nothing it couldn't back up, though its next step waits on Chase saying "do it" and has no date.
+B is more decisive and names an owned step for tonight, but it states which repos hold which lines without having read them, and its run evidence doesn't show either claim. It also pulls a qa-tdd failing test into a two-line docs change.

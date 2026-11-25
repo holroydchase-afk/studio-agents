@@ -1,0 +1,2 @@
+A
+B is shorter and makes a clear reuse call (GitHub Issues), but it points to a spec file (docs/product/SPEC-FEEDBACK-LOOP.md) and says the guard and merge-check tools "already exist", and the run evidence backs neither. It also pilots on a demo that has no real users while Hearth beta feedback is already arriving. A says plainly what it has not checked, keeps the live-merge, privacy and overclaim rules, and ends with one "go" on a scoped Hearth-first step, though it is longer and gives no date.

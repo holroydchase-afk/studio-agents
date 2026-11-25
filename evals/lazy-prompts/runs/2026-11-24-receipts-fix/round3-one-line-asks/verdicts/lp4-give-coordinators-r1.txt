@@ -1,0 +1,2 @@
+B
+B reads "coordinators" the way Chase's setup uses the word (each product project has its own coordinator), gives a clear yes/no on who owns what, and picks a sensible default and keeps going, which matches his low-effort rule. A assumes recruiting coordinators, which is less likely given how his studio is run, and ends by pushing a clarifying question back to Chase. B is also shorter and keeps the live-demo gate.

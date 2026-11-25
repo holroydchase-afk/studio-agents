@@ -1,0 +1,2 @@
+A
+A leads with the answer, sizes each step, names who owns it, cuts scope ("Not now"), and asks Chase for exactly one word at the end, while still saying it could not see the repo. B is just as honest but runs about twice as long: it restates project status and adds "two things to settle" commentary that Chase does not need for go-live. Neither reply puts a date on its next step; B's "starting step 1 now" is slightly more concrete, but not enough to make up for the clutter.

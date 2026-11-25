@@ -1,0 +1,2 @@
+B
+B says plainly that it has not seen the repo and frames its list as the standard go-live path. Its rules fit is concrete: privacy pass, claims check against run logs, and one "go" from Chase before the merge to main, so Chase only acts once. A has a tighter, owned critical path and a reuse call, but it cites risk IDs (WEB-5, WEB-9), an "existing drift check" and M1.x task numbers it could not have verified, and ends with tool-check clutter. B's lack of dates and of an explicit buy/reuse/build call costs less than A's unbacked specifics.

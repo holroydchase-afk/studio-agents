@@ -1,0 +1,2 @@
+A
+B claims it "proved" the pipeline on a trial task and reused an existing ledger tool, but its run evidence shows only three spec checks and an agent-guard call, with no trial run and no repo access, so those claims are not backed up. A is honest about what it didn't check, follows the studio rules closely, and names an owned next step (staff-pm reads HANDOFF and open PRs, then ranks three tasks) with no ask of Chase. A is longer and neither reply gives a date, but B's overclaiming breaks the no-overclaim rule, which outweighs its tighter format and its explicit reuse call.

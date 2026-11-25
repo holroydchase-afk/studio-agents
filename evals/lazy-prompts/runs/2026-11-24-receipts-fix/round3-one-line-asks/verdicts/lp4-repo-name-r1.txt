@@ -1,0 +1,2 @@
+A
+Both replies give the same rule and ask which project, but A is tighter: it states the convention, points to his existing repos as precedent, and closes with one clear ask ("reply with its name"). B asks "which project" twice and pads with recruiter framing, so A is lower effort to read. Both make the same partly unverified claim that renaming breaks links (GitHub redirects repo URLs, though Pages paths do change), so that does not separate them.

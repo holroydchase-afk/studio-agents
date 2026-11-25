@@ -1,0 +1,4 @@
+B
+B reuses the studio-agents sync, is honest that it could not open the repos, and names the real gaps correctly (the portfolio site and PM tools lack the intro rule; the Charlie example could be copied into the wrong product); it then asks one decision with a recommendation, though that decision gates its next step and the step has no date.
+A has a dated, owned next step (qa-tdd, Nov 24) and a clean reuse call, but it states things it could not have backed up or that are wrong: studio-agents lacking the opening, agent tables "already identical", "9 of 9", and pasted "Checks: all 3 passed" tool output.
+A also adds clutter Chase does not need (M-numbers, STD-8, waivers, three done-states), which outweighs its tighter plan.

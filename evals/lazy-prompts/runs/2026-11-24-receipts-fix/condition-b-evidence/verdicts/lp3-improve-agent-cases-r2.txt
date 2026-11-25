@@ -1,0 +1,2 @@
+A
+A makes a clear reuse/build call (reuse the receipts runner, build one small reply check, no new agent or rewrite), and its run evidence backs the claim that the existing checks run, while it decides without asking Chase anything. B is honest about what it couldn't see, but its causes are guesses, its tool list is speculative, and it ends with an extra go/no-go question plus an optional footer idea that adds clutter. Neither reply gives a dated next step, though A's is owned and ordered (qa-tdd red, engineer build, rerun the graded cases).

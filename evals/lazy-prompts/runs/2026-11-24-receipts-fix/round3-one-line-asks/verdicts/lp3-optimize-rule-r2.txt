@@ -1,0 +1,2 @@
+A
+A answers yes, then points out the real risk: read literally, "always optimize for efficiency" could lead an agent to skip tests, privacy checks or the go on live merges. It adds the safety guardrail, names one place for the rule (user-level CLAUDE.md), and leaves Chase a single word ("do it") to finish. B also picks the user-level file, but it contradicts itself: it tells Chase to paste the line and then says a later session will add it. It also pushes an extra studio-agents choice onto him and leaves out the guardrail against efficiency overriding safety rules.

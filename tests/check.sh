@@ -227,6 +227,7 @@ check "STK-PS-R20..R24,R27 claim-check hardening: quadratic hang and caps, hedge
 check "SKT-18..26 stakeholder-intake (SKT-27 manual; SKT-28..30 parts): classify, index through the checker, splitting, caps, secrets stop, allow-email, data not instructions, repo facts, hardening" node --test "$root/tests/stakeholder-intake.test.mjs"
 check "STK-PS-R30..R38 stakeholder-intake hardening: tag-stripped and unescaped scans, entities, --out inside the folder, empty comments, untrusted flag, total-bytes cap, known limits" node --test "$root/tests/stakeholder-intake-hardening.test.mjs"
 check "PDRIFT-1..6 TRAIN-1..9 portfolio drift check and nightly release train logic" node --test "$root/tests/portfolio-drift.test.mjs"
+check "PMR-1..9 pm-receipts tool and staff-pm reply rules" node --test "$root/tests/pm-receipts.test.mjs"
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
 check "UXREL-1..5 ux-flows reliability and permissions tests" node --test "$root/tests/ux-reliability.test.mjs"
@@ -591,8 +592,9 @@ assert d[\"flows\"][0][\"widths\"]==[\"phone\",\"laptop\"], d'"
 # Public repo: no claude.ai artifact or session links, no trigger or environment ids.
 check "no claude.ai links or trigger/environment ids" bash -c "! grep -rnE 'claude\.ai/(artifact|code)/|trig_[0-9A-Za-z]{10,}|env_[0-9A-Za-z]{10,}' --exclude-dir=.git --exclude=check.sh '$root'"
 
+# Greeting examples in templates and docs use <product>, never one product's name (intake from ccwatts, Nov 22).
+check "GREET-1 templates and docs say \"<product>'s chief of staff\", not Charlie's" bash -c "cd '$root' && ! grep -n \"Charlie's chief\" templates/CLAUDE-agents.md docs/studio-standard.md docs/session-rules.md && grep -q \"<product>'s chief of staff\" templates/CLAUDE-agents.md"
+
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]
 
-# Greeting examples in templates and docs use <product>, never one product's name (intake from ccwatts, Nov 22).
-check "GREET-1 templates and docs say \"<product>'s chief of staff\", not Charlie's" bash -c "cd '$root' && ! grep -n \"Charlie's chief\" templates/CLAUDE-agents.md docs/studio-standard.md docs/session-rules.md && grep -q \"<product>'s chief of staff\" templates/CLAUDE-agents.md"

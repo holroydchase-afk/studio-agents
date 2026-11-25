@@ -12,7 +12,7 @@ if [ "$#" -eq 0 ]; then set -- $(cd "$src" && ls *.mjs | sed 's/\.mjs$//'); fi
 for t in "$@"; do
   [ -f "$src/$t.mjs" ] || { echo "unknown tool: $t (have: $(cd "$src" && ls *.mjs | sed 's/\.mjs$//' | tr '\n' ' '))" >&2; exit 1; }
 done
-# A tool may import its neighbours (`from "./x.mjs"`). Follow those imports transitively, so a single
+# A tool may import its neighbours (`from "./x.mjs"`) or run them as child processes (a comment `spawns "./x.mjs"`). Follow those imports transitively, so a single
 # tool synced alone still runs. Each file is copied once; dependencies print "(needed by <tool>)".
 declare -A seen
 for t in "$@"; do seen[$t]=named; done
@@ -20,7 +20,7 @@ copy_tool() { # copy_tool <tool> [needed-by]
   local t="$1" by="${2:-}" d
   cp "$src/$t.mjs" "$dest/$t.mjs"
   if [ -n "$by" ]; then echo "synced $t (needed by $by)"; else echo "synced $t"; fi
-  for d in $(grep -oE 'from "\./[A-Za-z0-9_-]+\.mjs"' "$src/$t.mjs" | sed -E 's/from "\.\/(.*)\.mjs"/\1/' | sort -u); do
+  for d in $(grep -oE '(from|spawns) "\./[A-Za-z0-9_-]+\.mjs"' "$src/$t.mjs" | sed -E 's/(from|spawns) "\.\/(.*)\.mjs"/\2/' | sort -u); do
     [ -f "$src/$d.mjs" ] || continue
     [ -n "${seen[$d]:-}" ] && continue
     seen[$d]=dep

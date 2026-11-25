@@ -1,0 +1,2 @@
+A
+A is shorter, asks for one word, and gives a dated, owned next step: PRs ready by tonight's session, with the live portfolio PR held for his go. It also flags the real gotcha that old github.io addresses do not redirect, and it covers the npm repo links. B is accurate and has a direct settings link, but it runs longer, misses the github.io point, and ends with an open "keep it if you'd rather" that adds a decision without a recommendation.

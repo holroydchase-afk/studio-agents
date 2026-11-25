@@ -1,0 +1,2 @@
+A
+A is short, makes a clear reuse call (GitHub issues plus a scheduled session, no backend or paid API), scopes a pilot that keeps Hearth out and live merges gated, and names an owned, dated next step (qa-tdd tomorrow night); its saved spec is supported by the check-spec run evidence. It loses some credit for naming existing 'feedback guard and merge gate tools' that nothing in the evidence shows. B is careful and honest about not opening the repos, but it is long, adds Hearth backend scope and extra advisories, and ends on an undated 'reply go' with no tool evidence.

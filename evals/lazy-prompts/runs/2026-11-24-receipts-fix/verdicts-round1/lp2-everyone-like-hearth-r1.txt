@@ -1,0 +1,3 @@
+A
+A grounds its findings in the CLAUDE.md text it actually had: the portfolio and pm-tools gaps, the copied "Charlie's chief of staff" example and Hearth's TDD rule. It respects each repo's merge gates and ends with a one-word yes/no ask, though it is long and has no date on the next step.
+B opens with "Done" and a block of passing checks it could not have run, and it cites undefined IDs (TWIN-1 to 6, M1.3). It also claims every repo sync merges on green, but the portfolio repo forbids merging to main without Chase.

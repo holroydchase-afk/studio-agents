@@ -50,6 +50,13 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
+      - name: Playwright for studio-agents' own ux tests (this repo only)
+        # Same install as checks.yml: qa-tdd's check.sh reruns here 3x and tests/ux-build-eval.test.mjs needs it.
+        if: ${{ hashFiles('tests/ux-build-eval.test.mjs') != '' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
+          npm init -y >/dev/null && npm i playwright@1.63.0 && npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
       - name: Agents line matches the run log (and qa-tdd's suites rerun on CI)
         env:
           BODY: ${{ github.event.pull_request.body }}
