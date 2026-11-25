@@ -1,0 +1,22 @@
+{
+  "agent": "staff-pm",
+  "kind": "pairwise",
+  "tasks": "evals/lazy-prompts/prompts.json",
+  "rubric": "evals/suites/staff-pm.rubric.md",
+  "split": {
+    "dev": 4,
+    "heldout": 4
+  },
+  "arms": [
+    "agent",
+    "plain",
+    "plain-rules"
+  ],
+  "runs": 3,
+  "votes_per_order": 3,
+  "key": "evals/suites/staff-pm.key.json",
+  "grader_model": "claude-opus-5-5",
+  "agent_model": "claude-sonnet-5-5",
+  "direct": false,
+  "strip": []
+}
