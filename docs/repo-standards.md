@@ -57,3 +57,15 @@ Settings are not in the tree, so a PR can't fix them, and cloud threads can't wr
 - Dependabot missing: fruit-palettes, atlas-portfolio, websites; hero-backgrounds and persona-twins added in the 2026-11-25 PRs.
 - Portfolio LICENSE is "all rights reserved", so GitHub shows NOASSERTION; that is intentional.
 - CODEOWNERS: skipped on purpose. A solo owner gains nothing, and the agents check treats it as code, so it would force a qa-tdd run on a no-op file.
+
+### Added from the Linux Foundation report (March 2023, "Recommended Practices for Hosting and Managing OS Projects on GitHub")
+Beyond what sections 1 to 5 already cover, the report recommends:
+- SUPPORT.md saying where to get help; GitHub Discussions on for repos meant for outside users; archive repos that no longer get support.
+- CODEOWNERS plus branch protection so every change is reviewed. Studio note: CODEOWNERS counts as code in the agents check, so add it only in a PR that runs qa-tdd, or change the check first (architect lane).
+- A license line and badge in the README, an SPDX identifier comment at the top of source files, and third-party code marked with its license (THIRD_PARTY_NOTICES is already used in four repos).
+- Code scanning (CodeQL), Dependabot, GitHub Security Advisories for reported vulnerabilities, and a named person plus a mailbox for security reports.
+- Signed commits, so GitHub shows them as Verified; OpenSSF Scorecard and, later, the OpenSSF Best Practices badge.
+- DCO sign-off or a CLA only once outside contributors appear; not needed for solo repos.
+- Docs the report lists that the studio lacks: governance, release cadence, roadmap and FAQ (the README or docs/ is enough for small repos); organisation-level default community health files (needs a `.github` repo, so a settings-level change for Chase).
+- Run Repolinter (TODO Group) as a quick automated check of the community files.
+- English for all public content.
