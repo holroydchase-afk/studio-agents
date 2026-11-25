@@ -14,14 +14,16 @@
 // Exit 0 ok, 1 problems found, 2 usage or unreadable input. Old v1 runs are listed, never recomputed.
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { checkRun, buildReport, renderReport, pairVerdict } from "./eval-protocol.mjs";
+import { checkRun, buildReport, renderReport, pairVerdict, replyChecks, armOk } from "./eval-protocol.mjs";
 import { signP, wilson } from "./studio-scorecard.mjs";
 
-const USAGE = "usage: eval-pipeline.mjs init|check-suite|freeze|verify|jobs|collect|report|sheet|key-add|calibrate|status ... [--root DIR]";
+const USAGE = "usage: eval-pipeline.mjs init|check-suite|freeze|verify|jobs|collect|report|sheet|key-add|calibrate|status|import-v1|tasks ... [--root DIR]";
 const KINDS = ["pairwise", "cases"];
-const ARMS = ["agent", "plain", "plain-rules"];
+const ARMS_NOTE = "agent, plain, plain-rules, cross, orchestrated, ablate:<component>";
+const armName = (a) => a === "plain" || armOk(a);
+const BASE3 = new Set(["agent", "plain", "plain-rules"]);
 const BOOL = new Set(["--partial", "--reissue", "--replace", "--json", "--claim"]);
 const NM = "not measured";
 const KAPPA_FLOOR = 0.6, MIN_MARKS = 20;
@@ -80,6 +82,7 @@ export function checkSuite(root, cfg) {
   else if (!existsSync(rel(root, cfg.tasks))) bad("tasks", "file not found");
   else {
     try { tasks = JSON.parse(readFileSync(rel(root, cfg.tasks), "utf8")); } catch { bad("tasks", "bad JSON"); }
+    if (Array.isArray(tasks)) tasks = tasks.map((t) => (t && typeof t === "object" && t.text === undefined && typeof t.prompt === "string" ? { ...t, text: t.prompt } : t));
     if (tasks !== null) {
       if (!Array.isArray(tasks)) { bad("tasks", "must be an array"); tasks = null; }
       else {
@@ -89,11 +92,12 @@ export function checkSuite(root, cfg) {
           else if (seen.has(t.id)) bad(`tasks[${i}]`, `duplicate id ${t.id}`); else seen.add(t.id);
           if (t && !["dev", "heldout"].includes(t.split)) bad(`tasks[${i}]`, "split must be dev or heldout");
           if (t && (typeof t.text !== "string" || !t.text)) bad(`tasks[${i}]`, "text missing");
+          if (t && t.rubric !== undefined && typeof t.rubric !== "string") bad(`tasks[${i}]`, "rubric must be text");
         });
       }
     }
   }
-  if (!Array.isArray(cfg.arms) || !cfg.arms.every((a) => ARMS.includes(a))) bad("arms", `must be a list from ${ARMS.join(", ")}`);
+  if (!Array.isArray(cfg.arms) || !cfg.arms.every(armName)) bad("arms", `must be a list from ${ARMS_NOTE}`);
   else if (!cfg.arms.includes("agent") || !cfg.arms.includes("plain")) bad("arms", "must include agent and plain");
   if (!Number.isInteger(cfg.runs) || cfg.runs < 1) bad("runs", "must be a whole number of 1 or more");
   else if (cfg.kind === "cases" && cfg.runs !== 3) bad("runs", "a cases suite runs 3 times per case so noise shows");
@@ -129,7 +133,7 @@ function cmdInit(root, o) {
   if (existsSync(f)) throw new Stop([`${agent}.json already exists; init never overwrites`]);
   const cfg = {
     agent, kind, tasks: `evals/${agent}/tasks.json`, rubric: `evals/${agent}/rubric.md`,
-    split: { dev: 0, heldout: 0 }, arms: [...ARMS], runs: 3,
+    split: { dev: 0, heldout: 0 }, arms: [...BASE3], runs: 3,
     ...(kind === "pairwise" ? { votes_per_order: 3 } : { votes: 3 }),
     grader_model: "claude-opus-5-5", agent_model: "claude-sonnet-5-5",
     key: `evals/suites/${agent}.key.json`, direct: false, strip: ["```spec[\\s\\S]*?```"],
@@ -216,6 +220,7 @@ function gradeJobs(root, s, run, tasks, phase) {
   const st = stripper(s.cfg), rubric = readFileSync(rel(root, s.cfg.rubric), "utf8").trim();
   const outs = genOutputs(run);
   const taskOf = new Map(tasks.map((t) => [t.id, t.text]));
+  const rubOf = new Map(tasks.map((t) => [t.id, t.rubric ? `${rubric}\n\nFor this task: ${t.rubric}` : rubric]));
   const ids = tasks.filter((t) => t.split === phase).map((t) => t.id);
   const jobs = [], blind = {};
   for (const task of ids) for (let r = 1; r <= s.cfg.runs; r++) {
@@ -228,7 +233,7 @@ function gradeJobs(root, s, run, tasks, phase) {
         for (const order of ["AB", "BA"]) {
           const A = order === "AB" ? mine : base, B = order === "AB" ? base : mine;
           for (let v = 1; v <= s.cfg.votes_per_order; v++) {
-            const text = gradeText(taskOf.get(task), rubric, A, B);
+            const text = gradeText(taskOf.get(task), rubOf.get(task), A, B);
             jobs.push({ id: `v-${pid}-${order}-${v}`, stage: "grade", model: s.cfg.grader_model, pair: pid, order, vote: v, outputs: { A, B }, text, input_sha256: sha(text) });
           }
         }
@@ -237,7 +242,7 @@ function gradeJobs(root, s, run, tasks, phase) {
       for (const arm of s.cfg.arms) {
         const out = st(outs.get(`${task}|${r}|${arm}`) ?? "");
         for (let v = 1; v <= s.cfg.votes; v++) {
-          const text = caseText(taskOf.get(task), rubric, out);
+          const text = caseText(taskOf.get(task), rubOf.get(task), out);
           jobs.push({ id: `c-${task}-${arm}-${r}-${v}`, stage: "grade", model: s.cfg.grader_model, task, arm, run: r, vote: v, output: out, text, input_sha256: sha(text) });
         }
       }
@@ -322,6 +327,7 @@ function cmdCollect(root, o) {
     if (j.stage === "gen") {
       if (!tokenOk(r.tokens)) { note(`tokens must be a number or "${NM}"`); continue; }
       if (typeof r.output !== "string" || !r.output) { note("output missing"); continue; }
+      if (r.tool_calls !== undefined && !(typeof r.tool_calls === "number" && Number.isFinite(r.tool_calls) && r.tool_calls >= 0)) { note("tool_calls must be a number of 0 or more"); continue; }
     } else {
       const okAns = s.cfg.kind === "pairwise" ? ["A", "B", "tie"] : ["pass", "fail"];
       if (!okAns.includes(r.answer)) { note(`answer must be ${okAns.join(", ")}`); continue; }
@@ -337,7 +343,10 @@ function cmdCollect(root, o) {
   const armsOut = {};
   for (const arm of s.cfg.arms) {
     const mine = gen.filter((j) => j.arm === arm).map((j) => good.get(j.id)).filter(Boolean);
-    armsOut[arm] = { tokens: mine.length && mine.every((r) => typeof r.tokens === "number") ? mine.reduce((a, r) => a + r.tokens, 0) : NM };
+    armsOut[arm] = {
+      tokens: mine.length && mine.every((r) => typeof r.tokens === "number") ? mine.reduce((a, r) => a + r.tokens, 0) : NM,
+      tool_calls: mine.length && mine.every((r) => typeof r.tool_calls === "number") ? mine.reduce((a, r) => a + r.tool_calls, 0) : NM,
+    };
   }
   const out = {
     schema: 2, date: meta.date, agent: s.cfg.agent, kind: s.cfg.kind, change: meta.change, phase: meta.phase,
@@ -347,6 +356,10 @@ function cmdCollect(root, o) {
     pairs: [], collected: { gen: genDone, grade: gradeDone },
   };
   void tasks;
+  if (s.cfg.agent === "staff-pm" && genDone) {
+    const st = stripper(s.cfg);
+    out.reply_checks = gen.map((j) => ({ id: j.id, ...replyChecks(st(good.get(j.id).output)) }));
+  }
   if (s.cfg.kind === "pairwise") {
     const blind = existsSync(join(run, "blind-map.json")) ? readJson(join(run, "blind-map.json")).pairs : {};
     const votes = {};
@@ -407,6 +420,7 @@ function listRuns(root, cfg) {
   return { v2, v1 };
 }
 function tokensLine(r) { return `tokens: ${Object.entries(r.arms).map(([k, v]) => `${k} ${v.tokens}`).join(", ")}`; }
+function toolCallsLine(r) { return `tool calls: ${Object.entries(r.arms).map(([k, v]) => `${k} ${v.tool_calls ?? NM}`).join(", ")}`; }
 
 function buildSuiteReport(root, s) {
   const { v2, v1 } = listRuns(root, s.cfg);
@@ -415,16 +429,25 @@ function buildSuiteReport(root, s) {
   for (const r of v2) {
     const bad = checkRun(r.data);
     if (bad.length) { problems.push(...bad.map((m) => `${r.name}: ${m}`)); continue; }
-    const head = { change: r.data.change, phase: r.data.phase, date: r.data.date, grader_model: r.data.grader_model, agent_model: r.data.agent_model, runs: r.data.runs, votes: r.data.votes, tokens: r.data.arms };
+    const flags = (r.data.reply_checks || []).filter((c) => c.lint_ok_lines > 0).map((c) => c.id);
+    const head = { lint_ok_flags: flags, change: r.data.change, phase: r.data.phase, date: r.data.date, grader_model: r.data.grader_model, agent_model: r.data.agent_model, runs: r.data.runs, votes: r.data.votes, tokens: r.data.arms };
     if (r.data.kind === "cases") {
       const sum = casesSummary(r.data.cases || [], "agent", "plain", r.data.runs);
       const tok = r.data.arms.agent.tokens;
       sum.cost_per_win = typeof tok === "number" && sum.wins > 0 ? tok / sum.wins : NM;
+      sum.extra = {};
+      for (const arm of Object.keys(r.data.arms)) if (!BASE3.has(arm)) { const e = casesSummary(r.data.cases || [], arm, "plain", r.data.runs); sum.extra[arm] = { wins: e.wins, losses: e.losses, sign_p: e.sign_p, verdict: e.verdict }; }
       sum.design_effect = r.data.arms["plain-rules"] ? (() => { const d = casesSummary(r.data.cases || [], "agent", "plain-rules", r.data.runs); return { wins: d.wins, losses: d.losses, sign_p: d.sign_p, verdict: d.verdict }; })() : NM;
       runs.push({ ...head, kind: "cases", summary: sum });
     } else runs.push({ ...head, kind: "pairwise", report: buildReport(r.data), frozen: r.data.frozen });
   }
   const legacy = v1.map((r) => ({ run: r.name, stored_tally: r.data.tally ?? null }));
+  const ip = join(suitesDir(root), `${s.cfg.agent}.index.json`);
+  if (existsSync(ip)) for (const e of readJson(ip).runs || []) {
+    const f = join(root, e.dir, "results.json");
+    if (!existsSync(f) || shaFile(f) !== e.sha256) { problems.push(`${e.run}: legacy file changed (results.json no longer matches the recorded sha256)`); continue; }
+    legacy.push({ run: e.run, stored_tally: e.tally ?? null });
+  }
   return { suite: basename(s.abs), runs, v1: legacy, problems };
 }
 function renderSuiteReport(rep) {
@@ -432,11 +455,14 @@ function renderSuiteReport(rep) {
   for (const r of rep.runs) {
     L.push(`run: ${r.change} (${r.phase}, ${r.date})`);
     L.push(`  grader model: ${r.grader_model}`, `  agent model: ${r.agent_model}`, `  runs per task: ${r.runs}`, `  votes per ${r.kind === "pairwise" ? "order" : "output"}: ${r.votes}`);
-    L.push(`  ${tokensLine({ arms: r.tokens })}`);
+    L.push(`  ${tokensLine({ arms: r.tokens })}`, `  ${toolCallsLine({ arms: r.tokens })}`);
+    for (const id of r.lint_ok_flags || []) L.push(`  lint-ok line in a reply: ${id} (flag only, verdict unchanged)`);
     if (r.kind === "pairwise") {
       L.push(r.report.arms && Object.keys(r.report.arms).length ? renderReport(r.report) : "  no graded pairs yet", "");
     } else {
       const m = r.summary;
+      L.push(`  arm agent vs plain: wins ${m.wins}, losses ${m.losses}`);
+      for (const [arm, e] of Object.entries(m.extra || {})) L.push(`  arm ${arm} vs plain: wins ${e.wins}, losses ${e.losses}, ${e.verdict}`);
       L.push(`  cases: ${m.n_cases} (agent vs plain)`);
       L.push(`  wins ${m.wins}, losses ${m.losses}, both pass ${m.both_pass}, both fail ${m.both_fail}`);
       L.push(`  sign test p = ${m.sign_p.toFixed(3)} (cases both arms pass or fail alike are excluded)`);
@@ -472,6 +498,31 @@ function cmdReport(root, o) {
     if (!edge) throw new Stop(["claim blocked: no run shows an edge"]);
   }
   console.log(o["--json"] ? j2(rep).trimEnd() : renderSuiteReport(rep));
+  return 0;
+}
+
+// ---------- import-v1, tasks
+function cmdImportV1(root, o) {
+  const s = checkedSuite(root, o);
+  if (!o["--run"]) throw new Usage("import-v1 needs --run");
+  const run = rel(root, o["--run"]);
+  const f = join(run, "results.json");
+  if (!existsSync(f)) throw new Usage(`no results.json in ${basename(run)}`);
+  const dir = relative(root, run);
+  if (dir.startsWith("..")) throw new Usage("the run folder must be under --root");
+  const data = readJson(f);
+  const ip = join(suitesDir(root), `${s.cfg.agent}.index.json`);
+  const idx = existsSync(ip) ? readJson(ip) : { schema: 1, runs: [] };
+  idx.runs = (idx.runs || []).filter((e) => e.run !== basename(run));
+  idx.runs.push({ run: basename(run), dir: dir.split("\\").join("/"), version: "v1", tally: data.tally ?? null, sha256: shaFile(f) });
+  put(ip, idx);
+  console.log(`imported v1: ${basename(run)} (not recomputed)`);
+  return 0;
+}
+function cmdTasks(root, o) {
+  const s = checkedSuite(root, o);
+  const list = s.tasks.map((t) => ({ id: t.id, split: t.split, text: t.text }));
+  console.log(o["--json"] ? JSON.stringify(list, null, 2) : list.map((t) => `${t.id} ${t.split}`).join("\n"));
   return 0;
 }
 
@@ -604,6 +655,8 @@ export function main(argv) {
       case "key-add": return cmdKeyAdd(root, o);
       case "calibrate": return cmdCalibrate(root, o);
       case "status": return cmdStatus(root, o);
+      case "import-v1": return cmdImportV1(root, o);
+      case "tasks": return cmdTasks(root, o);
       default: throw new Usage(USAGE);
     }
   } catch (e) {

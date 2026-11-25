@@ -14,8 +14,8 @@ import { fileURLToPath } from "node:url";
 import { signP, wilson } from "./studio-scorecard.mjs";
 
 const USAGE = "usage: eval-protocol.mjs freeze --prompts F --rubric F --out F | verify frozen.json | check-run results.json | report results.json [--json] | reply-checks reply.md [--json]";
-const WINNERS = ["agent", "plain", "plain-rules", "tie"];
-const ARM_NAMES = ["agent", "plain-rules"];
+const BASE_ARMS = ["agent", "plain-rules", "cross", "orchestrated"];
+export const armOk = (a) => BASE_ARMS.includes(a) || (typeof a === "string" && /^ablate:.+/.test(a));
 const NM = "not measured";
 
 class Usage extends Error {}
@@ -74,13 +74,13 @@ export function checkRun(j) {
     const at = `pairs[${i}]`;
     if (!p || typeof p !== "object") { out.push(`${at} is not an object`); return; }
     if (typeof p.prompt !== "string" || !p.prompt) out.push(`${at}.prompt missing`);
-    if (!ARM_NAMES.includes(p.arm)) out.push(`${at}.arm must be agent or plain-rules`);
+    if (!armOk(p.arm)) out.push(`${at}.arm must be agent, plain-rules, cross, orchestrated or ablate:<component>`);
     else if (arms && !arms[p.arm]) out.push(`${at}.arm ${p.arm} is not declared in arms`);
     if (!Array.isArray(p.votes) || p.votes.length !== 6) { out.push(`${at}.votes must have exactly 6 entries`); return; }
     let orderOk = true;
     p.votes.forEach((v, k) => {
       if (!v || (v.order !== "AB" && v.order !== "BA")) { out.push(`${at}.votes[${k}].order must be AB or BA`); orderOk = false; }
-      if (!v || !WINNERS.includes(v.winner)) out.push(`${at}.votes[${k}].winner must be one of ${WINNERS.join(", ")}`);
+      if (!v || !(v.winner === "plain" || v.winner === "tie" || armOk(v.winner))) out.push(`${at}.votes[${k}].winner must be plain, tie or an arm name`);
       else if (v.winner !== "tie" && v.winner !== "plain" && v.winner !== p.arm) out.push(`${at}.votes[${k}].winner ${v.winner} does not match the pair's arm`);
     });
     if (orderOk && (p.votes.filter((v) => v.order === "AB").length !== 3)) out.push(`${at}.votes needs 3 AB and 3 BA`);
@@ -122,7 +122,8 @@ export function buildReport(j) {
   const pairs = j.pairs.map((p) => ({ ...p, verdict: pairVerdict(p), flip: flipped(p) }));
   const flips = pairs.filter((p) => p.flip).length;
   const arms = {};
-  for (const arm of ARM_NAMES) {
+  const armNames = [...new Set(pairs.map((p) => p.arm))].sort((a, b) => (a === "agent" ? -1 : b === "agent" ? 1 : a.localeCompare(b)));
+  for (const arm of armNames) {
     const mine = pairs.filter((p) => p.arm === arm);
     if (!mine.length) continue;
     const wins = mine.filter((p) => p.verdict === arm).length;
@@ -166,7 +167,7 @@ export function renderReport(r) {
   L.push(`flip rate (order disagreements): ${r.flip_rate}`);
   for (const [arm, a] of Object.entries(r.arms)) {
     const pl = a.prompt_level;
-    L.push("", `arm ${arm} vs plain`);
+    L.push("", `arm ${arm} vs plain: wins ${a.pairs.wins}, losses ${a.pairs.losses}`);
     L.push(`  pairs: ${a.pairs.wins} wins, ${a.pairs.losses} losses, ${a.pairs.ties} ties (${a.pairs.note})`);
     for (const t of a.prompts) L.push(`  ${t.prompt}  ${t.wins}-${t.losses}  (${t.ties} ${t.ties === 1 ? "tie" : "ties"})  ${t.outcome}`);
     L.push(`  by prompt: ${pl.wins} wins, ${pl.losses} losses, ${pl.tied_prompts} tied of ${pl.n_prompts} prompts`);
