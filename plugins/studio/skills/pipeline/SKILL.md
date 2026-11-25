@@ -31,7 +31,10 @@ The main session runs this as chief of staff. The plan is `docs/pipeline-plan.md
 - A stopped run is reported to Chase in one message with the reason. Never retry past a stop.
 
 ## Merge class
-`pipeline-run class --ledger L.json --files a,b,c [--feedback]` (comma-separated changed paths) prints A, B or C. A: the thread merges on green, oldest first. B: scoped auto-merge, only when `feedback-merge-check` passes. C: live, hearth, `.github/`, CLAUDE.md, manifests, auth, privacy or data paths. Class C waits for Chase's go and is never merged by the pipeline. Merging is not deploying: say when a republish is still owed.
+`pipeline-run class --ledger L.json --files a,b,c [--feedback]` (comma-separated changed paths) prints A, B or C. A: the thread merges on green, oldest first. B: scoped auto-merge, only when the feedback gate passes (see below). C: live, hearth, `.github/`, CLAUDE.md, manifests, auth, privacy or data paths. Class C waits for Chase's go and is never merged by the pipeline. 
+Feedback gate for class B: `node tools/feedback-merge-check.mjs --repo NAME --lines N <files>` must exit 0. `class --feedback` already prints C for live-site, secret and manifest paths.
+
+Merging is not deploying: say when a republish is still owed.
 
 ## Status
 `pipeline-run status --ledger L.json [--json]` shows lane, touches, each stage's state, tokens and rounds, and the verify verdict.

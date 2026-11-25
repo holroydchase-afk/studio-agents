@@ -20,6 +20,7 @@ import { readFileSync, writeFileSync, renameSync, existsSync } from "node:fs";
 import { resolve, basename } from "node:path";
 import { checkSpec, LANES, TOUCHES } from "./check-spec.mjs";
 import { checkQaReport } from "./check-qa-report.mjs";
+import { checkMerge } from "./feedback-merge-check.mjs";
 
 export const STAGES = ["staff-pm", "tests-pre", "build", "verify", "pr"];
 export { LANES, TOUCHES }; // one source of truth: check-spec.mjs
@@ -145,13 +146,17 @@ function previousStage(ledger, stage) {
   return null;
 }
 
+function killSwitch(flags) {
+  const root = resolve(typeof flags.root === "string" ? flags.root : ".");
+  for (const f of [".claude/agents.off"]) if (existsSync(resolve(root, f))) throw new Tripped(`kill switch: ${f} exists under ${root}`);
+}
+
 function cmdStart({ flags, pos }) {
   const stage = stageArg(pos);
   const model = flags.model;
   if (model !== undefined && !MODELS.includes(model)) throw new Usage(`--model must be one of ${MODELS.join(", ")}`);
   const { path, ledger } = loadLedger(flags);
-  const root = resolve(typeof flags.root === "string" ? flags.root : ".");
-  for (const f of [".claude/agents.off"]) if (existsSync(resolve(root, f))) throw new Tripped(`kill switch: ${f} exists under ${root}`);
+  killSwitch(flags);
   if (ledger.stopped) throw new Tripped(`run is stopped (${ledger.stop_reason}); ${ledger.stop_reason === "plan-limit" ? "resume it first" : "start a new run"}`);
   const st = ledger.stages[stage];
   if (st.state === "skipped") throw new Tripped(`${stage} is skipped on the ${ledger.lane} lane`);
@@ -182,6 +187,7 @@ function cmdDone({ flags, pos }) {
   if (!existsSync(blockPath)) throw new Usage(`block file not found: ${blockPath}`);
   let blockText;
   try { blockText = readFileSync(blockPath, "utf8"); } catch { throw new Usage(`block file cannot be read as text: ${blockPath}`); }
+  killSwitch(flags);
   const tokens = intFlag(flags, "tokens", { min: 0 });
   const budget = intFlag(flags, "budget", { min: 1 });
   if (budget !== undefined && tokens === undefined) throw new Usage("--budget needs --tokens");
@@ -218,6 +224,7 @@ function cmdDone({ flags, pos }) {
 function cmdRound({ flags, pos }) {
   const stage = stageArg(pos);
   if (!(stage in ROUND_LIMITS)) throw new Usage(`${stage} has no round limit; rounds apply to ${Object.keys(ROUND_LIMITS).join(", ")}`);
+  killSwitch(flags);
   const bug = flags.bug;
   if (stage === "verify" && (typeof bug !== "string" || !bug.trim())) throw new Usage("verify rounds are counted per bug: pass --bug ID");
   const { path, ledger } = loadLedger(flags);
@@ -270,7 +277,12 @@ export function classify(files, touches, feedback = false) {
     }
   }
   if (reasons.length) return { class: "C", reasons };
-  return { class: feedback ? "B" : "A", reasons: [] };
+  if (feedback) {
+    const m = checkMerge({ repo: "", files }); // the same gate the feedback loop uses: live-site and secret paths are never B
+    if (!m.ok) return { class: "C", reasons: m.reasons };
+    return { class: "B", reasons: [] };
+  }
+  return { class: "A", reasons: [] };
 }
 
 function cmdClass({ flags }, out) {
