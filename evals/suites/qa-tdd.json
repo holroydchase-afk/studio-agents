@@ -1,0 +1,22 @@
+{
+  "agent": "qa-tdd",
+  "kind": "cases",
+  "tasks": "evals/suites/qa-tdd.tasks.json",
+  "rubric": "evals/suites/qa-tdd.rubric.md",
+  "split": {
+    "dev": 5,
+    "heldout": 35
+  },
+  "arms": [
+    "agent",
+    "plain",
+    "cross"
+  ],
+  "runs": 3,
+  "votes": 3,
+  "key": "evals/suites/qa-tdd.key.json",
+  "grader_model": "claude-opus-5-5",
+  "agent_model": "claude-sonnet-5-5",
+  "direct": false,
+  "strip": []
+}

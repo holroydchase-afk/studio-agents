@@ -1,0 +1,387 @@
+[
+ {
+  "id": "pm-rounding-rule",
+  "split": "dev",
+  "miss": "CK-S3",
+  "text": "Write the spec for the Week screen: hours for each day, plus a week total.\n\nContext: The boss reads this screen on Fridays. Punches are stored as timestamps.",
+  "rubric": "Pass only if the reply covers: one stated rounding rule, so that the week total equals the sum of the day values the user sees (or an explicit statement of how a visible mismatch is explained), with an acceptance criterion that tests it using values that round differently when summed versus rounded one by one"
+ },
+ {
+  "id": "pm-failed-load-saves-visit",
+  "split": "dev",
+  "miss": "HE-S5",
+  "text": "Spec a \"New for you\" badge on Feed that counts posts since you last looked, and resets when you open Feed.\n\nContext: The app keeps a last-visit time per person. Feed loads from the network. Users are grandparents on older phones.",
+  "rubric": "Pass only if the reply covers: what happens when the feed fails to load or is empty because of an error: the last-visit time must not be saved (the badge and count survive until a successful load), with an acceptance criterion for it"
+ },
+ {
+  "id": "pm-windows-drive-root",
+  "split": "dev",
+  "miss": "CC-S2",
+  "text": "Spec how the CLI labels a project in its table: the folder's name, and \"(root)\" when the project is the top of the filesystem.\n\nContext: The CLI reads usage logs that record the working directory as a path string.",
+  "rubric": "Pass only if the reply covers: Windows drive roots (such as \"C:\\\" and \"D:/\") alongside \"/\" as root cases, and trailing separators, each with an acceptance criterion or test input"
+ },
+ {
+  "id": "pm-done-includes-public-copy",
+  "split": "dev",
+  "miss": "ES-S4",
+  "text": "Spec \"bedtime mode\": after 9 PM the app swaps the scan for a short wind-down checklist. What does done look like?\n\nContext: The repo is a public portfolio piece.",
+  "rubric": "Pass only if the reply covers: a done definition that includes updating the public README screenshot and the case study so they tell the new story (not only the code and tests), as an explicit checklist item"
+ },
+ {
+  "id": "pm-count-beyond-first-page",
+  "split": "heldout",
+  "miss": "HE-S4",
+  "text": "Spec the \"New for you\" count on the Feed tab.\n\nContext: The feed endpoint returns the newest posts first.",
+  "rubric": "Pass only if the reply covers: what the count shows when more posts than one page arrived since the last visit (a total from the server, or a stated cap such as \"20+\"), with an acceptance criterion using more than 20 new posts"
+ },
+ {
+  "id": "pm-removed-pages-redirect",
+  "split": "heldout",
+  "miss": "HE-S6",
+  "text": "Spec the navigation redesign: four tabs, and the Groups, Me and Help pages go away because their content moves into the tabs.\n\nContext: The app has been live for family members for a month.",
+  "rubric": "Pass only if the reply covers: what happens to the old addresses: redirects (or a stated landing page) for /groups, /me and /help from links, bookmarks and notifications, with an acceptance criterion that visits each old address"
+ },
+ {
+  "id": "pm-phone-first-screen-ci-fonts",
+  "split": "heldout",
+  "miss": "RR-S6",
+  "text": "Spec the public demo page for a job-search tracker: a ranked list of roles with a score and a status for each.\n\nContext: Recruiters open portfolio links. Layout tests run in CI.",
+  "rubric": "Pass only if the reply covers: both a phone first-screen criterion (what is visible at about 390px wide without scrolling, such as the top role and its score) and a layout-test rule that tolerates font differences between machines (slack in width checks, or a pinned font), each testable"
+ },
+ {
+  "id": "pm-green-deploy-not-done",
+  "split": "heldout",
+  "miss": "ES-S5",
+  "text": "Gate review for ES-M2.2: should we call this milestone done and say it's live?\n\nContext: ES-M2.2's done check, written in the plan, is \"the link loads on a phone\". The deploy workflow finished green this afternoon and the build contains the new page.",
+  "rubric": "Pass only if the reply covers: a no-go (or go with the named condition) because the plan's own done check, loading the link on a phone, has no evidence in what was provided, listing it as not met or unverified rather than rounding up from the green deploy, and who does the check"
+ },
+ {
+  "id": "pm-phone-page-height",
+  "split": "heldout",
+  "miss": "CC-S3",
+  "text": "Spec adding a \"pace\" section to the usage page: how this week compares with last week, plus a short explanation.\n\nContext: The page is read mostly on phones. It already has a summary, a chart and a table of projects.",
+  "rubric": "Pass only if the reply covers: a budget for the phone page (a maximum height or number of screens) and where the new section sits or folds so the key figure stays near the top, with a testable criterion"
+ },
+ {
+  "id": "pm-sample-data-window-claim",
+  "split": "heldout",
+  "miss": "CC-S4",
+  "text": "Write the copy and acceptance criteria for the heading above the playground's chart.\n\nContext: The playground runs on a sample file that ships with the page. Visitors can also load their own log.",
+  "rubric": "Pass only if the reply covers: wording that matches what the data is (fixed sample data, not a live \"last 30 days\"), and a rule or check that the label changes when the visitor loads their own file"
+ },
+ {
+  "id": "pm-readme-unreleased-features",
+  "split": "heldout",
+  "miss": "CC-S5",
+  "text": "Update the README for the new release so hiring managers can try the tool.\n\nContext: The repo is public and linked from a portfolio. Some of the described features are merged but the package published to the registry is the previous version.",
+  "rubric": "Pass only if the reply covers: a check that every command and feature the README describes works with the version a visitor installs from the registry today (or is labelled as not yet released), with an acceptance criterion for it"
+ },
+ {
+  "id": "pm-san-francisco-remote",
+  "split": "heldout",
+  "miss": "RR-S3",
+  "text": "Spec the \"US remote\" filter for the role list.\n\nContext: Job posts write their location in many ways. Users want roles they can do from anywhere in the US.",
+  "rubric": "Pass only if the reply covers: how location strings with a city and a remote marker (such as \"San Francisco (Remote)\") are classified, plus other messy forms (\"Remote - US\", \"Hybrid\"), each as a test input with the expected result"
+ },
+ {
+  "id": "pm-recruiter-page-rollback",
+  "split": "heldout",
+  "miss": "RR-S7",
+  "text": "Spec putting the recruiter list behind a login on the live page.\n\nContext: The live page is used every day. The recruiter list holds private contact details.",
+  "rubric": "Pass only if the reply covers: a rollback path if the login change fails on the live page, and a check that only the owner can see the list (including a signed-out and a different-user case), each with an acceptance criterion"
+ },
+ {
+  "id": "pm-easy-view-laptop",
+  "split": "heldout",
+  "miss": "HE-S3",
+  "text": "Spec an \"Easy view\" setting that makes text and buttons larger for older relatives.\n\nContext: The app is used on phones by family. The public demo is also opened on laptops by recruiters.",
+  "rubric": "Pass only if the reply covers: how Easy view looks and behaves on a laptop-width screen (the demo), not only on phones, with an acceptance criterion at a wide viewport"
+ },
+ {
+  "id": "pm-banned-photos-replacement",
+  "split": "heldout",
+  "miss": "ES-S3",
+  "text": "Plan the demo for a public portfolio project that reads a photo of a person.\n\nContext: The repo is public. A rule says never to commit photos of real, identifiable people.",
+  "rubric": "Pass only if the reply covers: what a recruiter sees and does in the demo given that no real photos can be shipped: a named replacement (a generated or licensed sample, with its source recorded) as an explicit milestone with a done check"
+ },
+ {
+  "id": "pm-crew-app-single-backend",
+  "split": "heldout",
+  "miss": "CK-S4",
+  "text": "Spec the separation between the public demo build and the crew's real app.\n\nContext: Both come from one codebase. The demo stores everything in the browser. The real app talks to a hosted database. The repo is public.",
+  "rubric": "Pass only if the reply covers: an enforced rule (a test or build check) that the real app only uses the hosted database and the demo build can never be given a backend address, not only a written statement"
+ },
+ {
+  "id": "pm-geofence-fairness",
+  "split": "heldout",
+  "miss": "CK-S5",
+  "text": "Spec the rule that decides whether a worker is on site when they tap clock in.\n\nContext: Workers have cheap phones and the site is in a hollow with weak GPS. A refused clock-in costs someone their pay.",
+  "rubric": "Pass only if the reply covers: a fairness bar (what share of workers physically on site must pass, measured) and the weak-GPS case (poor accuracy still lets the punch through with a flag), each with an acceptance criterion"
+ },
+ {
+  "id": "pm-live-vs-saved-data",
+  "split": "heldout",
+  "miss": "CH-S1",
+  "text": "Plan connecting the screener to a live market-data source.\n\nContext: Today it runs on saved sample files. The live source is rate limited and sometimes refuses a symbol.",
+  "rubric": "Pass only if the reply covers: what happens when one symbol is refused or the source is down (the rest still load, with a visible note), and a first live run as a named step with checks against real responses, not only the saved samples"
+ },
+ {
+  "id": "pm-weekly-rebuild-no-check",
+  "split": "heldout",
+  "miss": "CH-S3",
+  "text": "Spec keeping the public demo's dates current.\n\nContext: The demo is a static build with sample data. A scheduled job rebuilds it on Mondays.",
+  "rubric": "Pass only if the reply covers: a check that the scheduled rebuild actually ran and that the page's visible date is within a stated number of days of today, with an alert or visible failure if it is not"
+ },
+ {
+  "id": "pm-cash-tying-risk-size",
+  "split": "heldout",
+  "miss": "CH-S4",
+  "text": "Spec how position size is chosen for each idea given the user's risk setting (Conservative, Balanced, Aggressive).\n\nContext: Some ideas tie up cash until they close, such as selling a put. Others risk only what is paid up front. Everything is paper trading.",
+  "rubric": "Pass only if the reply covers: a stated rule for what counts as the amount at risk for trades that tie up cash, with a cap per risk setting and a test input where the cash tied up is much larger than the premium, so a Conservative idea cannot show a very large maximum loss"
+ },
+ {
+  "id": "pm-tdd-zero-exit-price",
+  "split": "heldout",
+  "miss": "CH-Q2",
+  "text": "Spec closing a paper trade: record the exit price and the profit or loss in dollars.\n\nContext: The user types or picks the exit price. Trades can be stocks or options.",
+  "rubric": "Pass only if the reply covers: an acceptance criterion with a test input of an exit price of 0 (an option that expires worthless) giving the full loss, so zero is treated as a real price and not as missing"
+ },
+ {
+  "id": "pm-tdd-status-as-saved",
+  "split": "heldout",
+  "miss": "RR-Q4",
+  "text": "Spec the summary line on the page that counts roles by status.\n\nContext: Statuses are saved by a dropdown on the form and also arrive from an email import. The page is also published as a public demo.",
+  "rubric": "Pass only if the reply covers: an acceptance criterion that uses the status values exactly as the app saves them (including capital letters), so the demo cannot show zero for a status that has roles, ideally checked on the published demo"
+ },
+ {
+  "id": "pm-tdd-double-press",
+  "split": "heldout",
+  "miss": "CH-Q2",
+  "text": "Spec the \"Paper trade this idea\" button on an idea card.\n\nContext: Users are often on older phones with slow screens, and tap again when nothing seems to happen.",
+  "rubric": "Pass only if the reply covers: an acceptance criterion with a test of two quick presses on the same idea that results in exactly one trade"
+ },
+ {
+  "id": "pm-tdd-week-boundaries",
+  "split": "heldout",
+  "miss": "CC-Q2",
+  "text": "Spec the pace line: the average kWh per day so far this week. Weeks run Monday to Sunday.\n\nContext: It appears on a demo page and on the real dashboard.",
+  "rubric": "Pass only if the reply covers: acceptance criteria with a pinned clock (not today's date) at the first day (Monday) and the last day (Sunday) of the week, each with an expected finite number"
+ },
+ {
+  "id": "pm-spec-over-inflight-rewrite",
+  "split": "heldout",
+  "miss": "CC-S1",
+  "text": "Spec adding a per-project filter to the usage page.\n\nContext: HANDOFF.md lists another open PR, in progress and not merged, that rewrites the layout and chart of the same usage page this week.",
+  "rubric": "Pass only if the reply covers: names the in-progress PR that touches the same page, and either sequences this work behind it or states how it will be rebased, with a criterion that the filter is specced against the page as it will look after the rewrite"
+ },
+ {
+  "id": "pm-contradicting-copy-rules",
+  "split": "heldout",
+  "miss": "CK-S2",
+  "text": "Spec the wording of the hours line on the Today screen for a shift that is still open.\n\nContext: Spec A, in the repo, says an open shift shows \"so far\" beside its hours. Spec B, written later by a review round, says the Today screen never shows \"so far\". Neither is marked as replacing the other.",
+  "rubric": "Pass only if the reply covers: notices that the two specs contradict each other, says which one wins (or flags it for the owner to choose) and records it, and gives one acceptance criterion for the open-shift text that does not depend on both"
+ },
+ {
+  "id": "pm-new-pipeline-while-demo-defects-live",
+  "split": "heldout",
+  "miss": "CH-S5",
+  "text": "Plan a \"hunch\" feature: the user types a hunch about a company and the app turns it into a researched paper-trade idea.\n\nContext: The public demo has two open P1 issues on its idea cards, listed in HANDOFF.md as in progress. The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: notices the open P1 demo issues and sequences them first (or gives a clear go or no-go with the reason), and does not plan the new feature in parallel with them"
+ },
+ {
+  "id": "pm-restyle-or-less-text",
+  "split": "heldout",
+  "miss": "ES-S1",
+  "text": "Spec the work to improve the home screen. The owner looked at it and said: \"It's too much. I don't know where to look.\"\n\nContext: The screen has a title, three lines of guiding text above the upload button, a how-it-works strip and a footer. The last review scored it 7 out of 10 for visual polish.",
+  "rubric": "Pass only if the reply covers: reads the complaint as too much text and too many things competing for attention, and scopes cutting or collapsing the guiding text with a measurable budget (words or elements above the main action), not only a colour, type or spacing restyle"
+ },
+ {
+  "id": "pm-license-holder-name",
+  "split": "heldout",
+  "miss": "CO-S1",
+  "text": "Add an open-source license to the repo.\n\nContext: The repo is public and sits under the owner's GitHub account, whose login is a short handle that is not their name. The owner's portfolio site shows their full name.",
+  "rubric": "Pass only if the reply covers: names the copyright holder as the person's real name as published on the site (or asks the owner to confirm it), not the GitHub login, with an acceptance criterion that checks the license line against it"
+ },
+ {
+  "id": "pm-camera-already-native",
+  "split": "heldout",
+  "miss": "ES-S2",
+  "text": "Spec letting the user take a photo inside the web page for the scanner.\n\nContext: The page runs in the browser, mostly on iPhones. The file picker on a phone already offers \"Take Photo\", which opens the phone's own camera.",
+  "rubric": "Pass only if the reply covers: asks whether the phone's own camera through the file picker already meets the need before building an in-page camera, and makes the cheaper native capture the first step with a check on a real iPhone before any custom camera is built"
+ },
+ {
+  "id": "pm-portrait-without-source-photo",
+  "split": "heldout",
+  "miss": "PS-S1",
+  "text": "Plan a larger portrait on the portfolio home page.\n\nContext: The only portrait image the site has today is a small file. The design shows the portrait at 1600 pixels wide on large screens.",
+  "rubric": "Pass only if the reply covers: checks that a source photo of the needed size exists before the build, names it as a prerequisite owned by the site owner, and states the fallback (keep the current small portrait) if it does not exist"
+ },
+ {
+  "id": "pm-deploy-target-needs-paid-api",
+  "split": "heldout",
+  "miss": "PS-S6",
+  "text": "Recommend where to run the studio's agents on a schedule, with a cost estimate.\n\nContext: The owner is on a flat monthly plan and has said there is no paid API route. Agent runs today happen inside the owner's own coding sessions.",
+  "rubric": "Pass only if the reply covers: checks the stated constraint (flat plan, no paid API) before recommending, rejects or flags any option that needs metered API billing, and gives a verdict that works inside the plan with the extra cost stated"
+ },
+ {
+  "id": "pm-autoselect-meaning",
+  "split": "heldout",
+  "miss": "HE-S2",
+  "text": "Spec \"autoselect\" for the group picker on the Share screen.\n\nContext: The Share screen lists the groups a photo can be sent to. The owner's note says only \"autoselect\". Every post must go to an explicit audience the user can see.",
+  "rubric": "Pass only if the reply covers: does not silently choose a meaning: it lists at least two readings (including pre-ticking the last-used group), picks one with a reason or flags it for the owner, and states as an acceptance criterion that nothing is posted to a group the user did not see ticked"
+ },
+ {
+  "id": "pm-share-screen-feels-like-a-form",
+  "split": "heldout",
+  "miss": "HE-S1",
+  "text": "Spec the Share screen where a relative picks a photo, adds a few words and sends it.\n\nContext: The users are grandparents who avoid social media. The owner wants sending to feel like mailing a postcard, not filling in a form.",
+  "rubric": "Pass only if the reply covers: turns the postcard feel into checkable criteria (a limit on visible fields and controls before the first action, one clear main action, plain words instead of form labels) and a scored review of the built screen against them before it is called done"
+ },
+ {
+  "id": "pm-demo-criteria-unconfigured",
+  "split": "heldout",
+  "miss": "RR-S10",
+  "text": "Spec the public demo build of the job-search page so a recruiter can try the Criteria screen.\n\nContext: The real page reads the owner's private criteria file. The demo runs on made-up sample data with no criteria file.",
+  "rubric": "Pass only if the reply covers: what the Criteria screen shows in the demo: a configured sample profile or an explicit sample-criteria state, so no control reads as unconfigured, with an acceptance criterion checked on the demo build"
+ },
+ {
+  "id": "pm-empty-state-no-action",
+  "split": "heldout",
+  "miss": "HE-S9",
+  "text": "Spec the Events screen in the family photo app.\n\nContext: Families add birthdays and visits. Most people open the screen before any event exists. Users are older relatives on phones.",
+  "rubric": "Pass only if the reply covers: what the screen shows when there are no events (a plain explanation of what events are and a large create button), as its own acceptance criterion, not only the list with events"
+ },
+ {
+  "id": "pm-idea-max-loss-no-limit",
+  "split": "dev",
+  "miss": "CH-S21",
+  "text": "Spec how a paper-trade idea is sized and shown for each setting of the risk slider.\n\nContext: The page is a public demo of a stock and options idea helper, read by recruiters and by learners. Each idea shows a chance of profit, a maximum profit and a maximum loss.",
+  "rubric": "Pass only if the reply covers: a stated account size and a loss limit per idea (a share of that account) that tightens as the slider moves toward conservative, the maximum loss shown next to the capital it is measured against, and an estimate-not-a-promise note by any probability, each as an acceptance criterion"
+ },
+ {
+  "id": "pm-live-feed-one-symbol-blocks-all",
+  "split": "dev",
+  "miss": "CH-S1",
+  "text": "Spec the live options-price feed so the idea cards on the demo show today's prices.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) a criterion or design rule that one symbol failing, being blocked or returning nothing must not take the whole feed offline (per-symbol isolation with a visible fallback state), with a concrete input such as one blocked symbol among forty; AND (2) says the adapter has only been run against three saved samples and the cloud cannot reach the live host, so a first live run on a machine that can reach it (with puts as well as calls checked) is a named done-gate, not something called done from the sample tests"
+ },
+ {
+  "id": "pm-make-repo-public-links",
+  "split": "dev",
+  "miss": "CO-S4",
+  "text": "Plan making the Stakeholder Twins repo and demo public.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) the done definition includes the portfolio side, a working link to the repo and the demo and the intro line on the portfolio card, checked after the switch; AND (2) every place that still says the repo is private or has no demo (HANDOFF state, the portfolio-facts doc, the card) is listed as something to update in the same change, not left stale"
+ },
+ {
+  "id": "pm-red-flag-rule-scoring-clash",
+  "split": "dev",
+  "miss": "RR-S1",
+  "text": "Spec a red-flag rule that lowers a role's score when the posting asks for five days on site.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) a feedback loop for the new rule: a way to see which roles it hit and to mark a hit as wrong or add a skip reason, so the rule can be checked against what the owner actually does; AND (2) says how the penalty combines with the existing pay weight and floor cap (order or precedence), with a worked example using concrete scores, and notices that the scan wording \"pay adds up to +10\" no longer matches scoring v3 and must be aligned"
+ },
+ {
+  "id": "pm-product-plan-no-dates",
+  "split": "dev",
+  "miss": "PS-S3",
+  "text": "Spec the product page for Utility Belt on the portfolio site.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) the page and the plan carry no calendar dates, using status words instead, with a criterion that checks the page text for dates; AND (2) the page claims only what the register allows, saying scoped and parked, not built or live, with a criterion that every claim on the page matches a register row"
+ },
+ {
+  "id": "pm-four-demo-issues-already-in-flight",
+  "split": "heldout",
+  "miss": "CK-S1",
+  "text": "Spec the work for the four open issues on the live demo.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) names the open PR and branch that already cover issues 1 to 3 and says to resume or finish that work instead of speccing it again, with no parallel rework of those three; AND (2) scopes issue 4 as the new work, with a testable criterion using concrete hours (the week total equals the sum of the day rows as shown)"
+ },
+ {
+  "id": "pm-console-page-built-then-hidden",
+  "split": "heldout",
+  "miss": "PS-S2",
+  "text": "Spec a Studio Console page on the portfolio that shows the status of the studio's agents.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) cites that Studio and Console pages were already built and hidden because claims outran evidence, and asks whether that premise has changed before building (a go, no-go or needs-decision verdict, not a straight build plan); AND (2) any status or count on the page must come from a run log or score in the repo, shown with its limits, with a criterion that every figure traces to a file and no agent without a log is listed as working"
+ },
+ {
+  "id": "pm-phone-font-again",
+  "split": "heldout",
+  "miss": "HE-S7",
+  "text": "Spec switching the app to the phone's system font so it feels more native.\n\nContext: Users are older relatives on phones.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) cites the earlier swap and its reversal (DEC-58, PR 146) and the one-font decision (DEC-31) and does not simply spec the change: the verdict is needs-decision, no-go or a test first, with the owner's call recorded; AND (2) if any build is proposed, a measurable check with the target readers before the build (for example relatives reading a sample of confusable characters, with a stated pass bar) and the 17pt text rule kept as a criterion"
+ },
+ {
+  "id": "pm-dream-roles-live-page-ahead",
+  "split": "heldout",
+  "miss": "RR-S5",
+  "text": "Spec re-weighting dream roles in the scoring, then bring the README up to date.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) makes syncing main with the live page's scoring (or diffing live against main) the first step before any re-weighting, naming that the live page is ahead; AND (2) the README update lists only what is built, with the email digest removed or marked as not built, and a criterion that checks each README feature against docs/status.md"
+ },
+ {
+  "id": "pm-hearth-demo-returning-visitors",
+  "split": "dev",
+  "miss": "HE-S20",
+  "text": "Change the public demo to show a new sample family with the owner's own photos.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) The spec says what a browser that already holds the old saved sample family sees after the change, and the expected result is the new family; AND (2) A named test loads the new demo over an older saved copy and checks the new family and pictures show"
+ },
+ {
+  "id": "pm-hearth-group-names-raw-api",
+  "split": "dev",
+  "miss": "HE-S21",
+  "text": "Spec the change so only parents see a group's name; relatives should never see it.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) The spec lists every path a relative can read a group name (screen, RPC, table read, data export) and says each is closed; AND (2) A test signs in as a relative and calls the raw table read and the export, asserting no group name comes back"
+ },
+ {
+  "id": "pm-hearth-readme-claim-not-in-register",
+  "split": "dev",
+  "miss": "HE-S22",
+  "text": "Plan the README rewrite that works as the portfolio front door for Hearth.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) Every security or privacy sentence in the new README maps to a row in the claims register, and any claim whose row is missing or gated is softened or the row is added first; AND (2) The done check greps the README's claims against the register and lists any that are unmatched"
+ },
+ {
+  "id": "pm-hearth-migrations-no-deploy-record",
+  "split": "dev",
+  "miss": "HE-S23",
+  "text": "Scope the search feature, including its database migration, to done.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) Done is split into merged, deployed and smoke-tested, and the spec names where each state is recorded; AND (2) The spec adds a row for the new migration to a deploy ledger and says what the README may claim before the deploy"
+ },
+ {
+  "id": "pm-hearth-readme-icon-rule-drift",
+  "split": "heldout",
+  "miss": "HE-S24",
+  "text": "Spec the change that makes the tab bar icon-only for parents and keeps words for viewers with Easy view on.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) The spec lists every doc that states the old words-under-icons rule (README, CLAUDE.md rule 3, DESIGN-SYSTEM) and says each is updated in the same PR; AND (2) A check or grep in the done criteria finds no remaining statement of the old rule"
+ },
+ {
+  "id": "pm-charlie-public-before-the-go",
+  "split": "heldout",
+  "miss": "CH-S20",
+  "text": "Plan the Pages deploy of the static demo and the step that makes the repo public.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) The plan names who flips visibility, how the owner's go is recorded, and that nothing deploys before it is recorded; AND (2) The plan includes a check of the repo's actual visibility against the recorded go, before the first Pages run"
+ },
+ {
+  "id": "pm-ccwatts-sample-merged-into-history",
+  "split": "heldout",
+  "miss": "CC-S20",
+  "text": "Plan the History feature that keeps daily usage rollups after Claude Code cleans up old logs.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) The plan says which runs write history and states that a run on a sample or an explicit path never writes or reads the user's real history; AND (2) A test runs the documented sample command in a throwaway home and asserts the history file is unchanged"
+ },
+ {
+  "id": "pm-crew-clock-consent-and-retention",
+  "split": "heldout",
+  "miss": "CK-S20",
+  "text": "Plan the milestone that makes the clock-in app ready for the real crew.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) The plan makes a stored consent record (text version, time, device) a gate before any GPS read, including when a foreman clocks someone in; AND (2) The plan states a retention period for location, photo and chat data and a test that old rows are removed"
+ },
+ {
+  "id": "pm-hearth-sdk-vs-ios15-constraint",
+  "split": "heldout",
+  "miss": "HE-S25",
+  "text": "Plan the first build the owner can open on his own iPhone, and the phone support floor for the beta.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) The plan names the real target (the App Store Expo Go on the owner's phone) and checks the SDK against what it runs today, not against the repo's own config; AND (2) Where two constraints conflict (older iOS support vs Expo Go running only the newest SDK), the plan puts a decision to the owner at once instead of a note"
+ },
+ {
+  "id": "pm-idea-max-loss-real-state",
+  "split": "heldout",
+  "miss": "CH-S22",
+  "text": "Spec how a paper-trade idea is sized and shown for each setting of the risk slider.\n\nContext: The owner has about an hour a night.",
+  "rubric": "Pass only if the reply covers: BOTH: (1) a loss limit per idea stated as a share of a named account size (the sample profile's paper capital is 25,000) that tightens toward conservative, with an acceptance criterion that checks every strategy's maximum loss against it with concrete numbers, including a cash-secured put or covered call whose maximum loss is its collateral (up to half the account) and shares sized at 10 percent of capital, so the 5 percent slider limit is not silently bypassed; AND (2) the maximum loss is shown next to the capital it is measured against (for example a share of the 25,000 account), with an estimate-not-a-promise note beside any chance of profit, each as an acceptance criterion"
+ }
+]
