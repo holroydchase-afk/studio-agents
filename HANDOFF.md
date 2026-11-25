@@ -201,3 +201,6 @@ blockers: []
 
 ## Repo best-practices pass (2026-11-25)
 - Done: audited all 15 repos and added section 5 to docs/repo-standards.md. Part of the GitHub best-practices audit; see studio-agents docs/repo-standards.md.
+
+## Repo best-practices pass (2026-11-25), part 2
+- Done: added SUPPORT.md and a "How this is built" AI-use line to the README (GitHub, Linux Foundation and Syracuse checklists; see studio-agents docs/repo-standards.md).
