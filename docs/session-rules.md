@@ -29,6 +29,8 @@ Chase reviews and merges from his phone, so a pile of open PRs across threads tu
 ## Syncing a repo: one command
 `node tools/studio-sync.mjs <repo>` brings a product repo up to date from `templates/manifest.json` (tools, check scripts, workflows, UX references; agents still come from `scripts/sync.sh`). Managed files follow the source; seed files (`studio-checks.json`, `.claude/settings.json`) are created once and never overwritten. The repo keeps `.studio-sync.json` (source sha and a hash per file). A managed file you edited locally is never overwritten: it is reported as a conflict with a short diff stat and the run exits 2; `--force` overwrites. A managed file the record has not seen that differs from the source is `unrecorded-differs`, also exit 2. `--check` writes nothing and exits 1 if anything would change; `--json` prints `{sha, updated, unchanged, conflicts, seeded}`. Local `./x.mjs` imports are followed, like `sync-tools.sh`. New tools or template scripts must be added to the manifest (or its `ignore` list); `tests/studio-sync.test.mjs` fails otherwise.
 
+Dependabot patch and minor PRs auto-merge on green through `dependabot-automerge.yml` (installed by `scripts/install-security.sh`, seeded by studio-sync); majors and unknown update types wait for a person.
+
 ## Before you stop
 - `HANDOFF.md`'s "Exact next step" is specific enough that a cold session can start on it without asking.
 

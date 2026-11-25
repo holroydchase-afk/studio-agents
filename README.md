@@ -151,6 +151,7 @@ Run both from the repo's test script and CI. The canonical copies live in `templ
 - `.github/workflows/security.yml`: gitleaks over the full git history (pinned and checksum-verified), a personal-data scan (`.github/privacy-scan.py`: emails, phone numbers, claude.ai links, trigger ids; allow a safe match in `.privacy-allow`), and dependency review on PRs (fails on high or critical).
 - `.github/workflows/codeql.yml`: CodeQL for the languages it finds (always `actions`, plus JavaScript/TypeScript and Python).
 - `.github/dependabot.yml`: weekly grouped updates for every `package.json` folder, Python requirements and GitHub Actions.
+- `.github/workflows/dependabot-automerge.yml`: turns on auto-merge for Dependabot patch and minor PRs only (majors stay manual); needs "Allow auto-merge" and required status checks on in Settings.
 - `SECURITY.md`: report privately through the Security tab.
 
 The `dependencies` check needs **Dependency graph** on (Settings → Code security); until then it fails with "Dependency review is not supported". GitHub's own toggles (dependency graph, secret scanning, push protection, Dependabot alerts and security updates, private vulnerability reporting) live in each repo's Settings and only the owner can turn them on.
