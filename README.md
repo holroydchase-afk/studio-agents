@@ -144,6 +144,7 @@ It also installs two shared checks (proved in Hearth) and their config, never ov
 - `scripts/check-agents.sh`: every agent in `.claude/agents/` is named in a `CLAUDE.md` table, and every agent the table names has a file.
 - `scripts/check-logs.mjs`: no `console.*` call logs a key, URL, email, token, body or a raw error (`e`, `e.stack`, unfiltered `e.message`, `JSON.stringify`).
 - `studio-checks.json`: each repo's own settings, for example `{"logs": {"roots": ["app/src"], "banned": ["caption"]}}`. `banned` adds words to the defaults. The shared privacy check reads its `private` section (`allowUsers`, `allowEmails`, `skip`, `extraPatterns`; see `check-private` above).
+- `studio-checks.json`: each repo's own settings, for example `{"logs": {"roots": ["app/src"], "banned": ["caption"]}}`. `banned` adds words to the defaults and matches anywhere in a name; `bannedWords` matches a whole word only (split on `_`, `$` and camelCase), for short words like `lat` that sit inside ordinary ones. The shared privacy check will read the same file when it lands.
 
 Run both from the repo's test script and CI. The canonical copies live in `templates/scripts/`; `tests/check_logs_test.sh` is the log check's own test.
 
