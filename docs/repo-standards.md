@@ -56,4 +56,4 @@ Settings are not in the tree, so a PR can't fix them, and cloud threads can't wr
 - Workflows: all set `permissions:` except one in hearth; actions are tag-pinned, not SHA-pinned (Dependabot keeps the tags fresh; SHA pinning is a later hardening).
 - Dependabot missing: fruit-palettes, atlas-portfolio, websites; hero-backgrounds and persona-twins added in the 2026-11-25 PRs.
 - Portfolio LICENSE is "all rights reserved", so GitHub shows NOASSERTION; that is intentional.
-- CODEOWNERS added to the studio-owned repos.
+- CODEOWNERS: skipped on purpose. A solo owner gains nothing, and the agents check treats it as code, so it would force a qa-tdd run on a no-op file.

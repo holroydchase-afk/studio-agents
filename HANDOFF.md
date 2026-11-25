@@ -199,4 +199,4 @@ blockers: []
 - CI note (2026-11-24): the agents check reads the PR body from the event, so a re-run keeps the old body; after fixing the `Agents:` line, push a new commit. Cloud threads log runs with `bash templates/scripts/log-agent-run.sh --as <agent>` (studio-agents has no scripts/log-agent-run.sh of its own).
 
 ## Repo best-practices pass (2026-11-25)
-- Done: added `.github/CODEOWNERS`. Part of the GitHub best-practices audit; see studio-agents docs/repo-standards.md.
+- Done: audited all 15 repos and added section 5 to docs/repo-standards.md. Part of the GitHub best-practices audit; see studio-agents docs/repo-standards.md.
