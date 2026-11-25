@@ -6,3 +6,6 @@ Rules: report wins out of N, never a multiplier. Chase is the answer key: spot-c
 
 ## Protocol v2 (Nov 25)
 Same rules as `evals/lazy-prompts/README.md`, "Protocol v2": freeze the artifacts and rubric first, grade each pair in both orders with three votes, add a `plain-rules` arm, report per artifact, record model ids and tokens, and check runs with `tools/eval-protocol.mjs`. Give the plain arm the same number of calls and the same merge step as the agent arm (the first run's arms were not equal). The first run (plain 3, agent 1 of 4) stays as a v1 run.
+
+## Suite config
+The stakeholder suite will live in `evals/suites/` (not built yet; see `docs/product/SPEC-EVAL-PIPELINE.md`, EVPL-24). Note that old runs stay v1 and are never recomputed.

@@ -259,6 +259,7 @@ check "EVP-1..12 eval-protocol tool (freeze, verify, check-run, report, reply-ch
 check "EVPL-1..18 eval-pipeline tool (init, check-suite, freeze, jobs, collect, ledger, report, calibrate; fails until tools/eval-pipeline.mjs exists)" node --test "$root/tests/eval-pipeline.test.mjs"
 check "EVPL-19..22 eval-pipeline migration (import-v1, staff-pm and qa-tdd suites, extra arms, tool_calls, reply-checks; fails until built)" node --test "$root/tests/eval-pipeline-migrate.test.mjs"
 check "EVPL-23 ux-reviewer eval suite from the miss issues" node --test "$root/tests/eval-pipeline-ux.test.mjs"
+check "EVPL-26..29 eval-pipeline CI, runbook skill, eval READMEs and no-leak checks (fails until built)" node --test "$root/tests/eval-pipeline-ci.test.mjs"
 check "PIPE-1..43 pipeline-run ledger, stop rules, merge class" node --test "$root/tests/pipeline-run.test.mjs"
 check "LANE-1..17 lane: and touches: spec keys, init --spec, staff-pm docs" node --test "$root/tests/lane-touches.test.mjs"
 check "REVIEW-1..17 review lane: verify accepts any valid qa verdict, skips build, verdict in ledger" node --test "$root/tests/review-lane.test.mjs"
