@@ -43,7 +43,7 @@ const NAMED = new Map(Object.entries({
   commat: "@", period: ".", hyphen: "\u2010", dash: "\u2010", minus: "\u2212", lpar: "(", rpar: ")",
   num: "#", plus: "+", colon: ":", comma: ",", semi: ";", excl: "!", quest: "?", sol: "/", lowbar: "_", percnt: "%", dollar: "$", ast: "*",
   equals: "=", lsqb: "[", rsqb: "]", ndash: "\u2013", mdash: "\u2014", hellip: "...", copy: "\u00a9", reg: "\u00ae", trade: "\u2122",
-  bull: "\u2022", middot: "\u00b7", laquo: "\u00ab", raquo: "\u00bb", ldquo: "\u201c", rdquo: "\u201d", lsquo: "\u2018", rsquo: "\u2019",
+  rarr: "\u2192", larr: "\u2190", darr: "\u2193", uarr: "\u2191", harr: "\u2194", bull: "\u2022", middot: "\u00b7", laquo: "\u00ab", raquo: "\u00bb", ldquo: "\u201c", rdquo: "\u201d", lsquo: "\u2018", rsquo: "\u2019",
 }));
 const ENTITY = /&#[xX]([0-9a-fA-F]+);?|&#([0-9]+);?|&([A-Za-z][A-Za-z0-9]{1,31});/g;
 function decodeEntities(s, fill = null) {
@@ -62,6 +62,8 @@ function decodeEntities(s, fill = null) {
 // end of the file), tags are never executed, and quoted attribute values may hold ">". Returns the candidate text strings in
 // document order and a scan string (text only, line numbers kept) for the personal-data scan.
 const INLINE = new Set(["a", "abbr", "b", "bdi", "bdo", "cite", "code", "data", "del", "dfn", "em", "font", "i", "ins", "kbd", "mark", "q", "s", "samp", "small", "span", "strong", "sub", "sup", "time", "u", "var", "wbr"]);
+// Block tags count as a space in the tag-stripped scan variant; inline tags stay glued (an address split by <b></b> still refuses).
+const BLOCK = new Set(["p", "div", "section", "li", "h1", "h2", "h3", "h4", "h5", "h6", "br", "button"]);
 const WANT = new Set(["alt", "title", "aria-label", "name", "content"]);
 const isWs = (c) => c === 32 || c === 9 || c === 10 || c === 13 || c === 12;
 const isNameChar = (c) => (c >= 48 && c <= 58) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c === 45 || c === 95;
@@ -113,6 +115,7 @@ function parseHtml(src) {
     const t = parseTag(src, i);
     newlines(i, t.end);
     if (!INLINE.has(t.name)) flush();
+    if (BLOCK.has(t.name)) scan.push(null);
     if (!t.closing) {
       for (const k of ["alt", "title", "aria-label"]) if (t.attrs[k]) out.push(decodeEntities(t.attrs[k]));
       if (t.name === "meta" && t.attrs.content && (t.attrs.name || "").trim().toLowerCase() === "description") out.push(decodeEntities(t.attrs.content));
@@ -125,7 +128,7 @@ function parseHtml(src) {
     }
   }
   flush();
-  return { out, scan: scan.join("") };
+  return { out, scan: scan.filter((x) => x !== null).join(""), scanParts: scan };
 }
 
 // ---- quotes
@@ -142,54 +145,119 @@ function cut(s) {
   return { text: s.slice(0, at).trimEnd(), truncated: true };
 }
 
+const JOIN_INTEREST = /[@\d_=:+-]|[A-Z]{4}|api|token|secret|password/;
 function makeIndex() {
-  const quotes = [];
+  const quotes = []; const joins = [];
   const push = (line) => {
     const c = cut(line);
     if (quotes.length >= MAX_QUOTES) throw new Refusal(`too large: more than ${MAX_QUOTES} quotes (cap ${MAX_QUOTES}); nothing was truncated`);
     quotes.push(c.truncated ? { id: `q${quotes.length + 1}`, text: c.text, truncated: true } : { id: `q${quotes.length + 1}`, text: c.text });
   };
+  // Only a join whose two sides could hold part of an address, phone number or key is kept for the join-point scan.
+  const addJoin = (a, b) => { const w = a.slice(-300) + b.slice(0, 300); if (JOIN_INTEREST.test(w) || /api|token|secret|password/i.test(w)) joins.push({ at: quotes.length + 1, a, b }); };
+  const addSentences = (line) => { for (const sentence of line.split(/(?<=[.!?])\s+/)) if (sentence) push(sentence); };
   const addText = (raw) => {
+    for (const piece of raw.split(LINE_BREAK)) { const line = cleanLine(piece); if (line) addSentences(line); }
+  };
+  // Markdown: a paragraph wrapped over several source lines is one quote (lines joined by a space); a table row is one quote;
+  // headings, list items, fence lines and a line that ends a sentence (. ! ? or :) end a quote.
+  const addMarkdown = (raw) => {
+    let para = []; let fence = false; let prev = null;
+    const flush = () => { if (para.length) {  addSentences(para.join(" ")); para = []; } };
     for (const piece of raw.split(LINE_BREAK)) {
-      const line = cleanLine(piece); if (!line) continue;
-      for (const sentence of line.split(/(?<=[.!?])\s+/)) if (sentence) push(sentence);
+      const line = cleanLine(piece);
+      if (!line) { flush(); prev = null; continue; }
+      if (prev !== null) addJoin(prev, line);
+      prev = line;
+      if (/^(```|~~~)/.test(line)) { flush(); fence = !fence; addSentences(line); continue; }
+      if (fence || /^#{1,6}(\s|$)/.test(line) || /^([-*+]|\d+[.)])\s/.test(line)) { flush(); addSentences(line); continue; }
+      if (line.startsWith("|")) {
+        flush();
+        const cells = line.replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+        if (cells.every((c) => /^:?-{2,}:?$/.test(c) || c === "")) continue;
+        const kept = cells.filter((c) => c); const row = kept.join(" | ");
+        if (row) { for (let k = 1; k < kept.length; k++) addJoin(kept[k - 1], kept[k]); push(row); }
+        continue;
+      }
+      para.push(line);
+      if (/[.!?:]$/.test(line)) flush();
     }
+    flush();
   };
   const addFact = (raw) => { const line = cleanLine(raw); if (line) push(line); };
-  return { quotes, addText, addFact };
+  return { quotes, joins, addText, addMarkdown, addFact };
 }
 
 // ---- the scan. The raw text first, then variants of what a reader sees: entities decoded (unknown ones also replaced by a
 // filler), html text with tags removed, tags and empty comments removed, markdown escapes and emphasis marks removed; then
 // the quotes. So an address written as &#64;, split by an inline tag or an empty comment, or written as john\@host is
 // still caught, in every kind of input.
-function stripTags(s) {
-  if (!s.includes("<")) return s;
-  const out = []; let i = 0, gt = -2; const n = s.length;
+// Splits text at tags: returns the text pieces between block tags (inline and other tags are removed and the text around them
+// stays glued, so an address split by <b></b> is still one run). The pieces joined with "" are the glued variant (every tag
+// removed); joined with " " they are the spaced variant (a block tag is a space).
+function stripTagsSegs(s) {
+  if (!s.includes("<")) return [s];
+  const segs = []; let cur = []; let i = 0, gt = -2; const n = s.length;
   while (i < n) {
     const lt = s.indexOf("<", i);
-    if (lt === -1) { out.push(s.slice(i)); break; }
+    if (lt === -1) { cur.push(s.slice(i)); break; }
     const c = s.charCodeAt(lt + 1);
     const tag = c === 33 || c === 47 || (c >= 65 && c <= 90) || (c >= 97 && c <= 122);
-    if (!tag) { out.push(s.slice(i, lt + 1)); i = lt + 1; continue; }
+    if (!tag) { cur.push(s.slice(i, lt + 1)); i = lt + 1; continue; }
     if (gt < lt) gt = s.indexOf(">", lt);
-    if (gt === -1) { out.push(s.slice(i)); break; }
-    out.push(s.slice(i, lt)); i = gt + 1;
+    if (gt === -1) { cur.push(s.slice(i)); break; }
+    cur.push(s.slice(i, lt));
+    if (BLOCK.has(/^\/?([A-Za-z][A-Za-z0-9]*)/.exec(s.slice(lt + 1, lt + 16))?.[1]?.toLowerCase())) { segs.push(cur.join("")); cur = []; }
+    i = gt + 1;
   }
-  return out.join("");
+  segs.push(cur.join(""));
+  return segs;
 }
 const unescapeMarkdown = (s) => s.replace(/\\([!-\/:-@[-`{-~])/g, "$1").replace(/[*_`]/g, "");
 
-function variantsOf(text, isHtml) {
-  const bases = [decodeEntities(decodeEntities(text))];
-  if (text.includes("&")) for (const f of ["", "-"]) bases.push(decodeEntities(decodeEntities(text, f), f));
+// A glued run may not be excused except for one case: an --allow-email address that is a whole piece between block boundaries
+// and has no address character against it (it is replaced by a space in the glued variant only). Left of it: after a hard
+// break (two tags in a row, an empty piece) or whitespace anything goes; directly against a tag, a letter, digit or . - _ + @
+// blocks, except a full stop that ends a sentence (the word before it follows a space or tab). Right of it: directly against a
+// tag, a letter, digit or . - _ + @ blocks; after a hard break only . - _ + @ blocks (a domain continuing). Case-insensitive.
+const ADDR_CHAR = /[A-Za-z0-9._+@-]/;
+function leftOk(segs, i) {
+  let j = i - 1, hard = false;
+  while (j >= 0 && segs[j] === "") { hard = true; j--; }
+  if (j < 0 || hard) return true;
+  const seg = segs[j], c = seg[seg.length - 1];
+  if (/\s/.test(c)) return true;
+  if (c === ".") return /[ \t][^\s]*\.$/.test(seg);
+  return !ADDR_CHAR.test(c);
+}
+function rightOk(segs, i) {
+  let j = i + 1, hard = false;
+  while (j < segs.length && segs[j] === "") { hard = true; j++; }
+  if (j >= segs.length) return true;
+  const c = segs[j][0];
+  if (/\s/.test(c)) return true;
+  return hard ? !/[.\-_+@]/.test(c) : !ADDR_CHAR.test(c);
+}
+function gluedAndSpaced(segs, allow) {
+  if (segs.length < 2) return [segs[0] ?? ""];
+  const g = segs.map((x, i) => (allow.has(x.trim().toLowerCase()) && leftOk(segs, i) && rightOk(segs, i) ? " " : x));
+  return [g.join(""), segs.join(" ")];
+}
+
+function variantsOf(text, isHtml, allow) {
+  const bases = [[decodeEntities(decodeEntities(text))]];
+  if (text.includes("&")) for (const f of ["", "-"]) bases.push([decodeEntities(decodeEntities(text, f), f)]);
   if (isHtml) {
-    const sc = parseHtml(text).scan; bases.push(decodeEntities(sc));
-    if (sc.includes("&")) for (const f of ["", "-"]) bases.push(decodeEntities(sc, f));
+    const parts = parseHtml(text).scanParts; const segs = [[]];
+    for (const x of parts) { if (x === null) segs.push([]); else segs[segs.length - 1].push(x); }
+    const raw = segs.map((x) => x.join(""));
+    bases.push(raw.map((x) => decodeEntities(x)));
+    if (raw.some((x) => x.includes("&"))) for (const f of ["", "-"]) bases.push(raw.map((x) => decodeEntities(x, f)));
   }
   const all = new Set();
-  for (const b of bases) {
-    const forms = [b]; if (b.includes("<")) forms.push(stripTags(b));
+  for (const segs of bases) {
+    const b = segs.join(""); const forms = segs.length > 1 ? [...gluedAndSpaced(segs, allow)] : [b];
+    if (b.includes("<")) forms.push(...gluedAndSpaced(stripTagsSegs(b), allow));
     for (const f of [...forms]) if (/[\\*_`]/.test(f)) forms.push(unescapeMarkdown(f));
     for (const f of forms) all.add(f);
   }
@@ -203,7 +271,12 @@ function scanFile(name, text, isHtml, allow, problems, allowedCount) {
   const raw = scanText(text, allow);
   for (const h of raw.hits) add(h.line, h.category);
   for (const [a, c] of raw.allowed) allowedCount.set(a, (allowedCount.get(a) || 0) + c);
-  for (const v of variantsOf(text, isHtml)) for (const h of scanText(v, allow).hits) add(h.line, h.category);
+  const edge = allow.size ? new RegExp(`(?:[A-Za-z0-9._+@-](?:${[...allow].map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})|(?:${[...allow].map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?:[A-Za-z0-9_+@-]|\\.[A-Za-z0-9_+@-]))`, "i") : null;
+  for (const v of variantsOf(text, isHtml, allow)) {
+    for (const h of scanText(v, allow).hits) add(h.line, h.category);
+    // an allowed address with an address character against it (only seen after tags were glued away) is a different address
+    if (edge && v !== text) v.split("\n").forEach((ln, i) => { if (ln && edge.test(ln)) add(i + 1, "email address"); });
+  }
 }
 
 function stop(problems) {
@@ -233,15 +306,44 @@ function intakeFile(o, st, nm) {
   stop(problems);
 
   const idx = makeIndex();
-  if (kind === "html") for (const s of parseHtml(text).out) idx.addText(s); else idx.addText(text);
-  scanQuotes(nm, idx.quotes, o.allow);
+  if (kind === "html") for (const s of parseHtml(text).out) idx.addText(s); else if (ext === ".txt") idx.addText(text); else idx.addMarkdown(text);
+  scanQuotes(nm, idx.quotes, o.allow, idx.joins);
   return { kind, quotes: idx.quotes, stats: { bytes: st.size, quotes: idx.quotes.length, files: 1, skipped_binary: 0 }, skipped: [], allowedCount };
 }
 
-function scanQuotes(nm, quotes, allow) {
+// Masks allowed addresses in one side of a join. A match that runs to the join (end of the left side, start of the right side)
+// is masked only when the other side does not continue it. Letters at the join do not block: a line break is a real break.
+function maskSide(t, mask, left, joinOk) {
+  mask.lastIndex = 0;
+  return t.replace(mask, (m, off) => {
+    const touches = left ? off + m.length === t.length : off === 0;
+    return touches && !joinOk ? m : "\u00a7";
+  });
+}
+
+function scanQuotes(nm, quotes, allow, joins = []) {
   if (!quotes.length) return;
-  const problems = [];
-  for (const h of scanText(quotes.map((q) => q.text).join("\n"), allow).hits) problems.push(`${nm}: quote q${h.line}: ${h.category} found; nothing was written`);
+  const problems = []; const seen = new Set();
+  const add = (line, category) => { const m = `${nm}: quote q${line}: ${category} found; nothing was written`; if (!seen.has(m)) { seen.add(m); problems.push(m); } };
+  for (const h of scanText(quotes.map((q) => q.text).join("\n"), allow).hits) add(h.line, h.category);
+  // Joined lines and table cells can put the two halves of an address or key next to each other with only a space or a pipe
+  // between: scan each join point with the separator removed (a window of 300 characters each side). An allowed address is
+  // swapped for a marker first, but only where nothing that could extend it touches it: inside a side the neighbours must not
+  // be . - _ + @ letters or digits; at the join itself only . - _ + @ on the other side block (a sentence break is not a letter run).
+  let mask = null;
+  if (allow.size) {
+    const alt = [...allow].map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+    mask = new RegExp(`(?<![A-Za-z0-9._+@-])(?:${alt})(?![A-Za-z0-9._+@-])`, "gi");
+  }
+  for (const j of joins) {
+    let ta = j.a.slice(-300), tb = j.b.slice(0, 300);
+    if (mask) {
+      const okEnd = !/[.\-_+@]/.test(tb[0] ?? ""), okStart = !/[.\-_+@]/.test(ta[ta.length - 1] ?? "");
+      // a match touching the join is masked only when the other side does not continue it; mask the rest freely
+      ta = maskSide(ta, mask, true, okEnd); tb = maskSide(tb, mask, false, okStart);
+    }
+    for (const h of scanText(ta + tb, allow).hits) add(j.at, h.category);
+  }
   stop(problems);
 }
 
@@ -271,12 +373,12 @@ function intakeRepo(o, nm) {
   stop(problems);
 
   const idx = makeIndex();
-  if (readmeName !== undefined && texts.has(readmeName)) idx.addText(texts.get(readmeName));
+  if (readmeName !== undefined && texts.has(readmeName)) (/\.txt$|\.rst$/i.test(readmeName) ? idx.addText : idx.addMarkdown)(texts.get(readmeName));
   idx.addFact(`root files: ${names.map((n) => safeName(n)).join(", ")}`);
   idx.addFact(`test files: ${entries.filter((e) => isTest(e.rel)).length}`);
   const lic = entries.filter((e) => !e.rel.includes("/") && LICENSE_RE.test(e.rel)).map((e) => e.rel).sort(cmp)[0];
   if (lic !== undefined) idx.addFact(`license file: ${safeName(lic)}`);
-  scanQuotes(nm, idx.quotes, o.allow);
+  scanQuotes(nm, idx.quotes, o.allow, idx.joins);
 
   skipped.sort((a, b) => cmp(a.file, b.file) || cmp(a.reason, b.reason));
   return {
