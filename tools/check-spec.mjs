@@ -32,7 +32,7 @@ import { pathToFileURL } from "node:url";
 import { LEAKS } from "./check-story-entry.mjs";
 
 export const VERDICTS = ["ready", "needs-decision", "blocked", "cut"];
-export const LANES = ["ui", "logic", "docs", "config"]; // pipeline lane (docs/pipeline-plan.md); pipeline-run re-exports these
+export const LANES = ["ui", "logic", "docs", "config", "review"]; // pipeline lane (docs/pipeline-plan.md); pipeline-run re-exports these
 export const TOUCHES = ["live", "non-live", "hearth"];
 export const KEYS = ["verdict", "bet", "step", "criterion", "cut", "risk", "decision", "handoff", "blocked", "lane", "touches"];
 // The studio roster (plugins/studio/agents) plus the product-specific agents that product repos add.
