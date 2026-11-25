@@ -26,8 +26,23 @@ const CHECK_BY_LINE_HASH = {
   "21444f42": "gh:releases", "8dff4288": "clutter", "7ecf6f3d": "scratch",
   "23d41005": "human:naming consistency", "00944946": "gh:default branch", "02ca2bdb": "badge",
   f7b6e821: "human:readable commit history", "3d943da3": "human:runs in five commands",
+  // Section 5: settings, dated audit notes, report additions.
+  "392a1d89": "gh:description and topics", "9644d1e2": "gh:branch protection", "77439c5b": "gh:delete branch on merge",
+  e426aa6e: "gh:security settings", "418601fe": "gh:default branch", "2f5070e5": "scratch",
+  b6b27556: "human:dated audit snapshot, not a rule to check", "00fbc2d6": "human:dated audit snapshot, not a rule to check",
+  c3aab385: "human:dated audit snapshot, not a rule to check", "255a4eb2": "human:dated audit snapshot, not a rule to check",
+  "880da2ae": "human:dated audit snapshot, not a rule to check", "6415f388": "human:dated audit snapshot, not a rule to check",
+  "51a79091": "human:a recorded decision about CODEOWNERS, not a rule to check",
+  "5141f88b": "support", d2ade1b0: "codeowners", "35126df4": "licenseline", "0ceeb7dd": "codeql",
+  "6e626d46": "human:signed commits and scorecard badge", "097843ba": "human:DCO or CLA only once outside contributors appear",
+  c4184bd6: "human:governance, roadmap and FAQ docs", "0734a030": "human:running Repolinter",
+  f9fefc73: "human:language of public content", db35e13b: "aidisc",
+  "658667d2": "human:commit and branch hygiene", ae39f51d: "human:pull request size and description",
+  "7e329d34": "changelog", "6b015f61": "gh:issue labels", c71f8371: "human:README summary and a quick start that works",
+  "102bc37f": "human:test coverage of failure modes", "0e54e47f": "human:function docs say what and why",
+  "4c2865cf": "human:dependency declarations and stray files",
 };
-const SEVERITY = { readme: "P0", license: "P0", contributing: "P1", conduct: "P2", security: "P1", templates: "P2", ci: "P1", deps: "P1", updates: "P2", permissions: "P1", clutter: "P2", scratch: "P2", badge: "P2" };
+const SEVERITY = { readme: "P0", license: "P0", contributing: "P1", conduct: "P2", security: "P1", templates: "P2", ci: "P1", deps: "P1", updates: "P2", permissions: "P1", clutter: "P2", scratch: "P2", badge: "P2", support: "P2", codeowners: "P2", codeql: "P2", changelog: "P2", licenseline: "P1", aidisc: "P2" };
 const FIX = {
   readme: "Add a README that says what the project is, how to install and use it.",
   license: "Add a LICENSE file with a recognised license.",
@@ -42,6 +57,12 @@ const FIX = {
   clutter: "Move planning, handoff and agent notes out of the repo root into docs/internal.",
   scratch: "Remove stray scratch files, .DS_Store files and large binaries from the tree.",
   badge: "Add a CI badge to the README that points at a workflow file that exists.",
+  support: "Add a SUPPORT.md telling users how to ask for help.",
+  codeowners: "Add a CODEOWNERS file under .github naming who reviews changes (in a PR that runs qa-tdd).",
+  changelog: "Add a CHANGELOG.md with Added, Changed, Fixed and Security headings, starting at 0.1.0.",
+  codeql: "Add a CodeQL code scanning workflow under .github/workflows.",
+  licenseline: "Add a line to the README naming the license, with a badge.",
+  aidisc: "Add a README line saying which AI tools were used and for what, and that a human reviewed it.",
 };
 const GITHUB_MISSING = {
   "gh:description and topics": "repo description and topics (set on GitHub, not in the clone)",
@@ -49,6 +70,9 @@ const GITHUB_MISSING = {
   "gh:branch protection": "branch protection settings on the default branch",
   "gh:default branch": "default branch name on GitHub",
   "gh:releases": "releases and tags with notes",
+  "gh:delete branch on merge": "automatic deletion of head branches after merge (a repo setting, not in the clone)",
+  "gh:security settings": "secret scanning, push protection and Dependabot security updates (repo settings, not in the clone)",
+  "gh:issue labels": "issue labels such as good first issue and help wanted (set on GitHub, not in the clone)",
 };
 
 const usage = (m) => { throw new Refusal([`usage: repo-check <clone-dir> [--standards <file>] [--index-out <file>] [--out <file>] [--allow-email <address>] [--allow-unscanned]`, m].filter(Boolean), 2); };
@@ -175,6 +199,18 @@ function main(argv) {
       if (!readme) return { status: "fail", fact: "no README, so no CI badge" };
       if (badBadges.length) return { status: "fail", fact: `README badge points at workflow ${shown(badBadges)}, which is not in .github/workflows` };
       return badgeFlows.length ? null : { status: "fail", fact: "README has no CI badge for a workflow" };
+    },
+    support: () => (rootFind(/^support\.md$/i) || has(/^(\.github|docs)\/support\.md$/i) ? null : { status: "fail", fact: "root has no SUPPORT file" }),
+    codeowners: () => (has(/^(\.github\/|docs\/)?codeowners$/i) ? null : { status: "fail", fact: "no CODEOWNERS file" }),
+    changelog: () => (rootFind(/^changelog(\.md)?$/i) ? null : { status: "fail", fact: "root has no CHANGELOG file" }),
+    codeql: () => (workflows.some((w) => /codeql/i.test(path.posix.basename(w.rel)) || /github\/codeql-action/i.test(wfText(w.rel))) ? null : { status: "fail", fact: "no CodeQL workflow in .github/workflows" }),
+    licenseline: () => {
+      if (!readme) return { status: "fail", fact: "no README, so no license line" };
+      return /licen[sc]e/i.test(readmeText) ? null : { status: "fail", fact: "README has no license line" };
+    },
+    aidisc: () => {
+      if (!readme) return { status: "fail", fact: "no README, so no AI-use disclosure" };
+      return /(built|written|made|developed)\s+with\s+(claude|ai\b)|ai[- ](assisted|built|generated)|claude code/i.test(readmeText) ? null : { status: "fail", fact: "README has no AI-use disclosure" };
     },
   };
 
