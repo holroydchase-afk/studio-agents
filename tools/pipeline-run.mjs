@@ -3,7 +3,7 @@
 // It chains nothing and calls no model: it records which stage ran, refuses the next stage when the last one is
 // not done or a stop rule tripped, and says which merge class a change falls in.
 //
-//   init   --ledger F (--lane ui|logic|docs|config --touches live|non-live|hearth | --spec FILE)
+//   init   --ledger F (--lane ui|logic|docs|config|review --touches live|non-live|hearth | --spec FILE)
 //   start  STAGE --ledger F [--model sonnet|opus|haiku] [--root DIR]
 //   done   STAGE --ledger F --block FILE [--tokens N [--budget N]]
 //   round  STAGE --ledger F [--bug ID]        build: 3 rounds, staff-pm: 1, verify: 2 per --bug
@@ -25,7 +25,8 @@ export const STAGES = ["staff-pm", "tests-pre", "build", "verify", "pr"];
 export { LANES, TOUCHES }; // one source of truth: check-spec.mjs
 export const STATES = ["pending", "started", "done", "skipped"];
 export const MODELS = ["sonnet", "opus", "haiku"];
-export const SKIPPED_BY_LANE = { docs: ["tests-pre", "build"], config: ["tests-pre", "build"] };
+export const SKIPPED_BY_LANE = { docs: ["tests-pre", "build"], config: ["tests-pre", "build"], review: ["tests-pre", "build"] };
+export const VERDICTS = ["green", "red", "flaky", "blocked"];
 export const ROUND_LIMITS = { "staff-pm": 1, build: 3, verify: 2 }; // verify is per bug
 export const BUDGET_FACTOR = 1.5;
 export const MANIFESTS = new Set(["package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "npm-shrinkwrap.json",
@@ -37,7 +38,7 @@ class Usage extends Error {}
 class Tripped extends Error {}
 
 const USAGE = [
-  "usage: pipeline-run.mjs init --ledger F (--lane ui|logic|docs|config --touches live|non-live|hearth | --spec FILE)",
+  "usage: pipeline-run.mjs init --ledger F (--lane ui|logic|docs|config|review --touches live|non-live|hearth | --spec FILE)",
   "       pipeline-run.mjs start STAGE --ledger F [--model sonnet|opus|haiku] [--root DIR]",
   "       pipeline-run.mjs done STAGE --ledger F --block FILE [--tokens N [--budget N]]",
   "       pipeline-run.mjs round STAGE --ledger F [--bug ID]",
@@ -78,6 +79,7 @@ function loadLedger(flags) {
     const x = l.stages[s];
     if (!x || !STATES.includes(x.state) || !Number.isSafeInteger(x.tokens) || !Number.isSafeInteger(x.rounds) || !Number.isSafeInteger(x.failures ?? 0) ||
       (x.model !== null && !MODELS.includes(x.model)) || (x.bugs !== undefined && (typeof x.bugs !== "object" || x.bugs === null))) throw bad(`stage ${s} is missing or has a bad field`);
+    if (s === "verify") { x.verdict ??= null; if (x.verdict !== null && !VERDICTS.includes(x.verdict)) throw bad(`stage verify has verdict ${JSON.stringify(x.verdict)}`); }
     x.failures ??= 0; x.bugs ??= {};
   }
   return { path: p, ledger: l };
@@ -199,8 +201,9 @@ function cmdDone({ flags, pos }) {
     save(path, ledger);
     throw new Tripped(errors.join("\n"));
   }
-  if (stage === "verify" && note !== "green") throw new Tripped(`verify needs a green qa verdict, got ${note}; fix and report again`);
+  if (stage === "verify" && note !== "green" && ledger.lane !== "review") throw new Tripped(`verify needs a green qa verdict, got ${note}; fix and report again`);
   st.state = "done";
+  if (stage === "verify") st.verdict = note;
   if (tokens !== undefined) st.tokens = tokens;
   if (budget !== undefined && tokens > BUDGET_FACTOR * budget) {
     trip(path, ledger, `${stage} used ${tokens} tokens, over ${BUDGET_FACTOR}x its budget of ${budget}`, { stop: true });
@@ -283,10 +286,10 @@ function cmdClass({ flags }, out) {
 function cmdStatus({ flags }, out) {
   const { ledger } = loadLedger(flags);
   const stages = {};
-  for (const s of STAGES) { const { state, model, tokens, rounds } = ledger.stages[s]; stages[s] = { state, model, tokens, rounds }; }
+  for (const s of STAGES) { const { state, model, tokens, rounds, verdict } = ledger.stages[s]; stages[s] = { state, model, tokens, rounds }; if (s === "verify") stages[s].verdict = verdict; }
   out.json = { lane: ledger.lane, touches: ledger.touches, stopped: ledger.stopped, stop_reason: ledger.stop_reason, stages };
   const lines = [`lane ${ledger.lane}, touches ${ledger.touches}, ${ledger.stopped ? `STOPPED (${ledger.stop_reason})` : "running"}`];
-  for (const s of STAGES) { const x = stages[s]; lines.push(`${s.padEnd(10)} ${x.state.padEnd(8)} ${String(x.model || "-").padEnd(7)} tokens ${x.tokens} rounds ${x.rounds}`); }
+  for (const s of STAGES) { const x = stages[s]; lines.push(`${s.padEnd(10)} ${x.state.padEnd(8)} ${String(x.model || "-").padEnd(7)} tokens ${x.tokens} rounds ${x.rounds}${s === "verify" ? ` verdict ${x.verdict || "-"}` : ""}`); }
   return lines.join("\n");
 }
 
