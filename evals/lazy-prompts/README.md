@@ -18,3 +18,6 @@ Runs from here on follow the v2 protocol; earlier runs stay v1 (one vote, order 
 - **Record** grader and agent model ids and tokens per arm; check the file with `check-run`, read it with `report`.
 - **Code checks.** `reply-checks` scores each reply for a dated next step, asks, leftover `lint-ok` lines and words, so the judge only decides what code cannot.
 - Chase's marks on 20 blind pairs measure grader to human agreement (raw agreement and kappa); no public claim before that.
+
+## Suite config
+The shared pipeline runs this eval from `evals/suites/staff-pm.json` (and `evals/suites/staff-pm.cases.json` for the cases). Note that old runs stay v1: they are recorded with `import-v1` and never recomputed. See `plugins/studio/skills/eval-runbook`.

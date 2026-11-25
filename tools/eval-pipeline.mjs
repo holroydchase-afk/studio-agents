@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 import { checkRun, buildReport, renderReport, pairVerdict, replyChecks, armOk } from "./eval-protocol.mjs";
 import { signP, wilson } from "./studio-scorecard.mjs";
 
-const USAGE = "usage: eval-pipeline.mjs init|check-suite|freeze|verify|jobs|collect|report|sheet|key-add|calibrate|status|import-v1|tasks ... [--root DIR]";
+const USAGE = "usage: eval-pipeline.mjs init|check-suite|freeze|verify|jobs|collect|report|sheet|key-add|calibrate|status|import-v1|tasks|ci-check|run-gated ... [--root DIR]";
 const KINDS = ["pairwise", "cases"];
 const ARMS_NOTE = "agent, plain, plain-rules, cross, orchestrated, ablate:<component>";
 const armName = (a) => a === "plain" || armOk(a);
@@ -526,6 +526,52 @@ function cmdTasks(root, o) {
   return 0;
 }
 
+// ---------- ci-check, run-gated
+const NOT_SUITE = /\.(frozen|ledger|index|calibration|key|tasks)\.json$/;
+function cmdCiCheck(root) {
+  const dir = suitesDir(root);
+  const files = existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".json") && !NOT_SUITE.test(f)).sort() : [];
+  const problems = [], suites = [];
+  for (const f of files) {
+    const abs = join(dir, f);
+    let cfg;
+    try { cfg = readJson(abs, f); } catch { problems.push(`${f}: not readable JSON`); continue; }
+    const bad = checkSuite(root, cfg).problems;
+    if (bad.length) { problems.push(...bad.map((m) => `${f}: ${m}`)); continue; }
+    suites.push({ abs, cfg, f });
+    if (existsSync(frozenPath(root, cfg))) problems.push(...frozenProblems(root, { abs, cfg }).map((m) => `${f}: ${m}`));
+    const lp = ledgerPath(root, cfg);
+    if (existsSync(lp)) {
+      let l = null;
+      try { l = readJson(lp); } catch { /* reported below */ }
+      if (!l || l.schema !== 1 || typeof l.changes !== "object" || l.changes === null || Array.isArray(l.changes)) problems.push(`${basename(lp)}: ledger must be {schema:1, changes:{}}`);
+    }
+  }
+  const runsRoot = join(root, "evals", "runs");
+  if (existsSync(runsRoot)) for (const agent of readdirSync(runsRoot).sort()) {
+    const base = join(runsRoot, agent);
+    for (const d of readdirSync(base).sort()) {
+      const rj = join(base, d, "run.json");
+      if (!existsSync(rj)) continue;
+      let r;
+      try { r = readJson(rj); } catch { problems.push(`${d}: run.json is not readable JSON`); continue; }
+      const bad = checkRun(r);
+      if (bad.length) { problems.push(...bad.map((m) => `${d}: ${m}`)); continue; }
+      const su = suites.find((x) => x.cfg.agent === agent);
+      if (!su) continue;
+      const now = { prompts: shaFile(rel(root, su.cfg.tasks)), rubric: shaFile(rel(root, su.cfg.rubric)) };
+      if (r.frozen?.prompts_sha256 !== now.prompts || r.frozen?.rubric_sha256 !== now.rubric) problems.push(`stale run ${d}: its frozen prompts or rubric no longer match ${su.f}`);
+    }
+  }
+  if (problems.length) throw new Stop(problems);
+  console.log(`ci-check: ${suites.length} suites ok`);
+  return 0;
+}
+function cmdRunGated() {
+  console.log(process.env.EVAL_API_KEY ? "key present: no model runner is built into this tool yet" : "skipped: no key");
+  return 0;
+}
+
 // ---------- sheet, key-add, calibrate
 const sheetMapPath = (run) => join(run, "sheet-map.json");
 function cmdSheet(root, o) {
@@ -657,6 +703,8 @@ export function main(argv) {
       case "status": return cmdStatus(root, o);
       case "import-v1": return cmdImportV1(root, o);
       case "tasks": return cmdTasks(root, o);
+      case "ci-check": return cmdCiCheck(root);
+      case "run-gated": return cmdRunGated();
       default: throw new Usage(USAGE);
     }
   } catch (e) {
