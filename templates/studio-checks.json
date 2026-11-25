@@ -8,5 +8,6 @@
   "agents": {
     "verify": "",
     "runs": 3
-  }
+  },
+  "private": {}
 }
