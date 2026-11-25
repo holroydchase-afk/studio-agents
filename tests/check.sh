@@ -252,6 +252,7 @@ check "AGRUN-1 tool check-agent-run exists and is listed in the README" bash -c 
 check "AGRUN-2 check-agent-run tests" node --test "$root/tests/check-agent-run.test.mjs"
 check "SLINT-1 tool spec-lint exists and is listed in the README" bash -c "test -f '$root/tools/spec-lint.mjs' || { echo missing tools/spec-lint.mjs; exit 1; }; grep -q '\`spec-lint\`' '$root/README.md'"
 check "SLINT-2 spec-lint tests" node --test "$root/tests/spec-lint.test.mjs"
+check "EVP-1..12 eval-protocol tool (freeze, verify, check-run, report, reply-checks; fails until tools/eval-protocol.mjs exists)" node --test "$root/tests/eval-protocol.test.mjs"
 check "PIPE-1..43 pipeline-run ledger, stop rules, merge class" node --test "$root/tests/pipeline-run.test.mjs"
 check "LANE-1..17 lane: and touches: spec keys, init --spec, staff-pm docs" node --test "$root/tests/lane-touches.test.mjs"
 check "REVIEW-1..17 review lane: verify accepts any valid qa verdict, skips build, verdict in ledger" node --test "$root/tests/review-lane.test.mjs"
