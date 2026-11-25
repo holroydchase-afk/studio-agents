@@ -4,3 +4,6 @@
 ^a@b\.net\.json$
 ^a@b\.example\.org$
 ^555-123-4567$
+^john@realco-test\.net$
+^hello@allowed\.com(\.evil\.net)?$
+^evil\.hello@allowed\.com$
