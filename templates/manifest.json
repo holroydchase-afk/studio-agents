@@ -62,6 +62,11 @@
       "policy": "managed"
     },
     {
+      "src": "tools/eval-protocol.mjs",
+      "dest": "scripts/eval-protocol.mjs",
+      "policy": "managed"
+    },
+    {
       "src": "tools/feedback-guard.mjs",
       "dest": "scripts/feedback-guard.mjs",
       "policy": "managed"
