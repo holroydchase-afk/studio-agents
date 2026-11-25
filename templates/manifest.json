@@ -222,6 +222,11 @@
       "policy": "managed"
     },
     {
+      "src": "templates/security/dependabot-automerge.yml",
+      "dest": ".github/workflows/dependabot-automerge.yml",
+      "policy": "seed"
+    },
+    {
       "src": "templates/claude-settings.json",
       "dest": ".claude/settings.json",
       "policy": "seed"
