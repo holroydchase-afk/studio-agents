@@ -27,6 +27,11 @@
       "policy": "managed"
     },
     {
+      "src": "tools/check-private.mjs",
+      "dest": "scripts/check-private.mjs",
+      "policy": "managed"
+    },
+    {
       "src": "tools/check-qa-report.mjs",
       "dest": "scripts/check-qa-report.mjs",
       "policy": "managed"
