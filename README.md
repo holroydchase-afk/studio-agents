@@ -165,3 +165,7 @@ MIT ([LICENSE](LICENSE)).
 
 ## Agent evals
 Each core agent has a fixed task scored with `claude plugin eval`, with and without the plugin, so a prompt change gets a score instead of a guess. Cases, how to run them and the latest scores: [plugins/studio/evals/README.md](plugins/studio/evals/README.md). CI: `.github/workflows/agent-evals.yml` (needs an `ANTHROPIC_API_KEY` secret).
+
+## How this is built
+
+Built with Claude Code (AI-assisted code, tests and docs). The maintainer directs the work and decides what ships. Tests and CI run on every pull request; the current state is in HANDOFF.md.
