@@ -15,6 +15,8 @@
 //   artifact: <repo-relative path>       (optional; no leading slash, no .. segment)
 //   escalated: yes | no                  (yes needs `escalation_reason: <text>`; no forbids it)
 //   retries: <integer>                   (optional)
+//   provider: <one token>                (optional; the API host an agent ran on, written by tools/agent-runner.mjs)
+//   weights: open | closed-api           (optional; whether the model's weights are open)
 //   stamped: yes                         (optional, written by tools/stamp-run.mjs; then these are needed:)
 //     stamp_input / stamp_output / stamp_cache_creation / stamp_cache_read: <integer>; tokens must equal their sum
 //     stamp_sha: <40 hex>; one of stamp_cost: not measured | stamp_prices: <source> <YYYY-MM-DD>
@@ -43,7 +45,7 @@ const REQUIRED = ["date", "agent", "product", "tier", "model", "tokens", "cost_u
 // stamp_* lines are written by tools/stamp-run.mjs (run by the caller, not the agent): see the STAMP block below.
 export const STAMP_COUNTS = ["stamp_input", "stamp_output", "stamp_cache_creation", "stamp_cache_read"];
 const STAMP_KEYS = ["stamped", ...STAMP_COUNTS, "stamp_sha", "stamp_test", "stamp_prices", "stamp_cost"];
-const OPTIONAL = ["artifact", "escalation_reason", "retries", ...STAMP_KEYS];
+const OPTIONAL = ["artifact", "escalation_reason", "retries", "provider", "weights", ...STAMP_KEYS];
 const KEYS = [...REQUIRED, ...OPTIONAL, "tool"];
 const INT = /^\d+$/;
 const NUM = /^\d+(\.\d+)?$/;
@@ -110,6 +112,8 @@ export function checkAgentRun(text) {
   if (kv.escalated === "yes" && !("escalation_reason" in kv)) found.push("escalated yes needs an escalation_reason: line saying why");
   if (kv.escalated === "no" && "escalation_reason" in kv) found.push("escalation_reason: given but escalated is no: drop it or say yes");
   if (kv.retries && !INT.test(kv.retries)) found.push(`retries "${kv.retries}" must be a non-negative integer`);
+  if (kv.provider && /\s/.test(kv.provider)) found.push("provider must be one token with no spaces");
+  if (kv.weights && !["open", "closed-api"].includes(kv.weights)) found.push("weights must be open or closed-api");
 
   const stampKeys = STAMP_KEYS.filter((k) => k in kv);
   if ("stamped" in kv && kv.stamped !== "yes") found.push(`stamped "${kv.stamped}" must be yes (or leave the line out)`);

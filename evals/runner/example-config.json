@@ -1,0 +1,26 @@
+{
+  "_note": "EXAMPLE only: made-up host and model. Copy, edit, and keep the key in your own environment (api_key_env is the NAME of the variable).",
+  "agent": "open-weight-staff-pm",
+  "product": "Example Product",
+  "provider": "example-host",
+  "weights": "open",
+  "base_url": "https://api.example.invalid/v1",
+  "api_key_env": "EXAMPLE_PROVIDER_API_KEY",
+  "model": "example-open-model",
+  "prices_file": "example-prices.json",
+  "max_steps": 12,
+  "max_cost_usd": 0.25,
+  "system_prompt_file": "example-system.md",
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read a text file from the task folder",
+      "parameters": {
+        "type": "object",
+        "properties": { "path": { "type": "string" } },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

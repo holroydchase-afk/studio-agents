@@ -280,6 +280,7 @@ check "FBK-19..22 feedback gate script tests" node --test "$root/tests/feedback-
 check "FBK-25 tool feedback-merge-check exists and is listed in the README" bash -c "test -f '$root/tools/feedback-merge-check.mjs' || { echo missing tools/feedback-merge-check.mjs; exit 1; }; grep -q '\`feedback-merge-check\`' '$root/README.md'"
 check "FBK-25 feedback-merge-check tests" node --test "$root/tests/feedback-merge-check.test.mjs"
 check "FBK-16..22 feedback issue form, workflow, docs page, README and agent-harness rows" node --test "$root/tests/feedback-templates.test.mjs"
+check "OWR-1..21 agent-runner tests (OWR-22 is manual; fails until tools/agent-runner.mjs and evals/runner examples exist)" node --test "$root/tests/agent-runner.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"
