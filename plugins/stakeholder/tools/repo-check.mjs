@@ -37,6 +37,7 @@ const FIX = {
   templates: "Add issue templates and a pull request template under .github.",
   ci: "Add a GitHub Actions workflow that runs tests and lint on every pull request.",
   deps: "Commit a lockfile and pin every GitHub Action to a full version tag or a commit SHA.",
+  depsPin: "Pin every GitHub Action to a full version tag or a commit SHA.",
   updates: "Add a Dependabot or Renovate configuration.",
   permissions: "Set least-privilege permissions at the top of every workflow.",
   clutter: "Move planning, handoff and agent notes out of the repo root into docs/internal.",
@@ -158,7 +159,7 @@ function main(argv) {
     ci: () => (workflows.length ? "gh:CI status (whether the workflows run on every pull request and pass)" : { status: "fail", fact: "no workflow files in .github/workflows" }),
     deps: () => {
       const lock = rootFind(/^(package-lock\.json|npm-shrinkwrap\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|poetry\.lock|pipfile\.lock|uv\.lock|cargo\.lock|go\.sum|gemfile\.lock|composer\.lock)$/i);
-      if (!lock) return { status: "fail", fact: unpinned.length ? `root has no lockfile; unpinned actions: ${shown(unpinned)}` : "root has no lockfile" };
+      if (!lock) return { status: "fail", noLock: true, fact: unpinned.length ? `root has no lockfile; unpinned actions: ${shown(unpinned)}` : "root has no lockfile" };
       return unpinned.length ? { status: "partial", fact: `unpinned actions: ${shown(unpinned)}` } : null;
     },
     updates: () => (has(/^\.github\/dependabot\.ya?ml$/i) || has(/^(\.github\/)?(renovate\.json5?|\.renovaterc(\.json5?)?)$/i) ? null : { status: "fail", fact: "no Dependabot or Renovate config" }),
@@ -186,11 +187,11 @@ function main(argv) {
     if (r === null) passed.push(it.id);
     else if (g && g.startsWith("gh:")) needsGithub.push({ id: it.id, missing: GITHUB_MISSING[g] || g.slice(3) });
     else if (g && g.startsWith("human:")) needsHuman.push({ id: it.id, why: g.slice(6) });
-    else facts.push({ item: it.id, key: it.key, status: r.status, text: r.fact });
+    else facts.push({ item: it.id, key: it.key, status: r.status, text: r.fact, noLock: r.noLock === true });
   }
   // Facts become the repo quote index r1..rn; each finding quotes the fact that produced it.
   const quotes = facts.map((f, i) => ({ id: `r${i + 1}`, text: f.text }));
-  const all = facts.map((f, i) => ({ item: f.item, status: f.status, severity: SEVERITY[f.key], quote_id: `r${i + 1}`, persona: "staff-engineer", fix: FIX[f.key] }));
+  const all = facts.map((f, i) => ({ item: f.item, status: f.status, severity: SEVERITY[f.key], quote_id: `r${i + 1}`, persona: "staff-engineer", fix: f.key === "deps" && !f.noLock ? FIX.depsPin : FIX[f.key] }));
   all.sort((a, b) => cmp(a.severity, b.severity) || idCmp(a.item, b.item));
   findings.push(...all.slice(0, CAP_FINDINGS));
   quotes.push({ id: `r${quotes.length + 1}`, text: `workflows: ${workflows.length}, uses steps: ${usesCount}, unpinned: ${unpinned.length}` });
