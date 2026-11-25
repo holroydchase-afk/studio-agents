@@ -1,0 +1,26 @@
+# Studio security kit: copy to .github/workflows/dependabot-automerge.yml.
+# Turns on auto-merge for Dependabot patch and minor PRs. GitHub then merges
+# the PR itself once the required checks pass. Majors are left for a person.
+# Needs, once per repo: Settings > General > "Allow auto-merge", and required
+# status checks on the default branch (otherwise it merges with no checks).
+name: dependabot-automerge
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
