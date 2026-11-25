@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// sync-tools.sh copies the tools this one runs as child processes: spawns "./agent-guard.mjs", spawns "./check-spec.mjs", spawns "./spec-lint.mjs"
 // pm-receipts: runs staff-pm's three checks itself and prints the only text the agent may use to describe them.
 // Why: graders marked staff-pm down for "tool checks it could not have run". Prose claims are unverifiable; a
 // receipt is a real exit code from a process this tool started.

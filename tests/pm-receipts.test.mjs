@@ -77,3 +77,15 @@ test("PMR-8 staff-pm.md: a one-line ask gets a one-to-three line answer first, n
   assert.match(t, /1 to 3 lines/i);
   assert.match(t, /no spec block/i);
 });
+
+test("PMR-9 sync-tools.sh pm-receipts alone also copies the three tools it spawns, so the receipt never says 'not run' in a product repo", () => {
+  const repo = fs.mkdtempSync(path.join(tmp, "sync-"));
+  const s = spawnSync("bash", [path.join(ROOT, "scripts", "sync-tools.sh"), repo, "pm-receipts"], { encoding: "utf8" });
+  assert.equal(s.status, 0, s.stderr);
+  for (const f of ["pm-receipts", "agent-guard", "check-spec", "spec-lint"]) {
+    assert.ok(fs.existsSync(path.join(repo, "scripts", `${f}.mjs`)), `scripts/${f}.mjs missing after syncing pm-receipts alone`);
+  }
+  const r = spawnSync("node", [path.join(repo, "scripts", "pm-receipts.mjs"), GOOD, "--root", repo], { encoding: "utf8" });
+  assert.doesNotMatch(r.stdout, /not run/);
+  assert.equal(r.status, 0, r.stdout);
+});
