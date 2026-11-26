@@ -222,3 +222,75 @@ test('LINT-14: checks.yml lint-config job runs the self-lint step', () => {
   const job = jobBlock('lint-config');
   assert.match(job, /^\s*-?\s*run:\s*templates\/lint\/node_modules\/\.bin\/eslint \.\s*$/m);
 });
+
+// ---- Strict-mode ergonomics (qa-tdd, red first): LINT-15..17 ----
+test('LINT-15: empty catch does not warn; empty if block still warns', { skip: skipEslint }, () => {
+  const files = {
+    'e1.js': 'try { JSON.parse("{"); } catch {}\nexport {};\n',
+    'e2.js': 'try { JSON.parse("{"); } catch (e) {}\nexport {};\n',
+    'e3.js': 'const x = Math.random();\nif (x) {}\nexport {};\n',
+  };
+  const p = project({ files });
+  for (const f of ['e1.js', 'e2.js']) {
+    assert.ok(!msgs(p.results, f).some((m) => m.ruleId === 'no-empty'), `${f}: empty catch must not warn`);
+  }
+  assert.ok(msgs(p.results, 'e3.js').some((m) => m.ruleId === 'no-empty'), 'empty if block must still warn');
+});
+
+test('LINT-16: unused catch param and _-prefixed names do not warn; plain unused still does', { skip: skipEslint }, () => {
+  const files = {
+    'u1.js': 'try { JSON.parse("{"); } catch (err) { console.log("bad"); }\nexport {};\n',
+    'u2.js': 'const _x = 1;\nexport function f(_a, b) { return b; }\n',
+    'u3.js': UNUSED,
+  };
+  const p = project({ files });
+  const unused = (f) => msgs(p.results, f).filter((m) => m.ruleId === 'no-unused-vars');
+  assert.equal(unused('u1.js').length, 0, 'unused catch parameter must not warn');
+  assert.equal(unused('u2.js').length, 0, 'underscore-prefixed var/arg must not warn');
+  assert.ok(unused('u3.js').length > 0, 'plain unused variable must still warn');
+});
+
+test('LINT-17: eslint.studio-local.mjs is read from process.cwd(), not next to the config', { skip: skipEslint }, () => {
+  needEslint();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lint-'));
+  fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name: 'fx', type: 'module' }));
+  fs.mkdirSync(path.join(dir, 'cfg'));
+  fs.copyFileSync(configSrc, path.join(dir, 'cfg/eslint.config.mjs'));
+  fs.symlinkSync(path.join(lintDir, 'node_modules'), path.join(dir, 'node_modules'));
+  fs.symlinkSync(path.join(lintDir, 'node_modules'), path.join(dir, 'cfg/node_modules'));
+  fs.writeFileSync(path.join(dir, 'eslint.studio-local.mjs'), "export default [{ rules: { 'no-unused-vars': 'off' } }];\n");
+  fs.writeFileSync(path.join(dir, 'a.js'), UNUSED);
+  const env = { ...process.env };
+  delete env.STUDIO_LINT_STRICT;
+  let out = ''; let err = '';
+  try {
+    out = execFileSync('node', [eslintBin, '-c', 'cfg/eslint.config.mjs', '--format', 'json', 'a.js'], { cwd: dir, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (e) { out = String(e.stdout || ''); err = String(e.stderr || ''); }
+  let res = [];
+  try { res = JSON.parse(out); } catch { assert.fail(`eslint did not emit JSON: ${err}`); }
+  assert.ok(!msgs(res, 'a.js').some((m) => m.ruleId === 'no-unused-vars'), 'cwd-level local file must turn no-unused-vars off');
+});
+
+// ---- Post-build tests (qa-tdd): LINT-18..19 ----
+test('LINT-18: rest-sibling destructuring does not warn; plain unused var still does', { skip: skipEslint }, () => {
+  const files = {
+    'r1.js': 'const o = { a: 1, b: 2 };\nconst { a, ...rest } = o;\nconsole.log(rest);\nexport {};\n',
+    'r2.js': UNUSED,
+  };
+  const p = project({ files });
+  const unused = (f) => msgs(p.results, f).filter((m) => m.ruleId === 'no-unused-vars');
+  assert.equal(unused('r1.js').length, 0, 'unused sibling of a used rest element must not warn');
+  assert.ok(unused('r2.js').length > 0, 'plain unused variable must still warn');
+});
+
+test('LINT-19: repo self-lint is clean under STUDIO_LINT_STRICT=1 and checks.yml sets it', { skip: skipEslint }, () => {
+  needEslint();
+  const bin = path.join(lintDir, 'node_modules/.bin/eslint');
+  let code = 0; let out = '';
+  try {
+    out = execFileSync(bin, ['--max-warnings', '0', '.'], { cwd: root, env: { ...process.env, STUDIO_LINT_STRICT: '1' }, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (e) { code = e.status; out = String(e.stdout || '') + String(e.stderr || ''); }
+  assert.equal(code, 0, `strict self-lint must exit 0:\n${out.slice(0, 1500)}`);
+  const yml = fs.readFileSync(path.join(root, '.github/workflows/checks.yml'), 'utf8');
+  assert.match(yml, /^\s*STUDIO_LINT_STRICT:\s*'1'\s*$/m);
+});

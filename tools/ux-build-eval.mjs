@@ -40,7 +40,7 @@ export function validateArmOutput(html) {
   const remote = (v) => /^\s*(https?:|\/\/)/i.test(v);
   const attrsOf = (str) => {
     const out = {};
-    for (const m of str.matchAll(/([^\s=\/"']+)\s*(?:=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g)) out[m[1].toLowerCase()] = m[2] ?? m[3] ?? m[4] ?? "";
+    for (const m of str.matchAll(/([^\s=/"']+)\s*(?:=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g)) out[m[1].toLowerCase()] = m[2] ?? m[3] ?? m[4] ?? "";
     return out;
   };
   for (const m of html.matchAll(/<([a-zA-Z][\w:-]*)\b([^>]*)>/g)) {
@@ -475,7 +475,7 @@ async function main(argv) {
   mkdirSync(shotsRoot, { recursive: true });
   const ledger = createHeldoutLedger({ file: join(dirname(resolve(outFile)), ".heldout-ledger.json") });
   const runner = (a) => runClaudeArm({ ...a, pluginDir });
-  const renderer = async ({ html, width, height }) => {
+  const renderer = async ({ html, width }) => {
     const r = await renderShots({ html, widths: [width], outDir: mkdtempSync(join(shotsRoot, "r-")) });
     if (!r.shots[0] || !existsSync(r.shots[0])) throw new Error("render produced no screenshot");
     return { png: r.shots[0], consoleErrors: r.consoleErrors };

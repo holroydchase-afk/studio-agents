@@ -15,7 +15,7 @@ const fs=require('fs');
     try{
      await pg.goto(base+p,{waitUntil:'load',timeout:30000});
      await pg.waitForTimeout(800);
-     const slug=(p.replace(/[\/?#=&.]+/g,'-').replace(/^-|-$/g,'')||'home');
+     const slug=(p.replace(/[/?#=&.]+/g,'-').replace(/^-|-$/g,'')||'home');
      await pg.screenshot({path:`${out}/${slug}__${sn}__${th}.png`,fullPage:true});n++;
     }catch(e){console.log('FAIL',p,sn,th,e.message.split('\n')[0]);}
     await ctx.close();

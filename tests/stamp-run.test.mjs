@@ -66,7 +66,7 @@ function setup({ md = runMd(), lines, cwd } = {}) {
   writeFileSync(tr, (lines ?? [rec("m1", U(100, 50, 10, 1000))]).join("\n") + "\n");
   return { d, run, tr };
 }
-const stamp = (args, cwd) => (assert.ok(existsSync(tool), "tools/stamp-run.mjs does not exist yet"), 0) || spawnSync("node", [tool, ...args], { encoding: "utf8", cwd });
+const stamp = (args, cwd) => (assert.ok(existsSync(tool), "tools/stamp-run.mjs does not exist yet"), spawnSync("node", [tool, ...args], { encoding: "utf8", cwd }));
 const lines = (md, key) => md.split("\n").filter((l) => new RegExp(`^${key}:`, "i").test(l.trim()));
 const val = (md, key) => (lines(md, key)[0] || "").replace(/^[^:]+:\s*/, "").trim();
 

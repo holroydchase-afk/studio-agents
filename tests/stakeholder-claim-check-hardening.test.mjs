@@ -80,8 +80,6 @@ const refused = (r, code, re, why) => {
 };
 const in3s = (r, why) => assert.ok(r.ms < 3000, `${why}: took ${r.ms} ms (limit 3000)`);
 const tidy = (r) => { assert.doesNotMatch(r.err, TRACE, "no stack trace"); };
-const sec = (name, k) => Array.from({ length: k }, (_, i) => `| z${100000 + i} | ${name} |\n`).join("");
-const regNV = (rows, eol = "\n") => "| Name | Verdict |" + eol + "|---|---|" + eol + rows;
 // a compact Name/Verdict register: |z100000|Agent| ... (16 bytes a row), so 60,000 rows stay under 1 MB
 const compactReg = (k) => "|Name|Verdict|\n|---|---|\n" + Array.from({ length: k }, (_, i) => `|z${100000 + i}|Agent|\n`).join("");
 

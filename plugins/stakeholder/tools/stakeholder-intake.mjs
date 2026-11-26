@@ -213,7 +213,7 @@ function stripTagsSegs(s) {
   segs.push(cur.join(""));
   return segs;
 }
-const unescapeMarkdown = (s) => s.replace(/\\([!-\/:-@[-`{-~])/g, "$1").replace(/[*_`]/g, "");
+const unescapeMarkdown = (s) => s.replace(/\\([!-/:-@[-`{-~])/g, "$1").replace(/[*_`]/g, "");
 
 // A glued run may not be excused except for one case: an --allow-email address that is a whole piece between block boundaries
 // and has no address character against it (it is replaced by a space in the glued variant only). Left of it: after a hard

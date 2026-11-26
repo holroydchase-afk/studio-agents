@@ -189,7 +189,7 @@ function jobBlocks(text) {
   const lines = text.slice(i).split("\n").slice(1);
   const jobs = []; let cur = null;
   for (const l of lines) {
-    const m = /^  ([A-Za-z0-9_-]+):\s*$/.exec(l);
+    const m = /^ {2}([A-Za-z0-9_-]+):\s*$/.exec(l);
     if (m) { cur = { name: m[1], text: "" }; jobs.push(cur); } else if (cur) cur.text += l + "\n";
   }
   return jobs;

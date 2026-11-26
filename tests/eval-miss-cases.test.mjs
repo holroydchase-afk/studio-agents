@@ -92,13 +92,12 @@ test("MISS-T10 (QA-R13) a pattern that could break the front matter is rejected 
   assert.equal(run([{ ...good, pattern: evil }], ["--check"]).status, 1);
 });
 test("MISS-T11 (QA-R11) staff-pm stale, missing and extra files are caught; qa and pm cases with one id stay separate", () => {
-  const both = (evals) => run([{ ...good, id: "same" }], [], undefined, [{ ...pmGood, id: "same" }]);
+  const both = () => run([{ ...good, id: "same" }], [], undefined, [{ ...pmGood, id: "same" }]);
   const w = both();
   assert.equal(w.status, 0);
   const qa = path.join(w.evals, "qa-tdd-miss-same"), pm = path.join(w.evals, "staff-pm-miss-same");
   assert.ok(fs.existsSync(qa) && fs.existsSync(pm));
   // second run on the same dirs: stale pm file, missing pm grader, extra file in the qa folder
-  const spec = (e) => e;
   const r = run([{ ...good, id: "same" }], ["--check"], (e) => {
     for (const d of ["qa-tdd-miss-same", "staff-pm-miss-same"]) fs.cpSync(path.join(w.evals, d), path.join(e, d), { recursive: true });
     fs.appendFileSync(path.join(e, "staff-pm-miss-same", "prompt.md"), "edited");

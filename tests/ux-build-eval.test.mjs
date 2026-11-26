@@ -21,7 +21,7 @@ const fakeRunner = (log = []) => async ({ arm, prompt, model }) => {
   log.push({ arm, promptId: prompt.id, model });
   return { html: fx("html-good.html"), tokens: 100, costUsd: 0.01 };
 };
-const fakeRenderer = (calls = []) => async ({ html, width, height }) => {
+const fakeRenderer = (calls = []) => async ({ width, height }) => {
   calls.push({ width, height });
   return { png: `shot-${width}x${height}.png`, consoleErrors: width === 390 ? 2 : 0 };
 };
@@ -277,7 +277,7 @@ test("UXB-13 an empty limits list fails", async () => {
 test("UXB-14 arms run sequentially, one at a time, and each run's cost and tokens are logged", async () => {
   const m = await load();
   let active = 0, maxActive = 0;
-  const runner = async ({ arm }) => { active++; maxActive = Math.max(maxActive, active); await new Promise((r) => setTimeout(r, 5)); active--; return { html: fx("html-good.html"), tokens: 50, costUsd: 0.02 }; };
+  const runner = async () => { active++; maxActive = Math.max(maxActive, active); await new Promise((r) => setTimeout(r, 5)); active--; return { html: fx("html-good.html"), tokens: 50, costUsd: 0.02 }; };
   const out = await m.runArms({ prompt: prompts()[0], runner, renderer: fakeRenderer(), model: "sonnet" });
   assert.equal(maxActive, 1);
   assert.ok(out.runs.every((r) => typeof r.tokens === "number" && typeof r.costUsd === "number"));

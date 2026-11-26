@@ -25,7 +25,6 @@ export const VERDICTS = ["Ready", "Needs changes", "Blocker"];
 export const WIDTHS = ["phone", "laptop"];
 const USAGE = "usage: check-ux-run.mjs <run.md> [--json]";
 const KEYS = ["date", "product", "tier", "model", "tokens", "cost_usd", "flow", "finding", "verdict", "rechecked", "escalated", "escalation_reason"];
-const SINGLE = ["date", "product", "tier", "model", "tokens", "cost_usd", "verdict", "rechecked", "escalated", "escalation_reason"];
 
 const realDate = (d) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
