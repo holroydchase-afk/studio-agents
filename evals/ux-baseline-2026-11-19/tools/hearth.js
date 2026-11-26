@@ -9,7 +9,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
    await p.goto('http://127.0.0.1:8106/'); await p.getByText('Search photos').first().waitFor({timeout:30000});
    await shot('gallery');
    const tabs=await p.getByRole('tab').allInnerTexts(); console.log(sn,th,JSON.stringify(tabs));
-   for(const t of ['Share','Feed','More']){ await p.getByRole('tab',{name:new RegExp('^'+t)}).first().click().catch(e=>console.log('tabfail',t)); await shot('tab-'+t.toLowerCase());}
+   for(const t of ['Share','Feed','More']){ await p.getByRole('tab',{name:new RegExp('^'+t)}).first().click().catch(()=>console.log('tabfail',t)); await shot('tab-'+t.toLowerCase());}
    await p.getByRole('tab',{name:/^More/}).click();
    const rows=await p.getByRole('button').evaluateAll(els=>els.map(e=>e.getAttribute('aria-label')||e.innerText).filter(Boolean).slice(0,30)); console.log('rows',JSON.stringify(rows));
    if(th==='light'&&sn==='phone') fs.writeFileSync('/tmp/hearth-rows.json',JSON.stringify(rows));

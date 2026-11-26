@@ -82,7 +82,7 @@ test("STK-PS-R30 a phone written with a tag inside (555-<b>123</b>-4567) or with
   }
 });
 test("STK-PS-R30 clean text with markdown and tags (no personal data) still passes: bold, escapes and an inline tag around ordinary words", () => {
-  for (const [kind, target] of kinds("This is **bold** and \\*escaped\\* and <b>tagged</b> text. Version 2.0 shipped.\n")) ok(run([target]));
+  for (const [_kind, target] of kinds("This is **bold** and \\*escaped\\* and <b>tagged</b> text. Version 2.0 shipped.\n")) ok(run([target]));
 });
 
 // ================================================================ R31 entities
@@ -104,7 +104,7 @@ test("STK-PS-R31 an unknown &name; or an over-long numeric entity inside an emai
   }
 });
 test("STK-PS-R31 an unknown entity in ordinary prose (no email or phone shape) does not stop the run", () => {
-  for (const [kind, target] of kinds("Fish &zzzunknown; chips and &#99999999999; more words here.\n", { html: true })) ok(run([target]));
+  for (const [_kind, target] of kinds("Fish &zzzunknown; chips and &#99999999999; more words here.\n", { html: true })) ok(run([target]));
 });
 
 // ================================================================ R32 --out inside the scanned folder

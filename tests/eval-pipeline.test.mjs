@@ -190,7 +190,6 @@ const driveC = (table = C1, o = {}) => drive({ kind: "cases", tasks: T(Object.ke
 
 // K1: 20 pairs, 1 run, grader verdict per task; Chase's marks chosen per task index.
 const graderK = (idx) => (idx <= 10 ? "a" : "p");
-const planK = (task) => (graderK(Number(task.slice(1))) === "a" ? AAA : PPP);
 const K1_MARKS = (i) => (i <= 9 || i === 11 ? "agent" : "plain"); // 10 agent, 10 plain; mismatches at 10 and 11
 const K_BAD_MARKS = (i) => ((i <= 6 || (i >= 11 && i <= 14)) ? "agent" : "plain"); // 12 of 20 agree, marginals 10/10
 function sheetRun(grader = graderK) {

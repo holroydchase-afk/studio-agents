@@ -26,7 +26,7 @@ export function eligible(prs, { merged = [] } = {}) {
   let ready = base;
   for (let changed = true; changed; ) {
     changed = false;
-    const nums = new Set(ready.filter((p) => true).map((p) => `${p.repo}#${p.number}`));
+    const nums = new Set(ready.map((p) => `${p.repo}#${p.number}`));
     const next = [];
     for (const p of ready) {
       const blocker = mergeAfter(p.body).find((n) => !nums.has(`${p.repo}#${n}`) && !merged.includes(`${p.repo}#${n}`));

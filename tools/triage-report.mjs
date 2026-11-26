@@ -50,7 +50,7 @@ function parse(argv) {
   return o;
 }
 
-const [cmd0, ...rest] = process.argv.slice(2);
+const [cmd0] = process.argv.slice(2);
 const o = parse(process.argv.slice(2));
 const cmd = o.check ? "check" : cmd0;
 
