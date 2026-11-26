@@ -173,3 +173,52 @@ test('LINT-10: CI job lint-config runs with LINT_REQUIRE=1', () => {
   assert.match(job, /npm ci/);
   assert.match(job, /lint-config\.test\.mjs/);
 });
+
+// ---- Post-build tests (qa-tdd): LINT-11..14 ----
+function jobBlock(name) {
+  const y = fs.readFileSync(path.join(root, '.github/workflows/checks.yml'), 'utf8');
+  const i = y.search(new RegExp(`^ {2}${name}:`, 'm'));
+  assert.ok(i >= 0, `checks.yml has no ${name} job`);
+  const rest = y.slice(i + 1);
+  const next = rest.search(/^ {2}[a-z][\w-]*:/m);
+  return next >= 0 ? rest.slice(0, next) : rest;
+}
+
+test('LINT-11: repo lints itself via the shared config with zero errors', { skip: skipEslint }, () => {
+  needEslint();
+  const rootCfg = fs.readFileSync(path.join(root, 'eslint.config.mjs'), 'utf8');
+  assert.match(rootCfg, /templates\/lint\/eslint\.config\.mjs/);
+  const code = rootCfg.split('\n').filter((l) => !/^\s*(\/\/.*)?$/.test(l)).join('\n');
+  assert.match(code, /^export \{ default \} from '\.\/templates\/lint\/eslint\.config\.mjs';\s*$/);
+  assert.doesNotMatch(code, /rules\s*:|plugins\s*:|files\s*:|ignores\s*:/, 'root config must have no rules of its own');
+  const bin = path.join(lintDir, 'node_modules/.bin/eslint');
+  assert.ok(fs.existsSync(bin), 'templates/lint/node_modules/.bin/eslint missing');
+  let out; let status = 0;
+  try { out = execFileSync(bin, ['--format', 'json', '.'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }); } catch (e) { status = e.status; out = String(e.stdout || ''); }
+  assert.equal(status, 0, 'eslint exited non-zero');
+  const res = JSON.parse(out);
+  assert.equal(res.reduce((n, r) => n + r.errorCount, 0), 0);
+  assert.ok(res.length > 0, 'eslint linted no files');
+});
+
+test('LINT-12: .nvmrc major matches the node-version in checks.yml and lint.yml', () => {
+  const major = fs.readFileSync(path.join(root, '.nvmrc'), 'utf8').trim().replace(/^v/, '').split('.')[0];
+  assert.match(major, /^\d+$/);
+  for (const f of ['.github/workflows/checks.yml', 'templates/lint/lint.yml']) {
+    const vs = [...fs.readFileSync(path.join(root, f), 'utf8').matchAll(/node-version:\s*['"]?v?(\d+)/g)].map((m) => m[1]);
+    assert.ok(vs.length > 0, `${f} has no node-version`);
+    for (const v of vs) assert.equal(v, major, `${f} node-version ${v} != .nvmrc ${major}`);
+  }
+});
+
+test('LINT-13: lint README documents strict mode, local overrides and the TypeScript limit', () => {
+  const t = fs.readFileSync(path.join(lintDir, 'README.md'), 'utf8');
+  assert.match(t, /STUDIO_LINT_STRICT/);
+  assert.match(t, /eslint\.studio-local\.mjs/);
+  assert.match(t, /TypeScript below 6\.1/);
+});
+
+test('LINT-14: checks.yml lint-config job runs the self-lint step', () => {
+  const job = jobBlock('lint-config');
+  assert.match(job, /^\s*-?\s*run:\s*templates\/lint\/node_modules\/\.bin\/eslint \.\s*$/m);
+});
