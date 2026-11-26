@@ -1,0 +1,21 @@
+{
+ "agent": "release-notes-demo",
+ "kind": "pairwise",
+ "tasks": "evals/demo/tasks.json",
+ "rubric": "evals/demo/rubric.md",
+ "split": {
+  "dev": 8,
+  "heldout": 0
+ },
+ "arms": [
+  "agent",
+  "plain"
+ ],
+ "runs": 3,
+ "votes_per_order": 3,
+ "grader_model": "sample-grader",
+ "agent_model": "sample-writer",
+ "key": "evals/suites/release-notes-demo.key.json",
+ "direct": false,
+ "strip": []
+}

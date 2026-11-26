@@ -3,7 +3,7 @@
   "id": "ux-47",
   "split": "heldout",
   "issue": 47,
-  "text": "Review this screen as the studio's UX reviewer: Charlie, main navigation (top section tabs) at 390 and 1280, restyle PR https://github.com/holroydchase-afk/charlie/pull/49 (Nov 21, 2026).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "text": "Review this screen as the studio's UX reviewer: Charlie, main navigation (top section tabs) at 390 and 1280, restyle PR (link removed) (Nov 21, 2026).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
   "rubric": "Pass only if the reply raises this problem, which a past review missed: The owner opened it the same day and said the tabs \"read like a website, not an app.\" A re-review of navigation against the design system scored it 5/10 (\"a marketing site with an app stapled under it\"): the section links are underlined text that scroll away, the pinned brand bar has no navigation on it, and there is no bottom bar on phones or sidebar on laptops. The reviewer judged the restyle's visuals but never asked whether the app felt like an app."
  },
  {
@@ -24,7 +24,7 @@
   "id": "ux-50",
   "split": "heldout",
   "issue": 50,
-  "text": "Review this screen as the studio's UX reviewer: Charlie, studio demo bar plus the main tabs in the public demo, PR https://github.com/holroydchase-afk/charlie/pull/38 (Oct 31, 2026).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
+  "text": "Review this screen as the studio's UX reviewer: Charlie, studio demo bar plus the main tabs in the public demo, PR (link removed) (Oct 31, 2026).\n\nGive a score out of 10 and your findings with priorities (P0 to P2). Say what you would check that a pass could miss.",
   "rubric": "Pass only if the reply raises this problem, which a past review missed: \"← Portfolio\" (back to the owner's portfolio site) sits right above the \"Portfolio\" tab (paper trades), so one word means two places. Found later by the Nov 17 live-demo review (UX-L5, P2) and again by the Nov 21 navigation re-review, which renamed the tab \"Trades\". The reviewer looked at the bar alone, not next to the screen it sits on."
  },
  {

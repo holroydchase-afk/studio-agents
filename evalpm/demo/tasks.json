@@ -1,0 +1,42 @@
+[
+ {
+  "id": "rn-01",
+  "split": "dev",
+  "text": "Write release notes for a patch that fixes a crash when opening an empty file."
+ },
+ {
+  "id": "rn-02",
+  "split": "dev",
+  "text": "Write release notes for a release that adds dark mode and renames the Settings tab to Preferences."
+ },
+ {
+  "id": "rn-03",
+  "split": "dev",
+  "text": "Write release notes for a security fix to password reset links (links now expire in 15 minutes)."
+ },
+ {
+  "id": "rn-04",
+  "split": "dev",
+  "text": "Write release notes for a release that drops support for Node 16 and speeds up startup by 30 percent."
+ },
+ {
+  "id": "rn-05",
+  "split": "dev",
+  "text": "Write release notes for a release with 12 small bug fixes and no new features."
+ },
+ {
+  "id": "rn-06",
+  "split": "dev",
+  "text": "Write release notes for a beta of the export feature, which is incomplete and may lose formatting."
+ },
+ {
+  "id": "rn-07",
+  "split": "dev",
+  "text": "Write release notes for a release that changes the default sort order from oldest first to newest first."
+ },
+ {
+  "id": "rn-08",
+  "split": "dev",
+  "text": "Write release notes for a hotfix that restores a setting removed by mistake in the last release."
+ }
+]

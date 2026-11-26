@@ -1,0 +1,31 @@
+SAMPLE DATA: invented tasks and canned replies for a made-up agent. Nothing here was measured.
+
+run: sample (dev, sample)
+  grader model: sample-grader
+  agent model: sample-writer
+  runs per task: 3
+  votes per order: 3
+  tokens: agent 21600, plain 9600
+  tool calls: agent not measured, plain not measured
+flip rate (order disagreements): 0/24
+
+arm agent vs plain: wins 17, losses 4
+  pairs: 17 wins, 4 losses, 3 ties (pairs are not independent)
+  task  agent-plain  ties  outcome
+  rn-04  3-0  (0 ties)  agent
+  rn-06  1-1  (1 tie)  tie
+  rn-01  3-0  (0 ties)  agent
+  rn-05  2-0  (1 tie)  agent
+  rn-08  2-1  (0 ties)  agent
+  rn-07  3-0  (0 ties)  agent
+  rn-03  1-2  (0 ties)  plain
+  rn-02  2-0  (1 tie)  agent
+  by prompt: 6 wins, 1 loss, 1 tied of 8 prompts
+  sign test p = 0.125 (tied prompts excluded)
+  Wilson 95% interval on prompt wins: 0.49 to 0.97
+  cost per win: 1271 tokens
+  verdict: not proven
+
+judge check: 20 invented human marks, agreement 0.90, kappa 0.81, claims allowed: true
+
+SAMPLE DATA: the numbers above are invented, including the judge check. They are not a result.

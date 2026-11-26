@@ -154,6 +154,7 @@ export function buildReport(j) {
   return { version: 2, pairs: pairs.length, flips, flip_rate: `${flips}/${pairs.length}`, arms };
 }
 const f2 = (x) => x.toFixed(2);
+const n = (k, one, many) => `${k} ${k === 1 ? one : many}`;
 export function renderReport(r) {
   const L = [];
   if (r.version === 1) {
@@ -168,9 +169,10 @@ export function renderReport(r) {
   for (const [arm, a] of Object.entries(r.arms)) {
     const pl = a.prompt_level;
     L.push("", `arm ${arm} vs plain: wins ${a.pairs.wins}, losses ${a.pairs.losses}`);
-    L.push(`  pairs: ${a.pairs.wins} wins, ${a.pairs.losses} losses, ${a.pairs.ties} ties (${a.pairs.note})`);
+    L.push(`  pairs: ${n(a.pairs.wins, "win", "wins")}, ${n(a.pairs.losses, "loss", "losses")}, ${n(a.pairs.ties, "tie", "ties")} (${a.pairs.note})`);
+    L.push(`  task  ${arm}-plain  ties  outcome`);
     for (const t of a.prompts) L.push(`  ${t.prompt}  ${t.wins}-${t.losses}  (${t.ties} ${t.ties === 1 ? "tie" : "ties"})  ${t.outcome}`);
-    L.push(`  by prompt: ${pl.wins} wins, ${pl.losses} losses, ${pl.tied_prompts} tied of ${pl.n_prompts} prompts`);
+    L.push(`  by prompt: ${n(pl.wins, "win", "wins")}, ${n(pl.losses, "loss", "losses")}, ${pl.tied_prompts} tied of ${pl.n_prompts} prompts`);
     L.push(`  sign test p = ${pl.signP.toFixed(3)} (tied prompts excluded)`);
     L.push(`  Wilson 95% interval on prompt wins: ${f2(pl.wilson[0])} to ${f2(pl.wilson[1])}`);
     L.push(`  cost per win: ${typeof a.cost_per_win === "number" ? `${Math.round(a.cost_per_win)} tokens` : a.cost_per_win}`);

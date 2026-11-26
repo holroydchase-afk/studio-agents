@@ -1,0 +1,13 @@
+{
+  "name": "evalpm",
+  "version": "0.1.0",
+  "description": "A small eval harness for asking whether your agent beats plain Claude on the same tasks: blind judge, both orders, per-task statistics, human calibration check.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "demo": "node evalpm.mjs demo"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
