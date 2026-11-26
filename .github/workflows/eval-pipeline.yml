@@ -44,3 +44,4 @@ jobs:
         run: |
           node evalpm/evalpm.mjs demo
           node --test tests/evalpm.test.mjs
+          node --test tests/evalpm-capture.test.mjs
