@@ -57,3 +57,5 @@ jobs:
         run: cd templates/lint && npm ci
       - name: Studio ESLint config tests
         run: node --test tests/lint-config.test.mjs
+      - name: Lint this repo with the studio config (warnings only)
+        run: templates/lint/node_modules/.bin/eslint .
