@@ -1,0 +1,23 @@
+{
+  "name": "studio-inbox",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A tiny MCP server where a studio's projects post and read short messages for each other.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "start": "node src/server.ts",
+    "tokens": "node scripts/tokens.ts",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.7",
+    "typescript": "5.9.3",
+    "wrangler": "4.168.0"
+  }
+}

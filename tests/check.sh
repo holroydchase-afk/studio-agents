@@ -229,6 +229,7 @@ check "STK-PS-R30..R38 stakeholder-intake hardening: tag-stripped and unescaped 
 check "R40..R43 stakeholder M2.4 first-real-run fixes: block tags as space in the scan, entity decoding, wrapped lines and table rows, lockfile fix text" node --test "$root/tests/stakeholder-intake-m24.test.mjs"
 check "R50..R52 stakeholder block-tag splits, joined-line scan, fix text from a boolean" node --test "$root/tests/stakeholder-intake-r50.test.mjs"
 check "R54..R56 stakeholder allowed-address boundary, join-point scan, speed, three-way split limit" node --test "$root/tests/stakeholder-intake-r54.test.mjs"
+check "INB-1..23 studio-inbox: auth, MCP protocol, inbox rules, scan, stores (memory + D1 shim), worker, tokens script" bash -c "cd '$root/studio-inbox' && node --test test/*.test.ts"
 check "PDRIFT-1..6 TRAIN-1..9 portfolio drift check and nightly release train logic" node --test "$root/tests/portfolio-drift.test.mjs"
 check "ux-shots tests" node --test "$root/tests/ux-shots.test.mjs"
 check "ux-flows tests" node --test "$root/tests/ux-flows.test.mjs"
