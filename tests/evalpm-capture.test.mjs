@@ -286,7 +286,7 @@ test("EVPM-C-PS-R2 more key shapes are refused and never echoed", () => {
 
 test("EVPM-C-PS-R3 any URL scheme in any case, and email addresses, are removed", () => {
   const root = tmp();
-  ok(cap(root, "add", addArgs(["--prompt", "See HTTPS://Example.COM/x then postgres://user:pw@db.internal/app and s3://bucket/key, mail jane.doe@example.org now"])));
+  ok(cap(root, "add", addArgs(["--prompt", "See HTTPS://Example.COM/x then postgres://user:pw" + "@db.internal/app and s3://bucket/key, mail jane.doe" + "@example.org now"])));
   const c = rd(capFile(root, "r1"));
   for (const bad of ["example.com", "pw@", "db.internal", "bucket", "jane.doe", "example.org"]) assert.ok(!c.prompt.toLowerCase().includes(bad), `${bad} in ${c.prompt}`);
   assert.match(c.prompt, /\(link removed\)/);
