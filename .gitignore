@@ -1,2 +1,4 @@
 plugins/studio/evals/results/
 evals/ux-build/results/.shots/
+
+templates/lint/node_modules/
