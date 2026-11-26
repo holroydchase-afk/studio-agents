@@ -41,3 +41,7 @@ test("EVPL-23 the leak check itself catches a partial and a late leak (QA-R1)", 
   assert.ok(sharesRun(miss, "x brand bar has no navigation on it at all", 6));
   assert.ok(!sharesRun(miss, "Charlie, main navigation tabs at 390", 6));
 });
+
+test("EVPL-23 no URL in the published task text or rubric (the issues link to private repos)", () => {
+  for (const x of rd("evals/suites/ux-reviewer.tasks.json")) assert.doesNotMatch(x.text + x.rubric, /https?:\/\//, x.id);
+});

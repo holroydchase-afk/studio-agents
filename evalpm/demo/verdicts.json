@@ -1,0 +1,42 @@
+{
+ "rn-01": [
+  "agent",
+  "agent",
+  "agent"
+ ],
+ "rn-02": [
+  "agent",
+  "agent",
+  "tie"
+ ],
+ "rn-03": [
+  "plain",
+  "plain",
+  "agent"
+ ],
+ "rn-04": [
+  "agent",
+  "agent",
+  "agent"
+ ],
+ "rn-05": [
+  "agent",
+  "tie",
+  "agent"
+ ],
+ "rn-06": [
+  "agent",
+  "plain",
+  "tie"
+ ],
+ "rn-07": [
+  "agent",
+  "agent",
+  "agent"
+ ],
+ "rn-08": [
+  "agent",
+  "agent",
+  "plain"
+ ]
+}

@@ -13,12 +13,14 @@ const pick = (body, label, next) => {
   const m = new RegExp(`${label}:\\s*([\\s\\S]*?)(?=\\n\\s*(?:${next}):|$)`).exec(body);
   return m ? m[1].trim() : "";
 };
+// Public repo: the issues link to private repos and private files, so any URL is removed from what we publish.
+const noUrls = (t) => t.replace(/https?:\/\/\S+/g, "(link removed)").replace(/\s+\(link removed\)\)?\.?/g, " (link removed)");
 const tasks = [];
 for (let n = 47; n <= 69; n++) {
   const d = JSON.parse(readFileSync(join(dir, `${n}.json`), "utf8"));
   const body = d.body || "";
-  const screen = pick(body, "Project and screen", 'What the reviewer said[^:]*');
-  const wrong = pick(body, "What was actually wrong", "Screenshot path or link[^:]*");
+  const screen = noUrls(pick(body, "Project and screen", 'What the reviewer said[^:]*'));
+  const wrong = noUrls(pick(body, "What was actually wrong", "Screenshot path or link[^:]*"));
   if (!screen || !wrong) { console.error(`issue ${n}: could not read screen or what was wrong`); process.exit(1); }
   tasks.push({
     id: `ux-${n}`, split: n % 3 === 0 ? "dev" : "heldout", issue: n,

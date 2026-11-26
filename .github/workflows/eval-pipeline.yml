@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -20,6 +22,8 @@ jobs:
     needs: ci-check
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -27,3 +31,16 @@ jobs:
         env:
           EVAL_API_KEY: ${{ secrets.EVAL_API_KEY }}
         run: node tools/eval-pipeline.mjs run-gated
+  evalpm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: EvalPM demo and tests
+        run: |
+          node evalpm/evalpm.mjs demo
+          node --test tests/evalpm.test.mjs
