@@ -260,6 +260,16 @@
       "src": "docs/references/ux/dark-mode.md",
       "dest": "docs/references/ux/dark-mode.md",
       "policy": "managed"
+    },
+    {
+      "src": "templates/lint/eslint.config.mjs",
+      "dest": "eslint.config.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/lint/lint.yml",
+      "dest": ".github/workflows/lint.yml",
+      "policy": "seed"
     }
   ],
   "ignore": [

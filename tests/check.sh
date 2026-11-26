@@ -286,6 +286,7 @@ check "FBK-16..22 feedback issue form, workflow, docs page, README and agent-har
 check "OWR-1..21 agent-runner tests (OWR-22 is manual; fails until tools/agent-runner.mjs and evals/runner examples exist)" node --test "$root/tests/agent-runner.test.mjs"
 check "OWR-23..29 agent-runner hardening tests (QA-R1, QA-R4..R6)" node --test "$root/tests/agent-runner-hardening.test.mjs"
 check "PS-R1..R4, R6, R7 agent-runner privacy tests" node --test "$root/tests/agent-runner-privacy.test.mjs"
+check "LINT-1..10 studio ESLint gate (config, strict mode, react and react-native rules, local override, workflow; eslint cases skip without templates/lint/node_modules)" node --test "$root/tests/lint-config.test.mjs"
 
 # install-rules.sh: installs both files, and never overwrites on a second run.
 r2="$tmp/rules"; mkdir -p "$r2"

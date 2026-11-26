@@ -44,3 +44,16 @@ jobs:
           deno-version: v2.x
       - name: Type check the starter's Edge Functions
         run: cd templates/supabase/supabase/functions && deno check --config deno.json */index.ts _shared/*.ts
+  lint-config:
+    runs-on: ubuntu-latest
+    env:
+      LINT_REQUIRE: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install the studio lint dependencies
+        run: cd templates/lint && npm ci
+      - name: Studio ESLint config tests
+        run: node --test tests/lint-config.test.mjs
