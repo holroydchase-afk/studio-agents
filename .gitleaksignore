@@ -1,0 +1,6 @@
+# Two false positives, found Nov 27 with gitleaks 8.21.2 (the CI pin): the "private-key" rule matches the bare
+# "-----BEGIN ... PRIVATE KEY-----" header strings that the studio inbox's content scanner tests use as fixtures
+# (no key body). The commit is on the unmerged studio inbox branch; if that branch is rebased, its fingerprints change.
+# Format: commit:file:rule:line. Nothing else is allowed: the check stays on for every other file and rule.
+bc8bec68551367178102f0689092ee5e66200039:studio-inbox/test/scan.test.ts:private-key:17
+bc8bec68551367178102f0689092ee5e66200039:studio-inbox/test/scan.test.ts:private-key:19
