@@ -603,6 +603,28 @@ assert len(d[\"flows\"])==1 and len(d[\"findings\"])==2, d
 assert d[\"findings\"][0][\"id\"]==\"UX-R1\" and d[\"findings\"][0][\"priority\"]==\"P1\" and d[\"findings\"][0][\"rule\"]==\"G4\", d
 assert d[\"flows\"][0][\"widths\"]==[\"phone\",\"laptop\"], d'"
 
+# .gitleaksignore (GLI-1): two known gitleaks false positives, and nothing else. Every entry is commit:file:rule:line
+# (40-hex commit, path, rule id, integer line). No wildcards, no blanket entries, at most the two expected fingerprints,
+# so widening the file later fails here and forces a review. GLI_FILE overrides the file (used to show the check red).
+gli_check='f="${GLI_FILE:-$1}"; python3 - "$f" <<"PY"
+import re, sys
+lines = [l.rstrip("\n") for l in open(sys.argv[1])]
+ent = [l for l in lines if l.strip() and not l.lstrip().startswith("#")]
+errs = []
+for l in ent:
+    p = l.split(":")
+    if len(p) != 4: errs.append("not four colon-separated fields: " + l); continue
+    c, path, rule, line = p
+    if not re.fullmatch(r"[0-9a-f]{40}", c): errs.append("commit is not 40-hex: " + l)
+    if not path or re.search(r"[*?\[\]]", path): errs.append("empty or wildcard path: " + l)
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", rule): errs.append("bad or wildcard rule id: " + l)
+    if not re.fullmatch(r"[0-9]+", line): errs.append("line is not an integer: " + l)
+if len(ent) > 2: errs.append("%d entries, at most 2 allowed (widening needs a review)" % len(ent))
+if len(set(ent)) != len(ent): errs.append("duplicate entry")
+print("\n".join(errs)); sys.exit(1 if errs else 0)
+PY'
+check "GLI-1 .gitleaksignore has at most two well-formed commit:file:rule:line fingerprints, no wildcards" bash -c "test -f '$root/.gitleaksignore' || { echo 'missing .gitleaksignore'; exit 1; }; $gli_check" _ "$root/.gitleaksignore"
+
 # Public repo: no claude.ai artifact or session links, no trigger or environment ids.
 check "no claude.ai links or trigger/environment ids" bash -c "! grep -rnE 'claude\.ai/(artifact|code)/|trig_[0-9A-Za-z]{10,}|env_[0-9A-Za-z]{10,}' --exclude-dir=.git --exclude=check.sh '$root'"
 
