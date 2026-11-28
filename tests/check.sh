@@ -261,6 +261,7 @@ check "EVPL-19..22 eval-pipeline migration (import-v1, staff-pm and qa-tdd suite
 check "EVPL-23 ux-reviewer eval suite from the miss issues" node --test "$root/tests/eval-pipeline-ux.test.mjs"
 check "EVPL-26..29 eval-pipeline CI, runbook skill, eval READMEs and no-leak checks (fails until built)" node --test "$root/tests/eval-pipeline-ci.test.mjs"
 check "EVPM-1..10, 13 EvalPM demo, claim gate, ledger, no network, neutral names (fails until evalpm/ exists)" node --test "$root/tests/evalpm.test.mjs"
+check "EVPM-C1..C9 evalpm capture: add, build, split, leak guard, stamp, README (fails until evalpm/capture.mjs exists)" node --test "$root/tests/evalpm-capture.test.mjs"
 check "EVPM-12 evalpm README numbers match the named runs" node --test "$root/tests/evalpm-readme.test.mjs"
 check "EVPM-UX polish: pluralized report, SAMPLE DATA tail, help, README links" node --test "$root/tests/evalpm-polish.test.mjs"
 check "PIPE-1..43 pipeline-run ledger, stop rules, merge class" node --test "$root/tests/pipeline-run.test.mjs"

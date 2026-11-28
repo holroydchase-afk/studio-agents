@@ -63,6 +63,7 @@ More rules are in [METHOD.md](METHOD.md). Reports show counts, intervals and tok
 | `collect` | Validate returned results and build the run |
 | `report` | Per-task report; `--claim` is blocked until the judge is calibrated |
 | `calibrate` | Agreement and kappa against a human's marks |
+| `capture` | Log an improvement or a missed bug as an eval case (`add`, `list`, `build`, `stamp`, `check`) |
 
 Run `node tools/eval-pipeline.mjs` for the full tool's usage line (it adds `freeze`, `verify`, `sheet`, `key-add`, `status`, `import-v1` and `ci-check`).
 
@@ -85,6 +86,28 @@ No v2 run (both orders, three votes) has been completed, and no human has finish
 4. Mark 20 pairs blind and run `calibrate` before you say anything about the result.
 
 The studio's own suites are in `evals/suites/`; see [examples/studio-agents.md](examples/studio-agents.md).
+
+## Grow your suite from your own improvements
+
+Every time you improve something, you have a real task, a before, an after and your own verdict. Log it in under a minute and it becomes an eval case:
+
+```
+node evalpm/evalpm.mjs capture add --agent my-agent --id tidy-summary --kind improvement \
+  --prompt "Summarise the change for a busy reader" \
+  --before @old-answer.txt --after @new-answer.txt --verdict better
+node evalpm/evalpm.mjs capture add --agent my-agent --id missed-backup --kind bug \
+  --prompt "Review the migration plan" --missed "the plan drops the audit column with no backup"
+node evalpm/evalpm.mjs capture list --agent my-agent
+node evalpm/evalpm.mjs capture build --agent my-agent
+```
+
+`build` writes `evals/captures/my-agent.tasks.json`. The agent sees only the prompt; the before, the after and your verdict go into a rubric only the grader sees. A `worse` verdict logs a regression you rejected, and a `tie` is kept but not turned into a case. Point a `cases` suite at the tasks file, freeze it, and run it as above.
+
+To re-run on every agent change, run `capture stamp --agent my-agent --agent-file path/to/agent.md` after each run. `capture check` with the same arguments exits 1 when the file has changed since, so a hook or CI job can ask for a new run.
+
+Each id is fixed as a dev or held-out case by a hash of the id, so a case never moves between them; spend the held-out cases once per change. `@file` reads a file inside the `--root` folder only (no dotfiles or symlinks). Add `--root DIR` to any capture command to work in another folder.
+
+**Privacy.** Captures hold your product text, so keep them in a private repo or strip them first. The tool writes `evals/captures/.gitignore` so they are not committed by accident (use `git add -f` on purpose, in a private repo), removes URLs and email addresses, and refuses strings shaped like common keys and tokens. It does not catch every kind of secret and does not detect personal data. Text you pass on the command line also lands in your shell history; use `@file` for anything sensitive.
 
 ## License
 
