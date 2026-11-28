@@ -270,6 +270,26 @@
       "src": "templates/lint/lint.yml",
       "dest": ".github/workflows/lint.yml",
       "policy": "seed"
+    },
+    {
+      "src": "tools/check-actions-pinned.mjs",
+      "dest": "scripts/check-actions-pinned.mjs",
+      "policy": "managed"
+    },
+    {
+      "src": "templates/ci/ci.yml",
+      "dest": ".github/workflows/ci.yml",
+      "policy": "seed"
+    },
+    {
+      "src": "templates/ci/prettierrc.json",
+      "dest": ".prettierrc.json",
+      "policy": "seed"
+    },
+    {
+      "src": "templates/ci/prettierignore",
+      "dest": ".prettierignore",
+      "policy": "seed"
     }
   ],
   "ignore": [

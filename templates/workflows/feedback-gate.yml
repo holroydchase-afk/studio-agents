@@ -13,7 +13,7 @@ jobs:
     if: ${{ vars.FEEDBACK_PAUSED != 'true' && contains(github.event.issue.labels.*.name, 'feedback') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Preflight (kill switch, before any issue is read)
         run: node scripts/feedback-gate.mjs --preflight --root . --paused "${{ vars.FEEDBACK_PAUSED == 'true' }}"
       - name: Gate the issue
